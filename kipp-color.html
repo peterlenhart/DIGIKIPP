@@ -320,6 +320,24 @@
       pointer-events: none;
     }
 
+    /* Intro-Layer mit Ziel-Grafik */
+    .introLayer{
+      position:absolute;
+      left:0;
+      top:0;
+      width:var(--gridW);
+      height:var(--gridH);
+      z-index:90;
+      pointer-events:none;
+    }
+    .introImage{
+      position:absolute;
+      background-image:url("zielbsp.png");
+      background-repeat:no-repeat;
+      background-size:100% 100%;
+      pointer-events:none;
+    }
+
     /* Zielzahlen am Rand: unsichtbar */
     .targetNumber{ display: none !important; }
 
@@ -874,6 +892,16 @@
         </div>
       </div>
 
+      <!-- Intro-Erklärseite -->
+      <div id="introLayer" class="introLayer">
+        <div id="introImage" class="introImage" aria-hidden="true"></div>
+        <div id="introBtnWrap" class="startBtnWrap">
+          <button id="btnIntroPlay" class="squareBtn startBtn" type="button">
+            <span class="anzahlText">SPIELEN</span>
+          </button>
+        </div>
+      </div>
+
       <div class="uiLayer" id="uiLayer" aria-hidden="true">
         <div class="scoreDisplay" id="scoreDisplay">00</div>
         <div class="titleLeft" id="titleLeft">DIGIKIPP</div>
@@ -937,6 +965,11 @@
     const btnErgebnisText= document.getElementById("btnErgebnisText");
     const startBtnWrap   = document.getElementById("startBtnWrap");
     const hintTitle      = document.getElementById("hintTitle");
+
+    const introLayer     = document.getElementById("introLayer");
+    const introImage     = document.getElementById("introImage");
+    const introBtnWrap   = document.getElementById("introBtnWrap");
+    const btnIntroPlay   = document.getElementById("btnIntroPlay");
 
     const kippAnzahlView = document.getElementById("kippAnzahlView");
     const kippAnzahlBtns = document.getElementById("kippAnzahlBtns");
@@ -1091,7 +1124,7 @@
     let targetRevealed = false;
     let started = false;
 
-    let uiMode = "START"; // START | TARGET | COUNT | END
+    let uiMode = "INTRO"; // INTRO | START | TARGET | COUNT | END
 
     // =========================
     // Versuche pro Ziel  (GEÄNDERT: nur 1 Versuch)
@@ -1822,6 +1855,21 @@
       positionUI();
     }
 
+    function showIntroView(){
+      uiMode = "INTRO";
+
+      // Intro aktiv, Spiel-UI weg
+      startBtnWrap.classList.add("hidden");
+      kippAnzahlView.classList.add("hidden");
+      targetPadBtn.classList.add("hidden");
+      hideHint();
+
+      introLayer.classList.remove("hidden");
+      showBackIcon(true);
+
+      positionUI();
+    }
+
     targetPadBtn.addEventListener("click", () => {
       showBackIcon(false);
 
@@ -1880,8 +1928,9 @@
       runErgebnisPresentation();
     });
 
+    // Zurück immer zur Startseite
     backBtn.addEventListener("click", () => {
-      initPlayState();
+      window.location.href = "index.html";
     });
 
     // Close modal
@@ -2000,6 +2049,7 @@
         const midBetween9and10 = (row9VisualTop + row10VisualTop) / 2;
         hintTitle.style.top = (midBetween9and10 + 40) + "px";
       } else {
+        // INTRO oder Fallback
         hintTitle.style.top = row11CenterY + "px";
       }
 
@@ -2007,6 +2057,20 @@
       positionNavButtons(cellPx);
       positionBackButton(cellPx);
       positionTestButton(cellPx);
+
+      // Intro-Bild (Zellen 10A–13H)
+      if(introImage){
+        const gridW = numVar("--gridW") || (8 * cellPx);
+        const row10Top = (((10 + HEADER_ROW_OFFSET) - 1) * cellPx);
+        introImage.style.left = "0px";
+        introImage.style.top  = row10Top + "px";
+        introImage.style.width  = gridW + "px";
+        introImage.style.height = (4 * cellPx) + "px";
+      }
+      if(introBtnWrap){
+        const row13CenterY = (((13 + HEADER_ROW_OFFSET) - 1) * cellPx) + cellPx/2;
+        introBtnWrap.style.top = (row13CenterY - (btnH / 2)) + "px";
+      }
     }
 
     function positionNavButtons(cellPx){
@@ -2105,13 +2169,19 @@
 
       btnErgebnis.onclick = null;
 
+      introLayer.classList.add("hidden");
       showStartView();
       updateShadowVisibility();
     }
 
+    // Intro-Button
+    btnIntroPlay.addEventListener("click", () => {
+      initPlayState();
+    });
+
     window.addEventListener("load", () => {
       rebuild();
-      initPlayState();
+      showIntroView();
     });
 
     window.addEventListener("resize", rebuild);

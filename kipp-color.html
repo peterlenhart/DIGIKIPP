@@ -4,16 +4,16 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>DigiKipp – Schauen & Merken</title>
-
+  
   <!-- Web App Manifest -->
   <link rel="manifest" href="manifest.json">
-
+  
   <!-- iOS Meta Tags -->
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="DigiKipp">
   <link rel="apple-touch-icon" href="icon-192.png">
-
+  
   <!-- Theme Color -->
   <meta name="theme-color" content="#4a2418">
 
@@ -123,38 +123,6 @@
         calc(0px + var(--bg-off-y));
       pointer-events: none;
       z-index: 0;
-    }
-
-    /* Intro-Layer (Erklärseite mit zielbsp.png) */
-    .introLayer{
-      position: absolute;
-      left: 0;
-      top: 0;
-      width: var(--gridW);
-      height: var(--gridH);
-      z-index: 120;
-      pointer-events: auto;
-    }
-
-    .introImg{
-      position: absolute;
-      left: 0;
-      /* 10A => (10 + HEADER_ROW_OFFSET = 12) -> (12-1)*cell = 11*cell */
-      top: calc(11 * var(--cell));
-      width: calc(8 * var(--cell));
-      height: auto;
-      user-select: none;
-      pointer-events: none;
-    }
-
-    .introPlayBtn{
-      position: absolute;
-      left: 50%;
-      transform: translate(-50%, -50%);
-    }
-
-    .introBackBtn{
-      z-index: 130;
     }
 
     /* Z-INDEX: 1 - Kugel (UNTER dem Würfel) */
@@ -416,7 +384,7 @@
       height: calc(44px * var(--uiscale));
     }
 
-    @keyframes pulseScale{
+    @keyframes pulseScale {
       0%   { transform: scale(1);   filter: drop-shadow(0 0 0 rgba(255,255,255,0)); }
       100% { transform: scale(1.06); filter: drop-shadow(0 0 14px rgba(255,255,255,0.45)); }
     }
@@ -807,7 +775,7 @@
       text-shadow: 0 1px 0 rgba(0,0,0,0.45);
     }
 
-    @keyframes kippPulseGlow{
+    @keyframes kippPulseGlow {
       0%   { transform: scale(1);   filter: drop-shadow(0 0 0 rgba(255,255,255,0)); }
       100% { transform: scale(1.09); filter: drop-shadow(0 0 14px rgba(255,255,255,0.95)); }
     }
@@ -816,22 +784,11 @@
     }
   </style>
 </head>
+
 <body>
   <div class="stage" id="stage">
     <div class="layout" id="layout">
       <div class="bgPNG" aria-hidden="true"></div>
-
-      <!-- Intro / Erklärseite -->
-      <div class="introLayer" id="introLayer">
-        <img src="zielbsp.png" alt="Ziel: Zahl zur Farbe kippen" class="introImg" id="introImg">
-        <button id="introPlayBtn" class="squareBtn startBtn introPlayBtn" type="button">
-          <span class="anzahlText">SPIELEN</span>
-        </button>
-        <button class="navBtn introBackBtn" id="introBackBtn" aria-label="Zurück zur Startseite">
-          <div class="backIcon"></div>
-        </button>
-      </div>
-
       <div class="ball" aria-label="Kugel"></div>
       <div class="colors" id="colors" aria-hidden="true"></div>
 
@@ -1004,12 +961,6 @@
     const allShadows = [shadowQ0, shadowQ1, shadowQ2, shadowQ3];
 
     const cubeShadowLayer = document.getElementById("cubeShadowLayer");
-
-    const introLayer   = document.getElementById("introLayer");
-    const introImg     = document.getElementById("introImg");
-    const introPlayBtn = document.getElementById("introPlayBtn");
-    const introBackBtn = document.getElementById("introBackBtn");
-    const uiLayer      = document.getElementById("uiLayer");
 
     function sleep(ms){ return new Promise(res => setTimeout(res, ms)); }
 
@@ -1413,7 +1364,8 @@
       }
 
       if(candidates.length === 0){
-        // Letzter Rettungsanker
+        // Letzter Rettungsanker: wenn wir vorher relaxed haben, aber trotzdem nix:
+        // dann geben wir null zurück (Ziel kann nicht erzeugt werden).
         return null;
       }
 
@@ -1512,7 +1464,9 @@
     const FIXED_SPEED = 3;
 
     // =========================================================
-    // TIMING-PATCH
+    // TIMING-PATCH (isoliert):
+    // Target-Min = 0.55  (Kippziel 12 => Zeiten 55% der Basis)
+    // Step Max   = 0.80  (innerhalb eines 1..6 Runs => Step 6 bis 80%)
     // =========================================================
     const TARGET_MIN = 0.55;
     const STEP_MAX   = 0.80;
@@ -1793,19 +1747,6 @@
       else backBtn.classList.add("hidden");
     }
 
-    function showIntroScreen(){
-      if(introLayer) introLayer.classList.remove("hidden");
-      if(uiLayer) uiLayer.classList.add("hidden");
-      if(closeBtn) closeBtn.classList.add("hidden");
-      if(backBtn) backBtn.classList.add("hidden");
-    }
-
-    function hideIntroScreen(){
-      if(introLayer) introLayer.classList.add("hidden");
-      if(uiLayer) uiLayer.classList.remove("hidden");
-      if(closeBtn) closeBtn.classList.remove("hidden");
-    }
-
     function showStartView(){
       uiMode = "START";
 
@@ -2021,35 +1962,6 @@
       }
     }
 
-    function positionIntroElements(cellPx){
-      if(!introImg || !introPlayBtn || !introBackBtn) return;
-
-      // Bild: 10A
-      const rowImg = 10;
-      const visualRowImg = rowImg + HEADER_ROW_OFFSET;
-      const imgTop = (visualRowImg - 1) * cellPx;
-      introImg.style.top = imgTop + "px";
-      introImg.style.left = "0px";
-      introImg.style.width = (8 * cellPx) + "px";
-
-      // SPIELEN-Button: Zeile 13 (zentriert)
-      const rowBtn = 13;
-      const visualRowBtn = rowBtn + HEADER_ROW_OFFSET;
-      const btnCenterY = (visualRowBtn - 1) * cellPx + cellPx / 2;
-      introPlayBtn.style.top = btnCenterY + "px";
-
-      // Zurück-Icon: wie Back-Button (8H)
-      const rowBack = 8;
-      const colBack = 8;
-      const visualRowBack = rowBack + HEADER_ROW_OFFSET;
-      const backLeft = (colBack - 1) * cellPx + cellPx/2;
-      const backTop  = (visualRowBack - 1) * cellPx + cellPx/2;
-
-      introBackBtn.style.left = backLeft + "px";
-      introBackBtn.style.top  = backTop + "px";
-      introBackBtn.style.transform = "translate(-50%, -50%)";
-    }
-
     function positionUI(){
       const cellPx = numVar("--cell") || 142;
 
@@ -2095,7 +2007,6 @@
       positionNavButtons(cellPx);
       positionBackButton(cellPx);
       positionTestButton(cellPx);
-      positionIntroElements(cellPx);
     }
 
     function positionNavButtons(cellPx){
@@ -2198,23 +2109,9 @@
       updateShadowVisibility();
     }
 
-    // Intro-Events
-    if(introPlayBtn){
-      introPlayBtn.addEventListener("click", () => {
-        hideIntroScreen();
-        initPlayState();
-      });
-    }
-
-    if(introBackBtn){
-      introBackBtn.addEventListener("click", () => {
-        window.location.href = "index.html";
-      });
-    }
-
     window.addEventListener("load", () => {
       rebuild();
-      showIntroScreen();
+      initPlayState();
     });
 
     window.addEventListener("resize", rebuild);

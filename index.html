@@ -6,16 +6,19 @@
 <title>DigiKipp – Start</title>
 
 <style>
-/* ─────────────────────────────────────────────── */
-/* 1:1 DIESELBE WELT WIE DAS SPIEL (1134 × 2788)   */
-/* ─────────────────────────────────────────────── */
+/* Basiswerte deiner Vorlage (1134 × 2788) */
 :root {
-  --stage-w: 1134;
-  --stage-h: 2788;
+  --stage-w: 1134px;
+  --stage-h: 2788px;
 
-  --btn-w: 720px;       /* exakt wie im Spiel */
-  --btn-h: 114px;       /* exakt wie im Spiel */
+  /* Scale = Verhältnis Handybreite zu 1134px */
+  --scale: calc(100vw / 1134);
+
+  /* Button-Maße aus dem Spiel (unskaliert) */
+  --btn-w: 720px;
+  --btn-h: 114px;
   --btn-radius: 26px;
+
   --btn-bg: #decfb8;    /* DigiKipp-Beige */
   --btn-inactive: #6d6660;
   --font: Futura, sans-serif;
@@ -27,48 +30,42 @@ body {
   background: #000;
 }
 
-/* Container mit gleichem Seitenverhältnis wie dein Spiel
-   – volle Höhe, nach unten scrollbar wie im Spiel */
+/* Bühne mit exakt demselben Seitenverhältnis wie dein Spiel
+   Hintergrund = deine PNG 1134×2788 */
 .stage {
   width: 100vw;
-  height: calc((100vw / var(--stage-w)) * var(--stage-h));
+  height: calc(var(--scale) * 2788px);   /* gleiche Höhe wie Spielwelt */
   margin: 0 auto;
   position: relative;
-  background: #000;
+  background: #000 url("digikipp_starts.png") no-repeat top center;
+  background-size: 100% auto;
+  overflow-y: auto;
 }
 
-/* PNG verankert wie im Spiel */
-.start-bg {
-  position: absolute;
-  width: 100%;
-  height: auto;
-  top: 0;
-  left: 0;
-}
-
-/* Buttons exakt wie im Spiel */
+/* Buttons – Maße werden mit demselben Faktor skaliert wie im Spiel */
 .menu-btn {
   position: absolute;
   left: 50%;
   transform: translateX(-50%);
-  width: var(--btn-w);
-  height: var(--btn-h);
-  border-radius: var(--btn-radius);
+  width: calc(var(--btn-w) * var(--scale));
+  height: calc(var(--btn-h) * var(--scale));
+  border-radius: calc(var(--btn-radius) * var(--scale));
   border: none;
   background: var(--btn-bg);
   font-family: var(--font);
   font-weight: 700;
-  font-size: 48px;
+  font-size: calc(48px * var(--scale));
   color: #3a2a23;
   letter-spacing: 2px;
+  z-index: 10;  /* auf jeden Fall über dem Hintergrund */
 }
 
-/* Positionen relativ zur vollen Höhe (Zeile 10, 11–12, 13) */
-.btn-color { top: 63%; }   /* Zeile 10 */
-.btn-card  { top: 71%; }   /* zwischen 11 & 12 */
-.btn-fairy { top: 79%; }   /* Zeile 13 */
+/* Positionen in Prozent der Spielfeld-Höhe: Zeile 10 / 11–12 / 13 */
+.btn-color { top: 63%; }
+.btn-card  { top: 71%; }
+.btn-fairy { top: 79%; }
 
-/* inaktiv */
+/* inaktiver dritter Button */
 .btn-fairy {
   background: var(--btn-inactive);
   color: #bcb7b4;
@@ -79,8 +76,6 @@ body {
 <body>
 
 <div class="stage">
-
-  <img src="digikipp_starts.png" class="start-bg" alt="DigiKipp Start">
 
   <button class="menu-btn btn-color" onclick="location.href='kipp-color.html'">
     KIPP COLOR

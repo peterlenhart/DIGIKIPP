@@ -134,6 +134,119 @@
       opacity:0.55;
       cursor:default;
     }
+
+    /* Navigation Button (X-Icon) */
+    .navBtn{
+      position: absolute;
+      width: calc(56px * var(--uiscale));
+      height: calc(56px * var(--uiscale));
+      background: none;
+      border: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      user-select: none;
+      pointer-events: auto;
+      z-index: 100;
+      transition: transform 0.12s ease, opacity 0.12s ease;
+    }
+    .navBtn:active{ transform: scale(0.95); opacity: 0.8; }
+
+    .closeIcon{
+      position: relative;
+      width: calc(32px * var(--uiscale));
+      height: calc(32px * var(--uiscale));
+    }
+    .closeIcon::before,
+    .closeIcon::after{
+      content: "";
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: calc(32px * var(--uiscale));
+      height: calc(5px * var(--uiscale));
+      background: rgba(234,215,190,0.96);
+      border-radius: calc(2.5px * var(--uiscale));
+      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.45));
+    }
+    .closeIcon::before{ transform: translate(-50%, -50%) rotate(45deg); }
+    .closeIcon::after { transform: translate(-50%, -50%) rotate(-45deg); }
+
+    /* Modal für Schließen-Bestätigung */
+    .modalOverlay{
+      position:fixed;
+      left:0;
+      top:0;
+      width:100%;
+      height:100%;
+      background:rgba(0,0,0,0.75);
+      z-index:9999;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      backdrop-filter:blur(4px);
+      opacity:1;
+      transition:opacity 0.2s ease;
+    }
+    .modalOverlay.hidden{
+      opacity:0;
+      pointer-events:none;
+    }
+
+    .modalBox{
+      background: var(--btn-bg);
+      border-radius: calc(18px * var(--uiscale));
+      padding: calc(32px * var(--uiscale)) calc(28px * var(--uiscale));
+      max-width: calc(420px * var(--uiscale));
+      box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+      text-align:center;
+    }
+
+    .modalTitle{
+      font-size: calc(22px * var(--uiscale));
+      font-weight:1000;
+      color: var(--btn-text);
+      margin-bottom: calc(16px * var(--uiscale));
+      letter-spacing:0.02em;
+    }
+
+    .modalText{
+      font-size: calc(16px * var(--uiscale));
+      color: #5a3a28;
+      margin-bottom: calc(26px * var(--uiscale));
+      line-height:1.5;
+    }
+
+    .modalBtns{
+      display:flex;
+      gap: calc(12px * var(--uiscale));
+      justify-content:center;
+    }
+
+    .modalBtn{
+      padding: calc(12px * var(--uiscale)) calc(24px * var(--uiscale));
+      border-radius: calc(10px * var(--uiscale));
+      border:2px solid rgba(0,0,0,0.25);
+      font-weight:700;
+      font-size: calc(16px * var(--uiscale));
+      cursor:pointer;
+      transition:all 0.12s ease;
+      user-select:none;
+    }
+    .modalBtn:active{ transform:scale(0.97); }
+
+    .modalBtn.cancel{
+      background:#fff;
+      color:#5a3a28;
+      box-shadow:0 2px 8px rgba(0,0,0,0.15);
+    }
+
+    .modalBtn.confirm{
+      background:#8a4f35;
+      color:#fff;
+      box-shadow:0 2px 8px rgba(0,0,0,0.25);
+    }
   </style>
 </head>
 
@@ -157,6 +270,22 @@
         <button id="btnFairy" class="squareBtn menu-btn fairyBtn" disabled>
           <span class="startBtnText">KIPP FAIRY</span>
         </button>
+
+        <!-- Schließen Button -->
+        <button class="navBtn" id="closeBtn" aria-label="App beenden">
+          <div class="closeIcon"></div>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div id="closeModal" class="modalOverlay hidden">
+    <div class="modalBox">
+      <div class="modalTitle">App beenden?</div>
+      <div class="modalText">Möchtest du DigiKipp wirklich schließen?</div>
+      <div class="modalBtns">
+        <button class="modalBtn cancel" id="modalCancel">Abbrechen</button>
+        <button class="modalBtn confirm" id="modalConfirm">Beenden</button>
       </div>
     </div>
   </div>
@@ -206,6 +335,18 @@
       btnColor.style.top = row10CenterY + "px";
       btnCard.style.top  = row115CenterY + "px";
       btnFairy.style.top = row13CenterY + "px";
+
+      // Position Close Button in Rasterzelle 0.1A
+      const closeBtn = document.getElementById("closeBtn");
+      const s = numVar("--uiscale") || 1;
+      // Zelle 0.1 ist die erste Header-Zeile (row 0), Spalte A
+      const closeLeft = cellPx * 0.5; // Mitte von Spalte A
+      const closeTop = cellPx * 0.5;  // Mitte von Zeile 0.1
+      
+      closeBtn.style.left = closeLeft + "px";
+      closeBtn.style.top = closeTop + "px";
+      closeBtn.style.transform = `translate(-50%, -50%) scale(${s})`;
+      closeBtn.style.transformOrigin = "top left";
     }
 
     function rebuild(){
@@ -235,6 +376,44 @@
     btnCard.addEventListener("click", () => {
       // später: kippcard.html o.ä.
       window.location.href = "kipp-card.html";
+    });
+
+    // Close Modal Funktionalität
+    const closeBtn = document.getElementById("closeBtn");
+    const closeModal = document.getElementById("closeModal");
+    const modalCancel = document.getElementById("modalCancel");
+    const modalConfirm = document.getElementById("modalConfirm");
+
+    function showCloseModal() {
+      closeModal.classList.remove("hidden");
+    }
+
+    function hideCloseModal() {
+      closeModal.classList.add("hidden");
+    }
+
+    function closeApp() {
+      // Versuche App/Tab zu schließen
+      window.close();
+      
+      // Fallback für Browser die window.close() blockieren
+      setTimeout(() => {
+        // Wenn Tab noch offen ist, gehe zurück oder zu about:blank
+        if (!document.hidden) {
+          window.history.back();
+        }
+      }, 100);
+    }
+
+    closeBtn.addEventListener("click", showCloseModal);
+    modalCancel.addEventListener("click", hideCloseModal);
+    modalConfirm.addEventListener("click", closeApp);
+
+    // Modal schließen bei Klick außerhalb
+    closeModal.addEventListener("click", (e) => {
+      if (e.target === closeModal) {
+        hideCloseModal();
+      }
     });
   </script>
 </body>

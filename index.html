@@ -5,8 +5,38 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>DigiKipp – Start</title>
 
+  <!-- Web App Manifest (wie im Spiel) -->
+  <link rel="manifest" href="manifest.json">
+
+  <!-- iOS Meta Tags (wie im Spiel) -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="DigiKipp">
+  <link rel="apple-touch-icon" href="icon-192.png">
+
+  <!-- Theme Color (wie im Spiel) -->
+  <meta name="theme-color" content="#4a2418">
+
   <style>
-    /* --- Startseiten-Bereich --- */
+    :root{
+      --beige: #ead7be;
+      --inactive: #6d6660;
+      --font: Futura, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background: #000;
+      font-family: var(--font);
+    }
+
+    /* --- STARTSCREEN --- */
     .startscreen {
       position: relative;
       width: 100%;
@@ -21,7 +51,7 @@
       display: block;
     }
 
-    /* --- Gemeinsamer Button-Stil --- */
+    /* --- Buttons wie auf deinem schönen Screenshot --- */
     .menu-btn {
       position: absolute;
       left: 50%;
@@ -29,59 +59,84 @@
       width: 72%;
       padding: 18px 0;
       font-size: 1.4rem;
-      font-family: Futura, sans-serif;
+      font-family: var(--font);
       font-weight: 700;
       border-radius: 14px;
       border: none;
-      background: #e5d4bd;      /* dein DigiKipp-Button Beige */
-      color: #000;
+      background: var(--beige);
+      color: #2a160c;
       box-shadow: 0 4px 6px rgba(0,0,0,0.25);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
     }
 
-    /* Positionen in deinem Raster */
-    .btn-color { top: 62%; }     /* Zeile 10 */
-    .btn-card  { top: 70%; }     /* Zwischen Zeile 11 und 12 */
-    .btn-fairy { top: 78%; }     /* Zeile 13 */
+    .menu-btn:active {
+      transform: translateX(-50%) scale(0.98);
+      filter: brightness(0.97);
+    }
 
-    /* --- Inaktiv / Coming Soon Stil --- */
-    .btn-fairy {
+    /* Positionen im Screen (wie vorher) */
+    .btn-kippcolor { top: 62%; }  /* Zeile 10 */
+    .btn-kippcard  { top: 70%; }  /* zwischen 11 und 12 */
+    .btn-kippfair  { top: 78%; }  /* Zeile 13 */
+
+    /* Inaktiv / Coming soon */
+    .btn-kippfair[disabled] {
       background: #dcd2c7;
       color: #9c938b;
       box-shadow: none;
       opacity: 0.55;
     }
-
-    body{
-      margin: 0;
-      background: #000;
-    }
   </style>
 </head>
-<body>
 
+<body>
   <!-- STARTSEITE-HINTERGRUND -->
   <div class="startscreen">
-    <img src="digikipp_starts.png" class="start-bg" alt="DigiKipp Start" />
+    <img src="digikipp_starts.png" class="start-bg" alt="DigiKipp Startscreen" />
 
     <!-- BUTTON 1 – KIPP COLOR -->
     <button
-      class="menu-btn btn-color"
-      onclick="location.href='kipp-color.html'">
+      id="btnKippColor"
+      class="menu-btn btn-kippcolor"
+      type="button">
       KIPP COLOR
     </button>
 
     <!-- BUTTON 2 – KIPP CARD -->
     <button
-      class="menu-btn btn-card"
-      onclick="location.href='kipp-card.html'">
+      id="btnKippCard"
+      class="menu-btn btn-kippcard"
+      type="button">
       KIPP CARD
     </button>
 
     <!-- BUTTON 3 – KIPP FAIRY (INAKTIV) -->
-    <button class="menu-btn btn-fairy" disabled>
+    <button
+      id="btnKippFairy"
+      class="menu-btn btn-kippfair"
+      type="button"
+      disabled>
       KIPP FAIRY
     </button>
   </div>
 
+  <script>
+    // Navigation zu deinen Spielseiten – alles mit KIPP (2x P)
+    document.getElementById("btnKippColor")
+      .addEventListener("click", () => {
+        window.location.href = "kipp-color.html";
+      });
+
+    document.getElementById("btnKippCard")
+      .addEventListener("click", () => {
+        window.location.href = "kipp-card.html";
+      });
+
+    // Fairy bleibt vorerst deaktiviert – später z.B.:
+    // document.getElementById("btnKippFairy").addEventListener("click", () => {
+    //   window.location.href = "kipp-fairy.html";
+    // });
+  </script>
 </body>
 </html>

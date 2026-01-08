@@ -11,21 +11,22 @@
   --stage-h: 2788;
   --scale: calc(100vw / var(--stage-w));
 
-  --btn-w: 720px;
-  --btn-h: 114px;
-  --btn-radius: 26px;
+  --btn-w: 720;
+  --btn-h: 114;
+  --btn-radius: 26;
 
   --btn-bg: #decfb8;
   --btn-inactive: #6d6660;
   --font: Futura, sans-serif;
 
-  --row-h: calc(2788px / 16); /* exakte Spielzeilenhöhe */
+  /* 16 Zeilen wie im Spiel */
+  --row-h: calc(2788px / 16);
 }
 
-/* Bühne */
+/* Bühne mit selbem Seitenverhältnis + PNG-Hintergrund */
 .stage {
   width: 100vw;
-  height: calc(var(--scale) * var(--stage-h));
+  height: calc(var(--stage-h) * var(--scale));
   margin: 0 auto;
   position: relative;
   background: #000 url("digikipp_starts.png") no-repeat top center;
@@ -33,7 +34,7 @@
   overflow: hidden;
 }
 
-/* Buttons */
+/* Buttons wie im Spiel, mitskaliert */
 .menu-btn {
   position: absolute;
   left: 50%;
@@ -51,13 +52,17 @@
   z-index: 10;
 }
 
-/* Zeilenpositionen (EXAKT wie im Spiel) */
-.btn-color { top: calc(var(--row-h) * 9); }   /* Zeile 10 */
-.btn-card  { top: calc(var(--row-h) * 10); }  /* Zeile 11 */
-.btn-fairy { top: calc(var(--row-h) * 12); }  /* Zeile 13 */
+/* Zeilenpositionen (mit Skalierung) */
+.btn-color {
+  top: calc(var(--row-h) * 9 * var(--scale));   /* Zeile 10 */
+}
 
-/* inaktiv */
+.btn-card {
+  top: calc(var(--row-h) * 10 * var(--scale));  /* Zeile 11 */
+}
+
 .btn-fairy {
+  top: calc(var(--row-h) * 12 * var(--scale));  /* Zeile 13 */
   background: var(--btn-inactive);
   color: #bcb7b4;
 }

@@ -650,129 +650,34 @@
     .navBtn:active{ transform: scale(0.95); opacity: 0.8; }
     .navBtn[disabled]{ opacity: 0.35; pointer-events: none; filter: saturate(0.8); }
 
-    .closeIcon{
-      position: relative;
-      width: calc(32px * var(--uiscale));
-      height: calc(32px * var(--uiscale));
-    }
-    .closeIcon::before,
-    .closeIcon::after{
-      content: "";
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      width: calc(32px * var(--uiscale));
-      height: calc(5px * var(--uiscale));
-      background: rgba(234,215,190,0.96);
-      border-radius: calc(2.5px * var(--uiscale));
-      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.45));
-    }
-    .closeIcon::before{ transform: translate(-50%, -50%) rotate(45deg); }
-    .closeIcon::after { transform: translate(-50%, -50%) rotate(-45deg); }
-
     .backIcon{
       position: relative;
-      width: calc(34px * var(--uiscale));
-      height: calc(34px * var(--uiscale));
+      width: calc(40px * var(--uiscale));
+      height: calc(40px * var(--uiscale));
       filter: drop-shadow(0 2px 4px rgba(0,0,0,0.45));
     }
     .backIcon::before{
       content:"";
       position:absolute;
-      left: 6%;
+      left: 15%;
       top: 50%;
       width: 70%;
-      height: calc(5px * var(--uiscale));
+      height: calc(6px * var(--uiscale));
       background: rgba(234,215,190,0.96);
-      border-radius: calc(2.5px * var(--uiscale));
+      border-radius: calc(3px * var(--uiscale));
       transform: translateY(-50%);
     }
     .backIcon::after{
       content:"";
       position:absolute;
-      left: 10%;
+      left: 15%;
       top: 50%;
       width: 0;
       height: 0;
-      border-top: calc(9px * var(--uiscale)) solid transparent;
-      border-bottom: calc(9px * var(--uiscale)) solid transparent;
-      border-right: calc(12px * var(--uiscale)) solid rgba(234,215,190,0.96);
+      border-top: calc(12px * var(--uiscale)) solid transparent;
+      border-bottom: calc(12px * var(--uiscale)) solid transparent;
+      border-right: calc(16px * var(--uiscale)) solid rgba(234,215,190,0.96);
       transform: translateY(-50%);
-    }
-
-    /* Modal bleibt (Close) */
-    .modalOverlay{
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      background: rgba(0, 0, 0, 0.75);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 1000;
-      pointer-events: auto;
-    }
-    .modalBox{
-      background: rgba(234,215,190,0.98);
-      border: 3px solid rgba(0,0,0,0.65);
-      border-radius: 20px;
-      padding: 40px 48px;
-      box-shadow:
-        0 20px 40px rgba(0,0,0,0.35),
-        0 0 0 1px rgba(255,255,255,0.15) inset;
-      text-align: center;
-      max-width: 85%;
-      width: auto;
-    }
-    .modalTitle{
-      font-size: clamp(22px, 5.5vmin, 36px);
-      font-weight: 1000;
-      letter-spacing: 0.08em;
-      color: #2a160c;
-      text-shadow: 0 1px 0 rgba(255,255,255,0.35);
-      margin-bottom: 24px;
-      text-transform: uppercase;
-      white-space: nowrap;
-    }
-    .modalText{
-      font-size: clamp(16px, 4vmin, 22px);
-      font-weight: 600;
-      color: #4a2418;
-      margin-bottom: 32px;
-      line-height: 1.5;
-    }
-    .modalBtns{
-      display: flex;
-      gap: 20px;
-      justify-content: center;
-    }
-    .modalBtn{
-      padding: 16px 40px;
-      border-radius: 14px;
-      border: 2px solid rgba(0,0,0,0.65);
-      font-size: clamp(16px, 4vmin, 22px);
-      font-weight: 1000;
-      letter-spacing: 0.06em;
-      cursor: pointer;
-      user-select: none;
-      -webkit-tap-highlight-color: transparent;
-      box-shadow:
-        0 8px 14px rgba(0,0,0,0.18),
-        0 0 0 1px rgba(255,255,255,0.15) inset;
-      white-space: nowrap;
-    }
-    .modalBtn:active{ transform: scale(0.98); filter: brightness(0.98); }
-    .modalBtn.cancel{
-      background: #a8927a;
-      color: rgba(255,255,255,0.95);
-      text-shadow: 0 1px 0 rgba(0,0,0,0.35);
-    }
-    .modalBtn.confirm{
-      background: #d64545;
-      color: rgba(255,255,255,0.95);
-      text-shadow: 0 1px 0 rgba(0,0,0,0.45);
     }
 
     @keyframes kippPulseGlow {
@@ -904,27 +809,12 @@
           </button>
         </div>
 
-        <button class="navBtn hidden" id="backBtn" aria-label="Zurück">
+        <button class="navBtn" id="backBtn" aria-label="Zurück">
           <div class="backIcon"></div>
-        </button>
-
-        <button class="navBtn" id="closeBtn" aria-label="Spiel beenden">
-          <div class="closeIcon"></div>
         </button>
       </div>
 
       <div class="grid" id="grid" aria-hidden="true"></div>
-    </div>
-  </div>
-
-  <div id="closeModal" class="modalOverlay hidden">
-    <div class="modalBox">
-      <div class="modalTitle">Spiel beenden?</div>
-      <div class="modalText">Möchtest du das Spiel wirklich beenden?<br>Der aktuelle Fortschritt geht verloren.</div>
-      <div class="modalBtns">
-        <button class="modalBtn cancel" id="modalCancel">Abbrechen</button>
-        <button class="modalBtn confirm" id="modalConfirm">Beenden</button>
-      </div>
     </div>
   </div>
 
@@ -941,12 +831,7 @@
     const kippAnzahlView = document.getElementById("kippAnzahlView");
     const kippAnzahlBtns = document.getElementById("kippAnzahlBtns");
 
-    const closeBtn = document.getElementById("closeBtn");
     const backBtn  = document.getElementById("backBtn");
-
-    const closeModal   = document.getElementById("closeModal");
-    const modalCancel  = document.getElementById("modalCancel");
-    const modalConfirm = document.getElementById("modalConfirm");
 
     const testTargetBtn = document.getElementById("testTargetBtn");
 
@@ -1652,7 +1537,6 @@
 
       kippAnzahlView.classList.add("hidden");
       targetPadBtn.classList.add("hidden");
-      showBackIcon(false);
 
       showHint("SCHLUSS KIPPRUNDE", false);
 
@@ -1660,7 +1544,6 @@
       btnErgebnis.disabled = false;
 
       setAnzahlButtonsLocked(true);
-      closeBtn.disabled = false;
       positionUI();
     }
 
@@ -1742,11 +1625,6 @@
       targetPadNum.style.opacity = "1";
     }
 
-    function showBackIcon(show){
-      if(show) backBtn.classList.remove("hidden");
-      else backBtn.classList.add("hidden");
-    }
-
     function showStartView(){
       uiMode = "START";
 
@@ -1762,8 +1640,6 @@
       targetPadBtn.classList.add("hidden");
       targetPadBtn.classList.remove("pulse");
       targetPadBtn.disabled = true;
-
-      showBackIcon(false);
 
       targetRevealed = false;
       started = false;
@@ -1792,8 +1668,6 @@
       targetPadBtn.classList.add("pulse");
       targetPadBtn.disabled = false;
 
-      showBackIcon(true);
-
       targetRevealed = false;
       resetTargetPadUI();
       clearHitPulse();
@@ -1814,8 +1688,6 @@
       testTargetBtn.classList.add("hidden");
       testTargetBtn.disabled = true;
 
-      showBackIcon(false);
-
       clearHitPulse();
       checkHitAndAnimate();
 
@@ -1823,8 +1695,6 @@
     }
 
     targetPadBtn.addEventListener("click", () => {
-      showBackIcon(false);
-
       if(targetRevealed) return;
 
       clearHitPulse();
@@ -1862,8 +1732,6 @@
       targetPadBtn.classList.add("hidden");
       targetPadBtn.disabled = true;
 
-      showBackIcon(false);
-
       targetRevealed = false;
       currentTarget = null;
       attemptsForTarget = 0;
@@ -1880,31 +1748,17 @@
       runErgebnisPresentation();
     });
 
+    // Intelligente Navigation: 
+    // - In SCHAUKIPP-RUNDE → zurück zur Startseite
+    // - Im Spiel → zurück zur SCHAUKIPP-RUNDE
     backBtn.addEventListener("click", () => {
-      initPlayState();
-    });
-
-    // Close modal
-    function showCloseModal(){
-      cancelPreview();
-      closeModal.classList.remove("hidden");
-    }
-    function hideCloseModal(){
-      closeModal.classList.add("hidden");
-    }
-    function endGame(){
-      cancelPreview();
-      hideCloseModal();
-      location.reload();
-    }
-
-    closeBtn.addEventListener("click", showCloseModal);
-
-    modalCancel.addEventListener("click", hideCloseModal);
-    modalConfirm.addEventListener("click", endGame);
-
-    closeModal.addEventListener("click", (e) => {
-      if(e.target === closeModal) hideCloseModal();
+      if (!btnSchauen.classList.contains("hidden")) {
+        // SCHAUKIPP-RUNDE ist sichtbar → zurück zur Startseite
+        window.location.href = "index.html";
+      } else {
+        // Im Spiel → Reset zur SCHAUKIPP-RUNDE
+        initPlayState();
+      }
     });
 
     function setScaleToFitWidth(){
@@ -2004,38 +1858,22 @@
       }
 
       placeTargetPad_12D_13E(cellPx);
-      positionNavButtons(cellPx);
       positionBackButton(cellPx);
       positionTestButton(cellPx);
     }
 
-    function positionNavButtons(cellPx){
-      const closeCol = 1;
-      const closeY = 1.0 * cellPx;
-      const closeLeft = (closeCol - 1) * cellPx + cellPx / 2;
-      const closeTop = closeY;
+    function positionBackButton(cellPx){
+      const col = 1;
+      const y = 1.0 * cellPx;
+      const left = (col - 1) * cellPx + cellPx / 2;
+      const top = y;
 
       const s = getComputedStyle(document.documentElement).getPropertyValue("--headerScale").trim() || 0.75;
 
-      closeBtn.style.left = closeLeft + "px";
-      closeBtn.style.top = closeTop + "px";
-      closeBtn.style.transform = `translate(-50%, -50%) scale(${s})`;
-      closeBtn.style.transformOrigin = "top left";
-    }
-
-    function positionBackButton(cellPx){
-      const row = 8;
-      const col = 8;
-      const visualRow = row + HEADER_ROW_OFFSET;
-
-      const left = (col - 1) * cellPx + cellPx/2;
-      const top  = (visualRow - 1) * cellPx + cellPx/2;
-
       backBtn.style.left = left + "px";
-      backBtn.style.top  = top + "px";
-      backBtn.style.transform = "translate(-50%, -50%)";
-      backBtn.style.zIndex = "30";
-      backBtn.style.pointerEvents = "auto";
+      backBtn.style.top = top + "px";
+      backBtn.style.transform = `translate(-50%, -50%) scale(${s})`;
+      backBtn.style.transformOrigin = "top left";
     }
 
     function positionTestButton(cellPx){

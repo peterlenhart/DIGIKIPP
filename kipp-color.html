@@ -1749,14 +1749,14 @@
     });
 
     // Intelligente Navigation: 
-    // - In SCHAUKIPP-RUNDE → zurück zur Startseite
-    // - Im Spiel → zurück zur SCHAUKIPP-RUNDE
+    // - In SCHAUKIPP-RUNDE (uiMode === "START") → zurück zur Startseite
+    // - In allen anderen Phasen → zurück zur SCHAUKIPP-RUNDE
     backBtn.addEventListener("click", () => {
-      if (!btnSchauen.classList.contains("hidden")) {
-        // SCHAUKIPP-RUNDE ist sichtbar → zurück zur Startseite
+      if (uiMode === "START") {
+        // In SCHAUKIPP-RUNDE → zurück zur Startseite
         window.location.href = "index.html";
       } else {
-        // Im Spiel → Reset zur SCHAUKIPP-RUNDE
+        // Im Spiel (TARGET, COUNT, END) → Reset zur SCHAUKIPP-RUNDE
         initPlayState();
       }
     });

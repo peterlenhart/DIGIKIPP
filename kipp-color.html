@@ -1868,7 +1868,7 @@
       const left = (col - 1) * cellPx + cellPx / 2;
       const top = y;
 
-      const s = getComputedStyle(document.documentElement).getPropertyValue("--headerScale").trim() || 0.75;
+      const s = getComputedStyle(document.documentElement).getPropertyValue("--uiscale").trim() || 1;
 
       backBtn.style.left = left + "px";
       backBtn.style.top = top + "px";

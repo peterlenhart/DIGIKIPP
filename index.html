@@ -21,14 +21,19 @@
   --font: Futura, sans-serif;
 }
 
-/* Container hat fixes Seitenverhältnis wie dein Spiel */
+/* Seite schwarz, keine Ränder */
+body {
+  margin: 0;
+  background: #000;
+}
+
+/* Container mit gleichem Seitenverhältnis wie dein Spiel
+   – volle Höhe, nach unten scrollbar wie im Spiel */
 .stage {
   width: 100vw;
   height: calc((100vw / var(--stage-w)) * var(--stage-h));
-  max-height: 100vh;
   margin: 0 auto;
   position: relative;
-  overflow: hidden;
   background: #000;
 }
 
@@ -58,10 +63,10 @@
   letter-spacing: 2px;
 }
 
-/* Positionen nach deinem Pixelraster */
-.btn-color { top: calc(2788px * 0.63); }   /* Zeile 10 */
-.btn-card  { top: calc(2788px * 0.71); }   /* zwischen 11 & 12 */
-.btn-fairy { top: calc(2788px * 0.79); }   /* Zeile 13 */
+/* Positionen relativ zur vollen Höhe (Zeile 10, 11–12, 13) */
+.btn-color { top: 63%; }   /* Zeile 10 */
+.btn-card  { top: 71%; }   /* zwischen 11 & 12 */
+.btn-fairy { top: 79%; }   /* Zeile 13 */
 
 /* inaktiv */
 .btn-fairy {
@@ -75,7 +80,7 @@
 
 <div class="stage">
 
-  <img src="digikipp_starts.png" class="start-bg">
+  <img src="digikipp_starts.png" class="start-bg" alt="DigiKipp Start">
 
   <button class="menu-btn btn-color" onclick="location.href='kipp-color.html'">
     KIPP COLOR

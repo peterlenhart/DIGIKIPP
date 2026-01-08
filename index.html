@@ -1,97 +1,114 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DigiKipp – Start</title>
 
-<title>DIGIKIPP – Start</title>
+  <style>
+    :root{
+      --beige:   #e5d4bd;
+      --inactive:#dcd2c7;
+      --font:    Futura, system-ui, -apple-system, "Segoe UI", sans-serif;
+    }
 
-<style>
-/* -------------------- BASIS -------------------- */
-:root{
-  --beige: #e5d4bd;
-  --inactive: #dcd2c7;
-  --font: Futura, sans-serif;
-}
+    body{
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background: #000;
+      font-family: var(--font);
+    }
 
-body{
-  margin: 0;
-  padding: 0;
-  overflow: hidden;
-  background: #000;
-  font-family: var(--font);
-}
+    /* --- STARTSCREEN --- */
+    .startscreen{
+      position: relative;
+      width: 100%;
+      height: 100vh;
+      overflow: hidden;
+    }
 
-/* -------------------- STARTSCREEN -------------------- */
-.startscreen{
-  position: relative;
-  width: 100%;
-  height: 100vh;
-  overflow: hidden;
-}
+    .start-bg{
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
 
-.start-bg{
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-}
+    /* --- Buttons --- */
+    .menu-btn{
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 72%;
+      padding: 18px 0;
+      font-size: 1.4rem;
+      font-family: var(--font);
+      font-weight: 700;
+      border-radius: 14px;
+      border: none;
+      background: var(--beige);
+      color: #000;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.25);
+    }
 
-/* -------------------- BUTTONS -------------------- */
-.menu-btn{
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 72%;
-  padding: 18px 0;
-  font-size: 1.4rem;
-  font-family: var(--font);
-  font-weight: 700;
-  border-radius: 14px;
-  border: none;
-  background: var(--beige);
-  color: #000;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.25);
-}
+    /* Positionen – wie vorher */
+    .btn-kippcolor,
+    .btn-color{
+      top: 62%;    /* Zeile 10 */
+    }
 
-/* Button-Positionen (Raster) */
-.btn-kippcolor{ top: 62%; }
-.btn-kipppcard{ top: 70%; }
-.btn-kipppfairy{ top: 78%; }
+    .btn-kippcard,
+    .btn-card{
+      top: 70%;    /* zwischen 11 und 12 */
+    }
 
-/* Inaktiv */
-.btn-kipppfairy{
-  background: var(--inactive);
-  color: #6d6660;
-  opacity: 0.55;
-  box-shadow: none;
-}
-</style>
+    .btn-kippfairy,
+    .btn-fairy{
+      top: 78%;    /* Zeile 13 */
+    }
 
+    /* Inaktiv / Coming soon */
+    .btn-kippfairy,
+    .btn-fairy{
+      background: var(--inactive);
+      color: #6d6660;
+      opacity: 0.55;
+      box-shadow: none;
+    }
+  </style>
 </head>
 <body>
 
-<!-- -------------------- STARTSEITE -------------------- -->
-<div class="startscreen">
-  <img src="digikipp_starts.png" class="start-bg" />
+  <!-- STARTSEITE-HINTERGRUND -->
+  <div class="startscreen">
+    <img src="digikipp_starts.png" class="start-bg" alt="DigiKipp Start" />
 
-  <button class="menu-btn btn-kippcolor">KIPP COLOR</button>
-  <button class="menu-btn btn-kipppcard">KIPP CARD</button>
-  <button class="menu-btn btn-kipppfairy" disabled>KIPP FAIRY</button>
-</div>
+    <!-- Buttons -->
+    <button class="menu-btn btn-kippcolor btn-color">KIPP COLOR</button>
+    <button class="menu-btn btn-kippcard  btn-card">KIPP CARD</button>
+    <button class="menu-btn btn-kippfairy btn-fairy" disabled>KIPP FAIRY</button>
+  </div>
 
-<!-- -------------------- FUNKTION FÜR BUTTONS -------------------- -->
-<script>
-document.querySelector(".btn-kippcolor")?.addEventListener("click", () => {
-    window.location.href = "kipp-color.html";
-});
+  <script>
+    // KIPP COLOR -> kipp-color.html
+    const btnColor = document.querySelector(".btn-kippcolor, .btn-color");
+    if (btnColor){
+      btnColor.addEventListener("click", () => {
+        window.location.href = "kipp-color.html";
+      });
+    }
 
-document.querySelector(".btn-kipppcard")?.addEventListener("click", () => {
-    window.location.href = "kipp-card.html";
-});
+    // KIPP CARD -> kipp-card.html
+    const btnCard = document.querySelector(".btn-kippcard, .btn-card");
+    if (btnCard){
+      btnCard.addEventListener("click", () => {
+        window.location.href = "kipp-card.html";
+      });
+    }
 
-// KIPP FAIRY bleibt deaktiviert
-</script>
+    // KIPP FAIRY bleibt deaktiviert
+  </script>
 
 </body>
 </html>

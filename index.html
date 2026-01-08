@@ -138,8 +138,8 @@
     /* Navigation Button (X-Icon) */
     .navBtn{
       position: absolute;
-      width: calc(56px * var(--uiscale));
-      height: calc(56px * var(--uiscale));
+      width: 56px;
+      height: 56px;
       background: none;
       border: none;
       display: flex;
@@ -155,8 +155,8 @@
 
     .closeIcon{
       position: relative;
-      width: calc(32px * var(--uiscale));
-      height: calc(32px * var(--uiscale));
+      width: 32px;
+      height: 32px;
     }
     .closeIcon::before,
     .closeIcon::after{
@@ -164,10 +164,10 @@
       position: absolute;
       top: 50%;
       left: 50%;
-      width: calc(32px * var(--uiscale));
-      height: calc(5px * var(--uiscale));
+      width: 32px;
+      height: 5px;
       background: rgba(234,215,190,0.96);
-      border-radius: calc(2.5px * var(--uiscale));
+      border-radius: 2.5px;
       filter: drop-shadow(0 2px 4px rgba(0,0,0,0.45));
     }
     .closeIcon::before{ transform: translate(-50%, -50%) rotate(45deg); }
@@ -338,15 +338,13 @@
 
       // Position Close Button in Rasterzelle 0.1A
       const closeBtn = document.getElementById("closeBtn");
-      const s = numVar("--uiscale") || 1;
       // Zelle 0.1 ist die erste Header-Zeile (row 0), Spalte A
       const closeLeft = cellPx * 0.5; // Mitte von Spalte A
       const closeTop = cellPx * 0.5;  // Mitte von Zeile 0.1
       
       closeBtn.style.left = closeLeft + "px";
       closeBtn.style.top = closeTop + "px";
-      closeBtn.style.transform = `translate(-50%, -50%) scale(${s})`;
-      closeBtn.style.transformOrigin = "top left";
+      closeBtn.style.transform = "translate(-50%, -50%)";
     }
 
     function rebuild(){

@@ -10,36 +10,16 @@
   --cell: 142px;
   --cols: 8;
 
-  --violett: rgb(164, 27, 133);
-  --blau:    rgb(0, 107, 179);
-  --gruen:   rgb(0, 166, 82);
-  --orange:  rgb(249, 150, 30);
-
   --ui-text: #e8d9c4;
   --ui-button: #dcc9ad;
   --ui-button-dark: #938a80;
 
   --scale: 1;
-  --gridW: calc(var(--cols) * var(--cell));
-  --gridH: calc(100vh);
 }
 
-/* Hintergrund wie im Spiel */
 body{
   margin:0;
-  background:
-    radial-gradient(circle at 50% 50%, rgba(0,0,0,0.20), transparent 60%),
-    repeating-linear-gradient(
-      45deg,
-      rgba(255,255,255,0.03) 0px,
-      rgba(255,255,255,0.03) 2px,
-      transparent 2px,
-      transparent 4px
-    ),
-    linear-gradient(180deg, #704a32, #2b1a11);
-  background-size: cover;
-  background-attachment: fixed;
-
+  background:black;
   display:flex;
   justify-content:center;
   align-items:flex-start;
@@ -47,30 +27,29 @@ body{
   overflow:hidden;
 }
 
-/* Spielfeld-Container wie im Spiel */
 #game{
   position:relative;
-  width:var(--gridW);
-  height:var(--gridH);
+  width:calc(var(--cols) * var(--cell));
+  height:100vh;
   transform-origin: top left;
   transform: scale(var(--scale));
 }
 
-/* PNG-Box-Hintergrund wie im Spiel */
+/* Hintergrundbox – exakt wie im Spiel */
 .bgPNG{
   position:absolute;
   left:0;
   top:0;
   width:calc(var(--cols) * var(--cell));
   height:calc(var(--cols) * var(--cell));
-  background:url("DigiKippBox.png");
+  background:url("digikipp_starts.png");
   background-size:cover;
 }
 
-/* DigiKipp Titel */
+/* DIGIKIPP Titel */
 #title{
   position:absolute;
-  top:calc(var(--cell) * 3.6);
+  top:calc(var(--cell) * 3.4);
   width:100%;
   text-align:center;
   font-family: Arial Black, sans-serif;
@@ -79,26 +58,26 @@ body{
   letter-spacing:4px;
 }
 
-/* Buttons */
+/* Buttons – identisch mit deinen Spiel-Buttons */
 .menuBtn{
   position:absolute;
   left:50%;
   transform:translateX(-50%);
-  width:60%;
-  padding:22px 0;
+  width:calc(var(--cell) * 5.0);
+  height:calc(var(--cell) * 0.8);
+  border-radius:calc(var(--cell) * 0.18);
   font-family: Arial Black, sans-serif;
-  font-size:32px;
-  border-radius:26px;
-  text-align:center;
+  font-size:calc(var(--cell) * 0.26);
   border:none;
   color:#3a2b1d;
   background:var(--ui-button);
 }
 
-#btnColor{ top:calc(var(--cell) * 5.1); }
-#btnCard { top:calc(var(--cell) * 6.0); }
+/* ► Deine exakten Zeilenpositionen */
+#btnColor{ top:calc(var(--cell) * 10); }       /* Zeile 10 */
+#btnCard { top:calc(var(--cell) * 11.5); }     /* zwischen 11 und 12 */
 #btnFairy{
-  top:calc(var(--cell) * 6.9);
+  top:calc(var(--cell) * 13);                  /* Zeile 13 */
   background:var(--ui-button-dark);
   color:#4a4038;
 }
@@ -108,13 +87,10 @@ body{
 <body>
 <div id="game">
 
-  <!-- Box / PNG wie im Spiel -->
   <div class="bgPNG"></div>
 
-  <!-- Titel -->
   <div id="title">DIGIKIPP</div>
 
-  <!-- Buttons -->
   <button id="btnColor" class="menuBtn">KIPP COLOR</button>
   <button id="btnCard"  class="menuBtn">KIPP CARD</button>
   <button id="btnFairy" class="menuBtn">KIPP FAIRY</button>
@@ -122,7 +98,7 @@ body{
 </div>
 
 <script>
-/* Skaliert identisch wie im Spiel */
+/* ► gleiche automatische Skalierung wie im Spiel */
 function setScale(){
   const W = window.innerWidth;
   const scale = W / (8 * 142);
@@ -131,10 +107,9 @@ function setScale(){
 window.addEventListener("resize", setScale);
 setScale();
 
-/* Navigation */
+/* ► Navigation */
 document.getElementById("btnColor").onclick = ()=>{ window.location.href="KIP-COLOR.html"; };
 document.getElementById("btnCard").onclick  = ()=>{ window.location.href="KIP-CARD.html"; };
-document.getElementById("btnFairy").onclick = ()=>{};
 </script>
 
 </body>

@@ -6,43 +6,34 @@
 <title>DigiKipp – Start</title>
 
 <style>
-/* Basiswerte deiner Vorlage (1134 × 2788) */
 :root {
-  --stage-w: 1134px;
-  --stage-h: 2788px;
+  --stage-w: 1134;
+  --stage-h: 2788;
+  --scale: calc(100vw / var(--stage-w));
 
-  /* Scale = Verhältnis Handybreite zu 1134px */
-  --scale: calc(100vw / 1134);
-
-  /* Button-Maße aus dem Spiel (unskaliert) */
   --btn-w: 720px;
   --btn-h: 114px;
   --btn-radius: 26px;
 
-  --btn-bg: #decfb8;    /* DigiKipp-Beige */
+  --btn-bg: #decfb8;
   --btn-inactive: #6d6660;
   --font: Futura, sans-serif;
+
+  --row-h: calc(2788px / 16); /* exakte Spielzeilenhöhe */
 }
 
-/* Seite schwarz, keine Ränder */
-body {
-  margin: 0;
-  background: #000;
-}
-
-/* Bühne mit exakt demselben Seitenverhältnis wie dein Spiel
-   Hintergrund = deine PNG 1134×2788 */
+/* Bühne */
 .stage {
   width: 100vw;
-  height: calc(var(--scale) * 2788px);   /* gleiche Höhe wie Spielwelt */
+  height: calc(var(--scale) * var(--stage-h));
   margin: 0 auto;
   position: relative;
   background: #000 url("digikipp_starts.png") no-repeat top center;
   background-size: 100% auto;
-  overflow-y: auto;
+  overflow: hidden;
 }
 
-/* Buttons – Maße werden mit demselben Faktor skaliert wie im Spiel */
+/* Buttons */
 .menu-btn {
   position: absolute;
   left: 50%;
@@ -57,15 +48,15 @@ body {
   font-size: calc(48px * var(--scale));
   color: #3a2a23;
   letter-spacing: 2px;
-  z-index: 10;  /* auf jeden Fall über dem Hintergrund */
+  z-index: 10;
 }
 
-/* Positionen in Prozent der Spielfeld-Höhe: Zeile 10 / 11–12 / 13 */
-.btn-color { top: 63%; }
-.btn-card  { top: 71%; }
-.btn-fairy { top: 79%; }
+/* Zeilenpositionen (EXAKT wie im Spiel) */
+.btn-color { top: calc(var(--row-h) * 9); }   /* Zeile 10 */
+.btn-card  { top: calc(var(--row-h) * 10); }  /* Zeile 11 */
+.btn-fairy { top: calc(var(--row-h) * 12); }  /* Zeile 13 */
 
-/* inaktiver dritter Button */
+/* inaktiv */
 .btn-fairy {
   background: var(--btn-inactive);
   color: #bcb7b4;

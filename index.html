@@ -6,85 +6,136 @@
 <title>DigiKipp – Start</title>
 
 <style>
-  :root {
-    --beige: #e5d4bd;
-    --inactive: #b9b0a7;
-    --font: Futura, sans-serif;
-  }
+:root{
+  --cell: 142px;
+  --cols: 8;
 
-  body {
-    margin: 0;
-    padding: 0;
-    background: #000;
-    overflow-x: hidden;
-    font-family: var(--font);
-  }
+  --violett: rgb(164, 27, 133);
+  --blau:    rgb(0, 107, 179);
+  --gruen:   rgb(0, 166, 82);
+  --orange:  rgb(249, 150, 30);
 
-  /* --- STARTSCREEN --- */
-  .startscreen {
-    position: relative;
-    width: 100%;
-    height: 100vh;
-    overflow: hidden;        
-  }
+  --ui-text: #e8d9c4;
+  --ui-button: #dcc9ad;
+  --ui-button-dark: #938a80;
 
-  .start-bg {
-    width: 100%;
-    height: auto;
-    display: block;
-  }
+  --scale: 1;
+  --gridW: calc(var(--cols) * var(--cell));
+  --gridH: calc(100vh);
+}
 
-  /* --- BUTTONS --- */
-  .menu-btn {
-    position: absolute;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 72%;
-    padding: 18px 0;
-    font-size: 1.4rem;
-    font-weight: 700;
-    border-radius: 14px;
-    border: none;
-    background: var(--beige);
-    color: #3b271b;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.25);
-  }
+/* Hintergrund wie im Spiel */
+body{
+  margin:0;
+  background:
+    radial-gradient(circle at 50% 50%, rgba(0,0,0,0.20), transparent 60%),
+    repeating-linear-gradient(
+      45deg,
+      rgba(255,255,255,0.03) 0px,
+      rgba(255,255,255,0.03) 2px,
+      transparent 2px,
+      transparent 4px
+    ),
+    linear-gradient(180deg, #704a32, #2b1a11);
+  background-size: cover;
+  background-attachment: fixed;
 
-  /* Positionen */
-  .btn-kippcolor { top: 62%; }
-  .btn-kippcard  { top: 70%; }
-  .btn-kippfairy { top: 78%; }
+  display:flex;
+  justify-content:center;
+  align-items:flex-start;
+  height:100vh;
+  overflow:hidden;
+}
 
-  /* Inaktiv */
-  .btn-kippfairy {
-    background: var(--inactive);
-    color: #6d6660;
-    box-shadow: none;
-    opacity: 0.55;
-  }
+/* Spielfeld-Container wie im Spiel */
+#game{
+  position:relative;
+  width:var(--gridW);
+  height:var(--gridH);
+  transform-origin: top left;
+  transform: scale(var(--scale));
+}
+
+/* PNG-Box-Hintergrund wie im Spiel */
+.bgPNG{
+  position:absolute;
+  left:0;
+  top:0;
+  width:calc(var(--cols) * var(--cell));
+  height:calc(var(--cols) * var(--cell));
+  background:url("DigiKippBox.png");
+  background-size:cover;
+}
+
+/* DigiKipp Titel */
+#title{
+  position:absolute;
+  top:calc(var(--cell) * 3.6);
+  width:100%;
+  text-align:center;
+  font-family: Arial Black, sans-serif;
+  font-size:48px;
+  color:var(--ui-text);
+  letter-spacing:4px;
+}
+
+/* Buttons */
+.menuBtn{
+  position:absolute;
+  left:50%;
+  transform:translateX(-50%);
+  width:60%;
+  padding:22px 0;
+  font-family: Arial Black, sans-serif;
+  font-size:32px;
+  border-radius:26px;
+  text-align:center;
+  border:none;
+  color:#3a2b1d;
+  background:var(--ui-button);
+}
+
+#btnColor{ top:calc(var(--cell) * 5.1); }
+#btnCard { top:calc(var(--cell) * 6.0); }
+#btnFairy{
+  top:calc(var(--cell) * 6.9);
+  background:var(--ui-button-dark);
+  color:#4a4038;
+}
 </style>
 </head>
 
 <body>
+<div id="game">
 
-<div class="startscreen">
-  <img src="digikipp_starts.png" class="start-bg" />
+  <!-- Box / PNG wie im Spiel -->
+  <div class="bgPNG"></div>
+
+  <!-- Titel -->
+  <div id="title">DIGIKIPP</div>
 
   <!-- Buttons -->
-  <button class="menu-btn btn-kippcolor"
-          onclick="location.href='KIPP-COLOR.html'">
-    KIPP COLOR
-  </button>
+  <button id="btnColor" class="menuBtn">KIPP COLOR</button>
+  <button id="btnCard"  class="menuBtn">KIPP CARD</button>
+  <button id="btnFairy" class="menuBtn">KIPP FAIRY</button>
 
-  <button class="menu-btn btn-kippcard"
-          onclick="location.href='KIPP-CARD.html'">
-    KIPP CARD
-  </button>
-
-  <button class="menu-btn btn-kippfairy" disabled>
-    KIPP FAIRY
-  </button>
 </div>
+
+<script>
+/* Skaliert identisch wie im Spiel */
+function setScale(){
+  const W = window.innerWidth;
+  const scale = W / (8 * 142);
+  document.documentElement.style.setProperty("--scale", scale);
+}
+window.addEventListener("resize", setScale);
+setScale();
+
+/* Navigation */
+document.getElementById("btnColor").onclick = ()=>{ window.location.href="KIP-COLOR.html"; };
+document.getElementById("btnCard").onclick  = ()=>{ window.location.href="KIP-CARD.html"; };
+document.getElementById("btnFairy").onclick = ()=>{};
+</script>
 
 </body>
 </html>

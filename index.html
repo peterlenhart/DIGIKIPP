@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+<title>DIGIKIPP – Start</title>
+
+<style>
+/* -------------------- BASIS -------------------- */
+:root{
+  --beige: #e5d4bd;
+  --inactive: #dcd2c7;
+  --font: Futura, sans-serif;
+}
+
+body{
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  background: #000;
+  font-family: var(--font);
+}
+
+/* -------------------- STARTSCREEN -------------------- */
+.startscreen{
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.start-bg{
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* -------------------- BUTTONS -------------------- */
+.menu-btn{
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 72%;
+  padding: 18px 0;
+  font-size: 1.4rem;
+  font-family: var(--font);
+  font-weight: 700;
+  border-radius: 14px;
+  border: none;
+  background: var(--beige);
+  color: #000;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.25);
+}
+
+/* Button-Positionen (Raster) */
+.btn-kippcolor{ top: 62%; }
+.btn-kipppcard{ top: 70%; }
+.btn-kipppfairy{ top: 78%; }
+
+/* Inaktiv */
+.btn-kipppfairy{
+  background: var(--inactive);
+  color: #6d6660;
+  opacity: 0.55;
+  box-shadow: none;
+}
+</style>
+
+</head>
+<body>
+
+<!-- -------------------- STARTSEITE -------------------- -->
+<div class="startscreen">
+  <img src="digikipp_starts.png" class="start-bg" />
+
+  <button class="menu-btn btn-kippcolor">KIPP COLOR</button>
+  <button class="menu-btn btn-kipppcard">KIPP CARD</button>
+  <button class="menu-btn btn-kipppfairy" disabled>KIPP FAIRY</button>
+</div>
+
+<!-- -------------------- FUNKTION FÜR BUTTONS -------------------- -->
+<script>
+document.querySelector(".btn-kippcolor")?.addEventListener("click", () => {
+    window.location.href = "kipp-color.html";
+});
+
+document.querySelector(".btn-kipppcard")?.addEventListener("click", () => {
+    window.location.href = "kipp-card.html";
+});
+
+// KIPP FAIRY bleibt deaktiviert
+</script>
+
+</body>
+</html>

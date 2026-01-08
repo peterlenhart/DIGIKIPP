@@ -6,111 +6,90 @@
 <title>DigiKipp – Start</title>
 
 <style>
-:root{
-  --cell: 142px;
-  --cols: 8;
+/* ─────────────────────────────────────────────── */
+/* 1:1 DIESELBE WELT WIE DAS SPIEL (1134 × 2788)   */
+/* ─────────────────────────────────────────────── */
+:root {
+  --stage-w: 1134;
+  --stage-h: 2788;
 
-  --ui-text: #e8d9c4;
-  --ui-button: #dcc9ad;
-  --ui-button-dark: #938a80;
-
-  --scale: 1;
+  --btn-w: 720px;       /* exakt wie im Spiel */
+  --btn-h: 114px;       /* exakt wie im Spiel */
+  --btn-radius: 26px;
+  --btn-bg: #decfb8;    /* DigiKipp-Beige */
+  --btn-inactive: #6d6660;
+  --font: Futura, sans-serif;
 }
 
-body{
-  margin:0;
-  background:black;
-  display:flex;
-  justify-content:center;
-  align-items:flex-start;
-  height:100vh;
-  overflow:hidden;
+/* Container hat fixes Seitenverhältnis wie dein Spiel */
+.stage {
+  width: 100vw;
+  height: calc((100vw / var(--stage-w)) * var(--stage-h));
+  max-height: 100vh;
+  margin: 0 auto;
+  position: relative;
+  overflow: hidden;
+  background: #000;
 }
 
-#game{
-  position:relative;
-  width:calc(var(--cols) * var(--cell));
-  height:100vh;
-  transform-origin: top left;
-  transform: scale(var(--scale));
+/* PNG verankert wie im Spiel */
+.start-bg {
+  position: absolute;
+  width: 100%;
+  height: auto;
+  top: 0;
+  left: 0;
 }
 
-/* Hintergrundbox – exakt wie im Spiel */
-.bgPNG{
-  position:absolute;
-  left:0;
-  top:0;
-  width:calc(var(--cols) * var(--cell));
-  height:calc(var(--cols) * var(--cell));
-  background:url("digikipp_starts.png");
-  background-size:cover;
+/* Buttons exakt wie im Spiel */
+.menu-btn {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  width: var(--btn-w);
+  height: var(--btn-h);
+  border-radius: var(--btn-radius);
+  border: none;
+  background: var(--btn-bg);
+  font-family: var(--font);
+  font-weight: 700;
+  font-size: 48px;
+  color: #3a2a23;
+  letter-spacing: 2px;
 }
 
-/* DIGIKIPP Titel */
-#title{
-  position:absolute;
-  top:calc(var(--cell) * 3.4);
-  width:100%;
-  text-align:center;
-  font-family: Arial Black, sans-serif;
-  font-size:48px;
-  color:var(--ui-text);
-  letter-spacing:4px;
-}
+/* Positionen nach deinem Pixelraster */
+.btn-color { top: calc(2788px * 0.63); }   /* Zeile 10 */
+.btn-card  { top: calc(2788px * 0.71); }   /* zwischen 11 & 12 */
+.btn-fairy { top: calc(2788px * 0.79); }   /* Zeile 13 */
 
-/* Buttons – identisch mit deinen Spiel-Buttons */
-.menuBtn{
-  position:absolute;
-  left:50%;
-  transform:translateX(-50%);
-  width:calc(var(--cell) * 5.0);
-  height:calc(var(--cell) * 0.8);
-  border-radius:calc(var(--cell) * 0.18);
-  font-family: Arial Black, sans-serif;
-  font-size:calc(var(--cell) * 0.26);
-  border:none;
-  color:#3a2b1d;
-  background:var(--ui-button);
-}
-
-/* ► Deine exakten Zeilenpositionen */
-#btnColor{ top:calc(var(--cell) * 10); }       /* Zeile 10 */
-#btnCard { top:calc(var(--cell) * 11.5); }     /* zwischen 11 und 12 */
-#btnFairy{
-  top:calc(var(--cell) * 13);                  /* Zeile 13 */
-  background:var(--ui-button-dark);
-  color:#4a4038;
+/* inaktiv */
+.btn-fairy {
+  background: var(--btn-inactive);
+  color: #bcb7b4;
 }
 </style>
 </head>
 
 <body>
-<div id="game">
 
-  <div class="bgPNG"></div>
+<div class="stage">
 
-  <div id="title">DIGIKIPP</div>
+  <img src="digikipp_starts.png" class="start-bg">
 
-  <button id="btnColor" class="menuBtn">KIPP COLOR</button>
-  <button id="btnCard"  class="menuBtn">KIPP CARD</button>
-  <button id="btnFairy" class="menuBtn">KIPP FAIRY</button>
+  <button class="menu-btn btn-color" onclick="location.href='kipp-color.html'">
+    KIPP COLOR
+  </button>
+
+  <button class="menu-btn btn-card" onclick="location.href='kipp-card.html'">
+    KIPP CARD
+  </button>
+
+  <button class="menu-btn btn-fairy" disabled>
+    KIPP FAIRY
+  </button>
 
 </div>
-
-<script>
-/* ► gleiche automatische Skalierung wie im Spiel */
-function setScale(){
-  const W = window.innerWidth;
-  const scale = W / (8 * 142);
-  document.documentElement.style.setProperty("--scale", scale);
-}
-window.addEventListener("resize", setScale);
-setScale();
-
-/* ► Navigation */
-document.getElementById("btnColor").onclick = ()=>{ window.location.href="KIP-COLOR.html"; };
-document.getElementById("btnCard").onclick  = ()=>{ window.location.href="KIP-CARD.html"; };
-</script>
 
 </body>
 </html>

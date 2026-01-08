@@ -1,6 +1,6 @@
 {
-  "name": "DigiKipp - Schauen & Merken",
-  "short_name": "DigiKipp",
+  "name": "DIGIKIPP - Schauen & Merken",
+  "short_name": "DIGIKIPP",
   "description": "Würfelspiel - Schauen & Merken",
   "start_url": "./index.html",
   "display": "standalone",

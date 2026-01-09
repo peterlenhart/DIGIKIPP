@@ -85,9 +85,10 @@
 
     /* Button-Stil wie im Spiel (squareBtn + startBtn) */
     .squareBtn{
-      width: calc(6 * var(--cell));
-      height: 44px;
-      border-radius: 14px;
+      width: calc(520px * var(--uiscale));
+      max-width: calc(6 * var(--cell));
+      height: calc(44px * var(--uiscale));
+      border-radius: calc(14px * var(--uiscale));
       border: 2px solid rgba(0,0,0,0.65);
       background: rgba(234,215,190,0.96);
       box-shadow:
@@ -103,8 +104,7 @@
       touch-action: manipulation;
     }
     .squareBtn:active{
-      transform: translate(-50%, -50%) scale(0.98);
-      filter: brightness(0.98);
+      /* transform wird von .menu-btn:active überschrieben */
     }
 
     .startBtnText{
@@ -112,7 +112,7 @@
       letter-spacing: 0.06em;
       color: #7a3f2b;
       text-shadow: 0 1px 0 rgba(255,255,255,0.35);
-      font-size: 18px;
+      font-size: calc(18px * var(--uiscale));
       line-height:1;
       text-transform:uppercase;
     }
@@ -122,6 +122,10 @@
       position:absolute;
       left:50%;
       transform:translate(-50%, -50%);
+    }
+    .menu-btn:active{
+      transform:translate(-50%, -50%) scale(0.98);
+      filter: brightness(0.98);
     }
 
     /* Plätze (Zeilen) werden per JS gesetzt, Klassen bleiben leer */
@@ -138,8 +142,8 @@
     /* Navigation Button (X-Icon) */
     .navBtn{
       position: absolute;
-      width: 56px;
-      height: 56px;
+      width: calc(56px * var(--uiscale));
+      height: calc(56px * var(--uiscale));
       background: none;
       border: none;
       display: flex;
@@ -155,8 +159,8 @@
 
     .closeIcon{
       position: relative;
-      width: 32px;
-      height: 32px;
+      width: calc(32px * var(--uiscale));
+      height: calc(32px * var(--uiscale));
     }
     .closeIcon::before,
     .closeIcon::after{
@@ -164,10 +168,10 @@
       position: absolute;
       top: 50%;
       left: 50%;
-      width: 32px;
-      height: 5px;
+      width: calc(32px * var(--uiscale));
+      height: calc(5px * var(--uiscale));
       background: rgba(234,215,190,0.96);
-      border-radius: 2.5px;
+      border-radius: calc(2.5px * var(--uiscale));
       filter: drop-shadow(0 2px 4px rgba(0,0,0,0.45));
     }
     .closeIcon::before{ transform: translate(-50%, -50%) rotate(45deg); }
@@ -339,15 +343,12 @@
 
       // Position Close Button in Rasterzelle 0.1A
       const closeBtn = document.getElementById("closeBtn");
-      const s = numVar("--uiscale") || 1;
-      // Zelle 0.1 ist die erste Header-Zeile (row 0), Spalte A
-      const closeLeft = cellPx * 0.5; // Mitte von Spalte A
-      const closeTop = cellPx * 0.5;  // Mitte von Zeile 0.1
+      const closeLeft = cellPx * 0.5;
+      const closeTop = cellPx * 0.5;
       
       closeBtn.style.left = closeLeft + "px";
       closeBtn.style.top = closeTop + "px";
-      closeBtn.style.transform = `translate(-50%, -50%) scale(${s})`;
-      closeBtn.style.transformOrigin = "top left";
+      closeBtn.style.transform = "translate(-50%, -50%)";
     }
 
     function rebuild(){

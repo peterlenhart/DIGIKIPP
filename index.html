@@ -155,61 +155,6 @@
       cursor:default;
     }
 
-    /* ===== SPLASHSCREEN (ohne Holzbox) ===== */
-    .splashscreen{
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: #000;
-      z-index: 99999;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      opacity: 1;
-      transition: opacity 0.5s ease;
-    }
-
-    .splashscreen.fadeOut{
-      opacity: 0;
-      pointer-events: none;
-    }
-
-    .splashContent{
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 32px;
-      animation: splashPulse 1.5s ease-in-out infinite;
-    }
-
-    @keyframes splashPulse{
-      0%, 100% { opacity: 0.95; transform: scale(1); }
-      50% { opacity: 1; transform: scale(1.02); }
-    }
-
-    .splashLogo{
-      width: clamp(200px, 50vw, 320px);
-      height: clamp(200px, 50vw, 320px);
-      background-image: url("icon-512.png");
-      background-size: contain;
-      background-position: center;
-      background-repeat: no-repeat;
-      filter: drop-shadow(0 8px 24px rgba(0,0,0,0.8));
-    }
-
-    .splashTitle{
-      font-size: clamp(32px, 8vw, 56px);
-      font-weight: 1000;
-      letter-spacing: 0.08em;
-      color: var(--btn-bg);
-      text-shadow: 
-        0 4px 12px rgba(0,0,0,0.8),
-        0 2px 4px rgba(0,0,0,0.6);
-      text-transform: uppercase;
-    }
-
     /* Navigation Button (X-Icon) */
     .navBtn{
       position: absolute;
@@ -328,14 +273,6 @@
 </head>
 
 <body>
-  <!-- SPLASHSCREEN -->
-  <div id="splashscreen" class="splashscreen">
-    <div class="splashContent">
-      <div class="splashLogo"></div>
-      <div class="splashTitle">DIGIKIPP</div>
-    </div>
-  </div>
-
   <div class="stage">
     <div class="layout" id="layout">
       <div class="bgPNG" aria-hidden="true"></div>
@@ -377,25 +314,6 @@
 
   <script>
     const HEADER_ROW_OFFSET = 2;
-
-    // ===== SPLASHSCREEN LOGIC =====
-    function hideSplashscreen() {
-      const splash = document.getElementById("splashscreen");
-      if (splash) {
-        splash.classList.add("fadeOut");
-        setTimeout(() => {
-          splash.remove();
-        }, 500);
-      }
-    }
-
-    // Splashscreen nach dem Laden ausblenden
-    window.addEventListener("load", () => {
-      setTimeout(hideSplashscreen, 1000);
-    });
-
-    // Fallback: Auch wenn Load-Event nicht feuert
-    setTimeout(hideSplashscreen, 2500);
 
     function numVar(name){
       return parseFloat(

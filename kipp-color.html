@@ -202,10 +202,11 @@
       height: calc(3 * var(--cell));
       background: transparent;
       border-radius: 10px;
+      /* Y-Werte leicht reduziert = Schatten etwas weiter nach oben */
       box-shadow:
-        18px 26px 34px rgba(0,0,0,0.36),
-        26px 38px 54px rgba(0,0,0,0.26),
-        34px 50px 78px rgba(0,0,0,0.18);
+        18px 20px 34px rgba(0,0,0,0.36),
+        26px 30px 54px rgba(0,0,0,0.26),
+        34px 42px 78px rgba(0,0,0,0.18);
     }
 
     .grid{
@@ -1403,7 +1404,7 @@
 
       if(n === null || n === undefined){
         span.textContent = "";
-        span.style.letterSpacing = "";
+      span.style.letterSpacing = "";
         return;
       }
       const text = (n === 9 || n === 6) ? `${n}.` : String(n);

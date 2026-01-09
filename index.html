@@ -144,8 +144,6 @@
       filter: brightness(0.98);
     }
 
-    /* Plätze (Zeilen) werden per JS gesetzt, Klassen bleiben leer */
-
     /* Inaktiver Fairy-Button */
     .fairyBtn{
       background:#dcd2c7;
@@ -155,7 +153,7 @@
       cursor:default;
     }
 
-    /* Navigation Button (X-Icon) */
+    /* Navigation Button (X-Icon & Share) */
     .navBtn{
       position: absolute;
       width: calc(56px * var(--uiscale));
@@ -192,6 +190,42 @@
     }
     .closeIcon::before{ transform: translate(-50%, -50%) rotate(45deg); }
     .closeIcon::after { transform: translate(-50%, -50%) rotate(-45deg); }
+
+    /* Share-Icon (WhatsApp-Style, aber in deinem Stil) */
+    .shareIcon{
+      position: relative;
+      width: calc(32px * var(--uiscale));
+      height: calc(32px * var(--uiscale));
+      border-radius: 50%;
+      border: calc(3px * var(--uiscale)) solid rgba(234,215,190,0.96);
+      box-sizing: border-box;
+      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.45));
+    }
+    .shareIcon::before{
+      content:"";
+      position:absolute;
+      left:50%;
+      top:48%;
+      width: calc(14px * var(--uiscale));
+      height: calc(14px * var(--uiscale));
+      border-radius:50%;
+      border: calc(2px * var(--uiscale)) solid rgba(234,215,190,0.96);
+      transform: translate(-50%, -55%);
+      box-sizing:border-box;
+    }
+    .shareIcon::after{
+      content:"";
+      position:absolute;
+      left:50%;
+      top:68%;
+      width:0;
+      height:0;
+      border-top: calc(7px * var(--uiscale)) solid rgba(234,215,190,0.96);
+      border-left: calc(6px * var(--uiscale)) solid transparent;
+      border-right: calc(6px * var(--uiscale)) solid transparent;
+      border-bottom:none;
+      transform: translateX(-50%);
+    }
 
     /* Modal für Schließen-Bestätigung */
     .modalOverlay{
@@ -297,6 +331,11 @@
         <button class="navBtn" id="closeBtn" aria-label="App beenden">
           <div class="closeIcon"></div>
         </button>
+
+        <!-- NEU: Share-Button (WhatsApp / Teilen) -->
+        <button class="navBtn" id="shareBtn" aria-label="DigiKipp teilen">
+          <div class="shareIcon"></div>
+        </button>
       </div>
     </div>
   </div>
@@ -366,6 +405,13 @@
       closeBtn.style.left = closeLeft + "px";
       closeBtn.style.top = closeTop + "px";
       closeBtn.style.transform = "translate(-50%, -50%)";
+
+      // NEU: Share-Button symmetrisch rechts (0.8H)
+      const shareBtn = document.getElementById("shareBtn");
+      const shareLeft = cellPx * (8 - 0.5); // 7.5 * cellPx
+      shareBtn.style.left = shareLeft + "px";
+      shareBtn.style.top  = closeTop + "px";
+      shareBtn.style.transform = "translate(-50%, -50%)";
     }
 
     function rebuild(){
@@ -430,6 +476,32 @@
         hideCloseModal();
       }
     });
+
+    // NEU: Share-Funktion (WhatsApp / native Share)
+    const shareBtn = document.getElementById("shareBtn");
+
+    function shareApp(){
+      const shareUrl  = window.location.href;
+      const shareText = "DigiKipp – KIPP-Spiele zum Kippen & Merken";
+
+      if (navigator.share){
+        navigator.share({
+          title: "DigiKipp",
+          text: shareText,
+          url: shareUrl
+        }).catch(() => {
+          // Nutzer hat abgebrochen oder es gab einen Fehler – kein Popup nötig
+        });
+      } else {
+        const waUrl = "https://wa.me/?text=" + encodeURIComponent(shareText + " " + shareUrl);
+        window.open(waUrl, "_blank");
+      }
+    }
+
+    shareBtn.addEventListener("click", (e) => {
+      e.preventDefault();
+      shareApp();
+    }, { passive: false });
   </script>
 </body>
 </html>

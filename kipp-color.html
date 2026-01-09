@@ -1682,6 +1682,23 @@
       showTargetSelectView();
     }
 
+    // ---------- Reset Game to Start ----------
+    function resetGameToStart(){
+      endRestartMode = false;
+      hitsCount = 0;
+      updateScore();
+      resetTargetDeck();
+      resetLockedColors();
+      rotIndex = 0;
+      renderW();
+      
+      // Verstecke Score-Endanzeige
+      const scoreEl = document.getElementById("scoreDisplay");
+      scoreEl.classList.remove("finalVisible", "scorePulse");
+      
+      showStartView();
+    }
+
     // ---------- End Screen ----------
     function showEndResultView(){
       uiMode = "END";
@@ -1706,7 +1723,7 @@
 
       // Zweiter Klick nach dem Ergebnis: neues Spiel
       if(endRestartMode){
-        location.reload();
+        resetGameToStart();
         return;
       }
 
@@ -1733,6 +1750,9 @@
       endRestartMode = true;
       btnErgebnisText.textContent = "NEUES SPIEL";
       btnErgebnis.disabled = false;
+      
+      // SCHLUSS KIPPRUNDE ausblenden wenn NEUES SPIEL angezeigt wird
+      hintTitle.classList.add("hidden");
     }
 
     // =========================

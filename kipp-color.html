@@ -583,7 +583,7 @@
 
     .hidden{ display:none !important; }
 
-    /* NEU: Laufende Score-Anzeige im Spiel (oben im Kopfbereich) */
+    /* Laufende Score-Anzeige im Spiel (oben im Kopfbereich) */
     .scoreRun{
       position: absolute;
       left: 0;
@@ -1973,14 +1973,13 @@
       const run = document.getElementById("scoreRun");
       if(!run) return;
 
-      const row = 1;   // Kopfzeile
-      const col = 7;   // ungefähr Spalte G
-
+      const col = 7;   // ungefähr Spalte G (horizontal Position beibehalten)
       const leftCell = (col - 1) * cellPx;
-      const topCell  = (row - 1) * cellPx;
-
       const centerX = leftCell + (cellPx / 2);
-      const centerY = topCell  + (cellPx / 2);
+
+      // Vertikal exakt wie der Zurück-Pfeil:
+      const headerY = 1.0 * cellPx;  // ident wie in positionBackButton()
+      const centerY = headerY;
 
       run.style.left = centerX + "px";
       run.style.top  = centerY + "px";
@@ -1991,6 +1990,7 @@
 
     function positionScoreDisplay(cellPx){
       const score = document.getElementById("scoreDisplay");
+      if(!score) return;
 
       const row = 6;     // Zeile 6
       const col = 4;     // Spalte D
@@ -2127,8 +2127,11 @@
 
       endRestartMode = false;
       const scoreEl = document.getElementById("scoreDisplay");
-      scoreEl.classList.remove("finalVisible", "scorePulse");
-      scoreEl.style.opacity = "0";
+      if(scoreEl){
+        scoreEl.classList.remove("finalVisible", "scorePulse");
+        // Inline-Opacity entfernen, damit CSS-Klasse finalVisible wirken kann
+        scoreEl.style.removeProperty("opacity");
+      }
 
       resetTargetPadUI();
 

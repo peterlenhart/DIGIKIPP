@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DigiKipp – Bis bald!</title>
+  
+  <!-- Web App Manifest -->
+  <link rel="manifest" href="manifest.json">
+  
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+  <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
+  
+  <!-- iOS Meta Tags -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="DigiKipp">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  
+  <!-- Theme Color -->
+  <meta name="theme-color" content="#4a2418">
+
+  <style>
+    :root{
+      --ui-panel-bg: #4a2418;
+      --ui-text: #ead7be;
+      --btn-bg: #ead7be;
+      --btn-text: #2a160c;
+    }
+
+    html, body{
+      height: 100%;
+      margin: 0;
+      overflow: hidden;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      touch-action: manipulation;
+      background: #000;
+    }
+
+    body{
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .container{
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 40px;
+      padding: 40px 20px;
+      animation: fadeIn 0.6s ease;
+    }
+
+    @keyframes fadeIn{
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .logoBox{
+      position: relative;
+      width: clamp(180px, 45vw, 280px);
+      height: clamp(180px, 45vw, 280px);
+      background: linear-gradient(135deg, #c8a882 0%, #a68968 100%);
+      border-radius: 8px;
+      box-shadow: 
+        0 25px 50px rgba(0,0,0,0.7),
+        inset 0 -8px 16px rgba(0,0,0,0.25),
+        inset 0 8px 16px rgba(255,255,255,0.15);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .logoBox::before{
+      content: "";
+      position: absolute;
+      inset: 15px;
+      background: linear-gradient(145deg, #b69475 0%, #8d6f55 100%);
+      border-radius: 4px;
+      box-shadow: 
+        inset 0 4px 12px rgba(0,0,0,0.4),
+        inset 0 -2px 6px rgba(255,255,255,0.1);
+    }
+
+    .logoImage{
+      position: relative;
+      z-index: 1;
+      width: 75%;
+      height: 75%;
+      background-image: url("icon-512.png");
+      background-size: contain;
+      background-position: center;
+      background-repeat: no-repeat;
+      filter: drop-shadow(0 4px 8px rgba(0,0,0,0.5));
+    }
+
+    .message{
+      text-align: center;
+      color: var(--ui-text);
+    }
+
+    .mainText{
+      font-size: clamp(32px, 7vw, 48px);
+      font-weight: 1000;
+      letter-spacing: 0.06em;
+      text-shadow: 
+        0 3px 0 rgba(0,0,0,0.75),
+        0 8px 20px rgba(0,0,0,0.55);
+      text-transform: uppercase;
+      margin-bottom: 16px;
+    }
+
+    .subText{
+      font-size: clamp(18px, 4.5vw, 24px);
+      font-weight: 600;
+      letter-spacing: 0.03em;
+      opacity: 0.9;
+      line-height: 1.4;
+    }
+
+    .playAgainBtn{
+      margin-top: 20px;
+      padding: 16px 48px;
+      border-radius: 14px;
+      border: 2px solid rgba(0,0,0,0.65);
+      background: rgba(234,215,190,0.96);
+      box-shadow:
+        0 10px 18px rgba(0,0,0,0.22),
+        0 0 0 1px rgba(255,255,255,0.18) inset;
+      font-size: clamp(16px, 4vw, 20px);
+      font-weight: 1000;
+      letter-spacing: 0.06em;
+      color: #7a3f2b;
+      text-shadow: 0 1px 0 rgba(255,255,255,0.35);
+      text-transform: uppercase;
+      cursor: pointer;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+      text-decoration: none;
+      display: inline-block;
+      transition: transform 0.1s ease, filter 0.1s ease;
+    }
+
+    .playAgainBtn:active{
+      transform: scale(0.98);
+      filter: brightness(0.98);
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <div class="logoBox">
+      <div class="logoImage"></div>
+    </div>
+    
+    <div class="message">
+      <div class="mainText">Bis bald!</div>
+      <div class="subText">Danke fürs Spielen</div>
+    </div>
+
+    <a href="index.html" class="playAgainBtn">Nochmal spielen</a>
+  </div>
+</body>
+</html>

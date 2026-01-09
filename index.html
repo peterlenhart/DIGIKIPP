@@ -190,25 +190,53 @@
     .closeIcon::before{ transform: translate(-50%, -50%) rotate(45deg); }
     .closeIcon::after { transform: translate(-50%, -50%) rotate(-45deg); }
 
-    /* NEUES Teilen-Icon: 3 Punkte + 2 Linien */
+    /* NEUES Teilen-Icon: 3 Punkte + 2 Linien, Punkte über den Linien */
     .shareIcon{
       position: relative;
       width: calc(32px * var(--uiscale));
       height: calc(32px * var(--uiscale));
     }
 
+    /* Linien zuerst (hinter den Punkten) */
+    .shareIcon::before,
+    .shareIcon::after{
+      content:"";
+      position:absolute;
+      width: calc(20px * var(--uiscale));
+      height: calc(3px * var(--uiscale));
+      background: rgba(234,215,190,0.96);
+      box-shadow: 0 2px 4px rgba(0,0,0,0.45);
+      transform-origin: center left;
+      left: 50%;
+      top: 35%;
+      transform: translate(-50%, -50%);
+      z-index:1;
+    }
+
+    /* links unten Verbindung */
+    .shareIcon::before{
+      transform: translate(-50%, -50%) rotate(140deg);
+    }
+
+    /* rechts unten Verbindung */
+    .shareIcon::after{
+      transform: translate(-50%, -50%) rotate(40deg);
+    }
+
+    /* Punkte oben drauf */
     .shareIcon div{
       position:absolute;
       background: rgba(234,215,190,0.96);
       border-radius: 50%;
       box-shadow: 0 2px 4px rgba(0,0,0,0.45);
+      z-index:2;
     }
 
     .shareIcon .p1{
       width: calc(8px * var(--uiscale));
       height: calc(8px * var(--uiscale));
       left: 50%;
-      top: 18%;
+      top: 28%;
       transform: translate(-50%, -50%);
     }
 
@@ -216,7 +244,7 @@
       width: calc(8px * var(--uiscale));
       height: calc(8px * var(--uiscale));
       left: 28%;
-      top: 68%;
+      top: 72%;
       transform: translate(-50%, -50%);
     }
 
@@ -224,25 +252,9 @@
       width: calc(8px * var(--uiscale));
       height: calc(8px * var(--uiscale));
       left: 72%;
-      top: 68%;
+      top: 72%;
       transform: translate(-50%, -50%);
     }
-
-    .shareIcon::before,
-    .shareIcon::after{
-      content:"";
-      position:absolute;
-      width: calc(22px * var(--uiscale));
-      height: calc(3px * var(--uiscale));
-      background: rgba(234,215,190,0.96);
-      box-shadow: 0 2px 4px rgba(0,0,0,0.45);
-      transform-origin: left center;
-      left: calc(50% - 1px);
-      top: calc(18% + 1px);
-    }
-
-    .shareIcon::before{ transform: rotate(55deg); }
-    .shareIcon::after { transform: rotate(-55deg); }
 
     /* Modal */
     .modalOverlay{
@@ -422,9 +434,9 @@
       closeBtn.style.top = closeTop + "px";
       closeBtn.style.transform = "translate(-50%, -50%)";
 
-      // Share Button rechts
+      // Share Button rechts (Spiegelpunkt)
       const shareBtn = document.getElementById("shareBtn");
-      const shareLeft = cellPx * (8 - 0.5); // Spiegelpunkt
+      const shareLeft = cellPx * (8 - 0.5);
       shareBtn.style.left = shareLeft + "px";
       shareBtn.style.top  = closeTop + "px";
       shareBtn.style.transform = "translate(-50%, -50%)";

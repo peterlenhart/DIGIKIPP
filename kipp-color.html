@@ -202,11 +202,10 @@
       height: calc(3 * var(--cell));
       background: transparent;
       border-radius: 10px;
-      /* Y-Werte leicht reduziert = Schatten etwas weiter nach oben */
       box-shadow:
-        18px 20px 34px rgba(0,0,0,0.36),
-        26px 30px 54px rgba(0,0,0,0.26),
-        34px 42px 78px rgba(0,0,0,0.18);
+        18px 26px 34px rgba(0,0,0,0.36),
+        26px 38px 54px rgba(0,0,0,0.26),
+        34px 50px 78px rgba(0,0,0,0.18);
     }
 
     .grid{
@@ -584,7 +583,26 @@
 
     .hidden{ display:none !important; }
 
-    /* Score-Endanzeige: zweistellig, Zeile 6 D–E, pulsend */
+    /* NEU: Laufende Score-Anzeige im Spiel (oben im Kopfbereich) */
+    .scoreRun{
+      position: absolute;
+      left: 0;
+      top: 0;
+      transform: translate(-50%, -50%);
+      font-weight: 1000;
+      letter-spacing: 0.10em;
+      color: rgba(234,215,190,0.96);
+      text-shadow:
+        0 2px 0 rgba(0,0,0,0.75),
+        0 8px 18px rgba(0,0,0,0.60);
+      user-select: none;
+      white-space: nowrap;
+      line-height: 1;
+      z-index: 120;
+      pointer-events: none;
+    }
+
+    /* Score-Endanzeige: zweistellig, Zeile 6 D–E, pulsend, Schatten weiter nördlich */
     .scoreDisplay{
       position: absolute;
       left: 0;
@@ -593,7 +611,7 @@
       font-weight: 1000;
       letter-spacing: 0.02em;
       color: rgba(234,215,190,0.96);
-      text-shadow: 0 -18px 10px rgba(0,0,0,0.70);
+      text-shadow: 0 -32px 22px rgba(0,0,0,0.72);
       user-select: none;
       white-space: nowrap;
       line-height: 1;
@@ -608,11 +626,11 @@
     @keyframes scorePulse {
       0%{
         transform: translate(-50%, -50%) scale(1.00);
-        filter: drop-shadow(0 -20px 0 rgba(0,0,0,0.0));
+        filter: drop-shadow(0 -26px 0 rgba(0,0,0,0.0));
       }
       100%{
         transform: translate(-50%, -50%) scale(1.08);
-        filter: drop-shadow(0 -24px 12px rgba(0,0,0,0.75));
+        filter: drop-shadow(0 -38px 16px rgba(0,0,0,0.80));
       }
     }
     .scoreDisplay.scorePulse{
@@ -881,7 +899,11 @@
       </div>
 
       <div class="uiLayer" id="uiLayer" aria-hidden="true">
+        <!-- Laufende Score im Spiel -->
+        <div class="scoreRun" id="scoreRun">00</div>
+        <!-- End-Score in 6D–E -->
         <div class="scoreDisplay" id="scoreDisplay">00</div>
+
         <div class="titleLeft" id="titleLeft">DIGIKIPP</div>
 
         <div class="hintTitle" id="hintTitle">SCHAUKIPP-RUNDE</div>
@@ -1091,7 +1113,10 @@
     let hitsCount = 0;
     function updateScore(){
       const s = String(hitsCount).padStart(2,"0");
-      document.getElementById("scoreDisplay").textContent = s;
+      const runEl   = document.getElementById("scoreRun");
+      const finalEl = document.getElementById("scoreDisplay");
+      if(runEl)   runEl.textContent   = s;
+      if(finalEl) finalEl.textContent = s;
     }
 
     const ordinals = {
@@ -1404,7 +1429,7 @@
 
       if(n === null || n === undefined){
         span.textContent = "";
-      span.style.letterSpacing = "";
+        span.style.letterSpacing = "";
         return;
       }
       const text = (n === 9 || n === 6) ? `${n}.` : String(n);
@@ -1943,6 +1968,27 @@
       }
     }
 
+    // Laufende Score im Kopfbereich positionieren
+    function positionScoreRun(cellPx){
+      const run = document.getElementById("scoreRun");
+      if(!run) return;
+
+      const row = 1;   // Kopfzeile
+      const col = 7;   // ungefähr Spalte G
+
+      const leftCell = (col - 1) * cellPx;
+      const topCell  = (row - 1) * cellPx;
+
+      const centerX = leftCell + (cellPx / 2);
+      const centerY = topCell  + (cellPx / 2);
+
+      run.style.left = centerX + "px";
+      run.style.top  = centerY + "px";
+
+      const fontSize = cellPx * 0.42;
+      run.style.fontSize = fontSize + "px";
+    }
+
     function positionScoreDisplay(cellPx){
       const score = document.getElementById("scoreDisplay");
 
@@ -1968,6 +2014,9 @@
       const cellPx = numVar("--cell") || 142;
 
       const headerY = 1.0 * cellPx;
+
+      // Laufende Score im Kopfbereich
+      positionScoreRun(cellPx);
 
       // End-Score in 6D–E positionieren
       positionScoreDisplay(cellPx);

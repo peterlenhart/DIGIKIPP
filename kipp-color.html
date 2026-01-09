@@ -737,7 +737,7 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      gap: calc(40px * var(--uiscale));
+      gap: calc(32px * var(--uiscale));
       transition: opacity 0.4s ease;
     }
     #introOverlay.hidden{
@@ -756,7 +756,7 @@
       text-transform: uppercase;
       line-height: 1.1;
       margin-bottom: calc(20px * var(--uiscale));
-      text-align: center; /* NEU: zentrierter Titel im Intro */
+      text-align: center;
     }
 
     .introText{
@@ -768,6 +768,16 @@
       line-height: 1.6;
       opacity: 0.95;
       max-width: calc(600px * var(--uiscale));
+    }
+
+    .introSub{
+      margin-top: calc(8px * var(--uiscale));
+      font-size: calc(18px * var(--uiscale));
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      color: var(--ui-text);
+      text-align: center;
+      opacity: 0.9;
     }
 
     .introBtn{
@@ -832,15 +842,12 @@
       <div id="introOverlay">
         <div class="introTitle">DIGIKIPP<br>COLOR</div>
         <div class="introText">
-  Kippe die richtige Zahl<br>
-  an die richtige Farbe.
-</div>
+          Kippe die richtige Zahl<br>
+          an die richtige Farbe.
+        </div>
+        <div class="introSub">Highscore: 12</div>
 
-<div class="introSub">
-  Highscore: 12
-</div>
-
-<button class="introBackBtn" id="introBackBtn">← Zurück zur Auswahl</button>
+        <button class="introBackBtn" id="introBackBtn">← Zurück zur Auswahl</button>
         <button class="introBtn" id="introStartBtn">LOS GEHT'S</button>
       </div>
 

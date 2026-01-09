@@ -269,102 +269,10 @@
       box-shadow:0 2px 8px rgba(0,0,0,0.25);
     }
 
-    /* ===== SPLASHSCREEN ===== */
-    .splashscreen{
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: #000;
-      z-index: 99999;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      opacity: 1;
-      transition: opacity 0.5s ease;
-    }
-
-    .splashscreen.fadeOut{
-      opacity: 0;
-      pointer-events: none;
-    }
-
-    .splashContent{
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 32px;
-      animation: splashPulse 1.5s ease-in-out infinite;
-    }
-
-    @keyframes splashPulse{
-      0%, 100% { opacity: 0.95; transform: scale(1); }
-      50% { opacity: 1; transform: scale(1.02); }
-    }
-
-    .logoBox{
-      position: relative;
-      width: clamp(200px, 50vw, 320px);
-      height: clamp(200px, 50vw, 320px);
-      background: linear-gradient(135deg, #c8a882 0%, #a68968 100%);
-      border-radius: 8px;
-      box-shadow: 
-        0 25px 50px rgba(0,0,0,0.7),
-        inset 0 -8px 16px rgba(0,0,0,0.25),
-        inset 0 8px 16px rgba(255,255,255,0.15);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .logoBox::before{
-      content: "";
-      position: absolute;
-      inset: 15px;
-      background: linear-gradient(145deg, #b69475 0%, #8d6f55 100%);
-      border-radius: 4px;
-      box-shadow: 
-        inset 0 4px 12px rgba(0,0,0,0.4),
-        inset 0 -2px 6px rgba(255,255,255,0.1);
-    }
-
-    .logoImage{
-      position: relative;
-      z-index: 1;
-      width: 75%;
-      height: 75%;
-      background-image: url("icon-512.png");
-      background-size: contain;
-      background-position: center;
-      background-repeat: no-repeat;
-      filter: drop-shadow(0 4px 8px rgba(0,0,0,0.5));
-    }
-
-    .splashTitle{
-      font-size: clamp(32px, 8vw, 56px);
-      font-weight: 1000;
-      letter-spacing: 0.08em;
-      color: var(--btn-bg);
-      text-shadow: 
-        0 4px 12px rgba(0,0,0,0.8),
-        0 2px 4px rgba(0,0,0,0.6);
-      text-transform: uppercase;
-    }
   </style>
 </head>
 
 <body>
-  <!-- SPLASHSCREEN -->
-  <div id="splashscreen" class="splashscreen">
-    <div class="splashContent">
-      <div class="logoBox">
-        <div class="logoImage"></div>
-      </div>
-      <div class="splashTitle">DIGIKIPP</div>
-    </div>
-  </div>
-
   <div class="stage">
     <div class="layout" id="layout">
       <div class="bgPNG" aria-hidden="true"></div>
@@ -406,24 +314,6 @@
 
   <script>
     const HEADER_ROW_OFFSET = 2;
-
-    // ===== SPLASHSCREEN LOGIC =====
-    function hideSplashscreen() {
-      const splash = document.getElementById("splashscreen");
-      splash.classList.add("fadeOut");
-      setTimeout(() => {
-        splash.remove();
-      }, 500);
-    }
-
-    // Splashscreen nach dem Laden ausblenden
-    window.addEventListener("load", () => {
-      // Warte 1.2 Sekunden, dann fade out
-      setTimeout(hideSplashscreen, 1200);
-    });
-
-    // Fallback: Auch wenn Load-Event nicht feuert
-    setTimeout(hideSplashscreen, 3000);
 
     function numVar(name){
       return parseFloat(
@@ -527,7 +417,7 @@
 
     function closeApp() {
       // Navigiere zur Tschüss-Seite
-      window.location.href = "tschuess.html";
+      window.location.href = "Tschuess.html";
     }
 
     closeBtn.addEventListener("click", showCloseModal);

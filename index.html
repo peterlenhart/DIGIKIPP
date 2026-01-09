@@ -72,7 +72,7 @@
       transform: translateX(-50%) scale(var(--scale));
     }
 
-    /* Hintergrund – deine Startseite */
+    /* Hintergrund – Startscreen PNG */
     .bgPNG{
       position:absolute;
       left: 0;
@@ -99,7 +99,7 @@
       pointer-events:none;
     }
 
-    /* Button-Stil wie im Spiel (squareBtn + startBtn) */
+    /* Standard-Buttons */
     .squareBtn{
       width: calc(520px * var(--uiscale));
       max-width: calc(6 * var(--cell));
@@ -119,9 +119,6 @@
       pointer-events:auto;
       touch-action: manipulation;
     }
-    .squareBtn:active{
-      /* transform wird von .menu-btn:active überschrieben */
-    }
 
     .startBtnText{
       font-weight: 1000;
@@ -133,18 +130,13 @@
       text-transform:uppercase;
     }
 
-    /* Positionierung der drei Buttons im Raster */
+    /* Button Reihen 10–13 */
     .menu-btn{
       position:absolute;
       left:50%;
       transform:translate(-50%, -50%);
     }
-    .menu-btn:active{
-      transform:translate(-50%, -50%) scale(0.98);
-      filter: brightness(0.98);
-    }
 
-    /* Inaktiver Fairy-Button */
     .fairyBtn{
       background:#dcd2c7;
       color:#9c938b;
@@ -153,7 +145,7 @@
       cursor:default;
     }
 
-    /* Navigation Button (X-Icon & Share) */
+    /* Navigation Buttons (X + Share) */
     .navBtn{
       position: absolute;
       width: calc(56px * var(--uiscale));
@@ -169,13 +161,19 @@
       z-index: 100;
       transition: transform 0.12s ease, opacity 0.12s ease;
     }
-    .navBtn:active{ transform: scale(0.95); opacity: 0.8; }
 
+    .navBtn:active{
+      transform: scale(0.95);
+      opacity:0.8;
+    }
+
+    /* X-Icon */
     .closeIcon{
       position: relative;
       width: calc(32px * var(--uiscale));
       height: calc(32px * var(--uiscale));
     }
+
     .closeIcon::before,
     .closeIcon::after{
       content: "";
@@ -188,46 +186,65 @@
       border-radius: calc(2.5px * var(--uiscale));
       filter: drop-shadow(0 2px 4px rgba(0,0,0,0.45));
     }
+
     .closeIcon::before{ transform: translate(-50%, -50%) rotate(45deg); }
     .closeIcon::after { transform: translate(-50%, -50%) rotate(-45deg); }
 
-    /* Share-Icon (WhatsApp-Style, aber in deinem Stil) */
+    /* NEUES Teilen-Icon: 3 Punkte + 2 Linien */
     .shareIcon{
       position: relative;
       width: calc(32px * var(--uiscale));
       height: calc(32px * var(--uiscale));
-      border-radius: 50%;
-      border: calc(3px * var(--uiscale)) solid rgba(234,215,190,0.96);
-      box-sizing: border-box;
-      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.45));
     }
-    .shareIcon::before{
-      content:"";
+
+    .shareIcon div{
       position:absolute;
-      left:50%;
-      top:48%;
-      width: calc(14px * var(--uiscale));
-      height: calc(14px * var(--uiscale));
-      border-radius:50%;
-      border: calc(2px * var(--uiscale)) solid rgba(234,215,190,0.96);
-      transform: translate(-50%, -55%);
-      box-sizing:border-box;
+      background: rgba(234,215,190,0.96);
+      border-radius: 50%;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.45);
     }
+
+    .shareIcon .p1{
+      width: calc(8px * var(--uiscale));
+      height: calc(8px * var(--uiscale));
+      left: 50%;
+      top: 18%;
+      transform: translate(-50%, -50%);
+    }
+
+    .shareIcon .p2{
+      width: calc(8px * var(--uiscale));
+      height: calc(8px * var(--uiscale));
+      left: 28%;
+      top: 68%;
+      transform: translate(-50%, -50%);
+    }
+
+    .shareIcon .p3{
+      width: calc(8px * var(--uiscale));
+      height: calc(8px * var(--uiscale));
+      left: 72%;
+      top: 68%;
+      transform: translate(-50%, -50%);
+    }
+
+    .shareIcon::before,
     .shareIcon::after{
       content:"";
       position:absolute;
-      left:50%;
-      top:68%;
-      width:0;
-      height:0;
-      border-top: calc(7px * var(--uiscale)) solid rgba(234,215,190,0.96);
-      border-left: calc(6px * var(--uiscale)) solid transparent;
-      border-right: calc(6px * var(--uiscale)) solid transparent;
-      border-bottom:none;
-      transform: translateX(-50%);
+      width: calc(22px * var(--uiscale));
+      height: calc(3px * var(--uiscale));
+      background: rgba(234,215,190,0.96);
+      box-shadow: 0 2px 4px rgba(0,0,0,0.45);
+      transform-origin: left center;
+      left: calc(50% - 1px);
+      top: calc(18% + 1px);
     }
 
-    /* Modal für Schließen-Bestätigung */
+    .shareIcon::before{ transform: rotate(55deg); }
+    .shareIcon::after { transform: rotate(-55deg); }
+
+    /* Modal */
     .modalOverlay{
       position:fixed;
       left:0;
@@ -243,6 +260,7 @@
       opacity:1;
       transition:opacity 0.2s ease;
     }
+
     .modalOverlay.hidden{
       opacity:0;
       pointer-events:none;
@@ -287,20 +305,16 @@
       font-size: clamp(14px, 4vw, 16px);
       cursor:pointer;
       transition:all 0.12s ease;
-      user-select:none;
     }
-    .modalBtn:active{ transform:scale(0.97); }
 
     .modalBtn.cancel{
       background:#fff;
       color:#5a3a28;
-      box-shadow:0 2px 8px rgba(0,0,0,0.15);
     }
 
     .modalBtn.confirm{
       background:#8a4f35;
       color:#fff;
-      box-shadow:0 2px 8px rgba(0,0,0,0.25);
     }
 
   </style>
@@ -309,37 +323,42 @@
 <body>
   <div class="stage">
     <div class="layout" id="layout">
-      <div class="bgPNG" aria-hidden="true"></div>
+      <div class="bgPNG"></div>
 
       <div class="uiLayer">
-        <!-- Button 1 – KIPP COLOR -->
+
+        <!-- Buttons -->
         <button id="btnColor" class="squareBtn menu-btn">
           <span class="startBtnText">KIPP COLOR</span>
         </button>
 
-        <!-- Button 2 – KIPP CARD -->
         <button id="btnCard" class="squareBtn menu-btn">
           <span class="startBtnText">KIPP CARD</span>
         </button>
 
-        <!-- Button 3 – KIPP FAIRY (inaktiv) -->
         <button id="btnFairy" class="squareBtn menu-btn fairyBtn" disabled>
           <span class="startBtnText">KIPP FAIRY</span>
         </button>
 
-        <!-- Schließen Button -->
-        <button class="navBtn" id="closeBtn" aria-label="App beenden">
+        <!-- X -->
+        <button class="navBtn" id="closeBtn">
           <div class="closeIcon"></div>
         </button>
 
-        <!-- NEU: Share-Button (WhatsApp / Teilen) -->
-        <button class="navBtn" id="shareBtn" aria-label="DigiKipp teilen">
-          <div class="shareIcon"></div>
+        <!-- TEILEN -->
+        <button class="navBtn" id="shareBtn">
+          <div class="shareIcon">
+            <div class="p1"></div>
+            <div class="p2"></div>
+            <div class="p3"></div>
+          </div>
         </button>
+
       </div>
     </div>
   </div>
 
+  <!-- Modal -->
   <div id="closeModal" class="modalOverlay hidden">
     <div class="modalBox">
       <div class="modalTitle">Spiel beenden?</div>
@@ -352,6 +371,7 @@
   </div>
 
   <script>
+
     const HEADER_ROW_OFFSET = 2;
 
     function numVar(name){
@@ -386,29 +406,25 @@
       const btnCard  = document.getElementById("btnCard");
       const btnFairy = document.getElementById("btnFairy");
 
-      // Zeile 10
-      const row10CenterY = (((10 + HEADER_ROW_OFFSET) - 1) * cellPx) + cellPx/2;
-      // Zwischen Zeile 11 und 12 → 11,5
-      const row115CenterY = (((11.5 + HEADER_ROW_OFFSET) - 1) * cellPx) + cellPx/2;
-      // Zeile 13
-      const row13CenterY = (((13 + HEADER_ROW_OFFSET) - 1) * cellPx) + cellPx/2;
+      const row10 = (((10 + HEADER_ROW_OFFSET) - 1) * cellPx) + cellPx/2;
+      const row115 = (((11.5 + HEADER_ROW_OFFSET) - 1) * cellPx) + cellPx/2;
+      const row13 = (((13 + HEADER_ROW_OFFSET) - 1) * cellPx) + cellPx/2;
 
-      btnColor.style.top = row10CenterY + "px";
-      btnCard.style.top  = row115CenterY + "px";
-      btnFairy.style.top = row13CenterY + "px";
+      btnColor.style.top = row10 + "px";
+      btnCard.style.top  = row115 + "px";
+      btnFairy.style.top = row13 + "px";
 
-      // Position Close Button in Rasterzelle 0.1A
+      // Close Button links
       const closeBtn = document.getElementById("closeBtn");
       const closeLeft = cellPx * 0.5;
       const closeTop = cellPx * 0.5;
-      
       closeBtn.style.left = closeLeft + "px";
       closeBtn.style.top = closeTop + "px";
       closeBtn.style.transform = "translate(-50%, -50%)";
 
-      // NEU: Share-Button symmetrisch rechts (0.8H)
+      // Share Button rechts
       const shareBtn = document.getElementById("shareBtn");
-      const shareLeft = cellPx * (8 - 0.5); // 7.5 * cellPx
+      const shareLeft = cellPx * (8 - 0.5); // Spiegelpunkt
       shareBtn.style.left = shareLeft + "px";
       shareBtn.style.top  = closeTop + "px";
       shareBtn.style.transform = "translate(-50%, -50%)";
@@ -416,92 +432,45 @@
 
     function rebuild(){
       const { cell, scale } = setScaleToFitWidth();
-
       const vh = window.innerHeight;
-      const effectiveLayoutHeight = vh / (scale || 1);
-      const rows = Math.ceil(effectiveLayoutHeight / cell) + 1;
+      const effective = vh / (scale || 1);
+      const rows = Math.ceil(effective / cell) + 1;
       const gridH = rows * cell;
       document.documentElement.style.setProperty("--gridH", gridH + "px");
-
       positionUI();
     }
 
     window.addEventListener("load", rebuild);
     window.addEventListener("resize", rebuild);
 
-    // Navigation (falls gewünscht)
-    const btnColor = document.getElementById("btnColor");
-    const btnCard  = document.getElementById("btnCard");
+    // Game navigation
+    document.getElementById("btnColor").onclick = () => location.href="kipp-color.html";
+    document.getElementById("btnCard").onclick  = () => location.href="kipp-card.html";
 
-    function navigateToGame(url) {
-      window.location.href = url;
-    }
-
-    btnColor.addEventListener("click", (e) => {
-      e.preventDefault();
-      navigateToGame("kipp-color.html");
-    }, { passive: false });
-
-    btnCard.addEventListener("click", (e) => {
-      e.preventDefault();
-      navigateToGame("kipp-card.html");
-    }, { passive: false });
-
-    // Close Modal Funktionalität
+    // Modal
     const closeBtn = document.getElementById("closeBtn");
     const closeModal = document.getElementById("closeModal");
-    const modalCancel = document.getElementById("modalCancel");
-    const modalConfirm = document.getElementById("modalConfirm");
 
-    function showCloseModal() {
-      closeModal.classList.remove("hidden");
-    }
+    closeBtn.onclick = () => closeModal.classList.remove("hidden");
+    document.getElementById("modalCancel").onclick = () => closeModal.classList.add("hidden");
+    document.getElementById("modalConfirm").onclick = () => location.href="tschuess.html";
 
-    function hideCloseModal() {
-      closeModal.classList.add("hidden");
-    }
+    closeModal.onclick = (e) => { if(e.target === closeModal) closeModal.classList.add("hidden"); };
 
-    function closeApp() {
-      // Navigiere zur Tschüss-Seite
-      window.location.href = "tschuess.html";
-    }
-
-    closeBtn.addEventListener("click", showCloseModal);
-    modalCancel.addEventListener("click", hideCloseModal);
-    modalConfirm.addEventListener("click", closeApp);
-
-    // Modal schließen bei Klick außerhalb
-    closeModal.addEventListener("click", (e) => {
-      if (e.target === closeModal) {
-        hideCloseModal();
-      }
-    });
-
-    // NEU: Share-Funktion (WhatsApp / native Share)
-    const shareBtn = document.getElementById("shareBtn");
-
+    // Teilen
     function shareApp(){
-      const shareUrl  = window.location.href;
-      const shareText = "DigiKipp – KIPP-Spiele zum Kippen & Merken";
+      const url = window.location.href;
+      const text = "DigiKipp – schau mal vorbei!";
 
-      if (navigator.share){
-        navigator.share({
-          title: "DigiKipp",
-          text: shareText,
-          url: shareUrl
-        }).catch(() => {
-          // Nutzer hat abgebrochen oder es gab einen Fehler – kein Popup nötig
-        });
+      if(navigator.share){
+        navigator.share({ title:"DigiKipp", text, url }).catch(()=>{});
       } else {
-        const waUrl = "https://wa.me/?text=" + encodeURIComponent(shareText + " " + shareUrl);
-        window.open(waUrl, "_blank");
+        window.open("https://wa.me/?text=" + encodeURIComponent(text + " " + url), "_blank");
       }
     }
 
-    shareBtn.addEventListener("click", (e) => {
-      e.preventDefault();
-      shareApp();
-    }, { passive: false });
+    document.getElementById("shareBtn").onclick = shareApp;
+
   </script>
 </body>
 </html>

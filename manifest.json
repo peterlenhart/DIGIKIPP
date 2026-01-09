@@ -4,7 +4,7 @@
   "description": "Würfelspiel - Schauen & Merken",
   "start_url": "./index.html",
   "display": "standalone",
-  "background_color": "#d9c3a2",
+  "background_color": "#000000",
   "theme_color": "#4a2418",
   "orientation": "portrait",
   "icons": [

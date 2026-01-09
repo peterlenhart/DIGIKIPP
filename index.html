@@ -138,8 +138,8 @@
     /* Navigation Button (X-Icon) */
     .navBtn{
       position: absolute;
-      width: calc(56px * var(--uiscale));
-      height: calc(56px * var(--uiscale));
+      width: 56px;
+      height: 56px;
       background: none;
       border: none;
       display: flex;
@@ -155,8 +155,8 @@
 
     .closeIcon{
       position: relative;
-      width: calc(32px * var(--uiscale));
-      height: calc(32px * var(--uiscale));
+      width: 32px;
+      height: 32px;
     }
     .closeIcon::before,
     .closeIcon::after{
@@ -164,10 +164,10 @@
       position: absolute;
       top: 50%;
       left: 50%;
-      width: calc(32px * var(--uiscale));
-      height: calc(5px * var(--uiscale));
+      width: 32px;
+      height: 5px;
       background: rgba(234,215,190,0.96);
-      border-radius: calc(2.5px * var(--uiscale));
+      border-radius: 2.5px;
       filter: drop-shadow(0 2px 4px rgba(0,0,0,0.45));
     }
     .closeIcon::before{ transform: translate(-50%, -50%) rotate(45deg); }
@@ -196,40 +196,41 @@
 
     .modalBox{
       background: var(--btn-bg);
-      border-radius: calc(18px * var(--uiscale));
-      padding: calc(32px * var(--uiscale)) calc(28px * var(--uiscale));
-      max-width: calc(420px * var(--uiscale));
+      border-radius: 18px;
+      padding: 32px 28px;
+      max-width: 90vw;
+      width: 420px;
       box-shadow: 0 20px 60px rgba(0,0,0,0.5);
       text-align:center;
     }
 
     .modalTitle{
-      font-size: calc(22px * var(--uiscale));
+      font-size: clamp(18px, 5vw, 24px);
       font-weight:1000;
       color: var(--btn-text);
-      margin-bottom: calc(16px * var(--uiscale));
+      margin-bottom: 16px;
       letter-spacing:0.02em;
     }
 
     .modalText{
-      font-size: calc(16px * var(--uiscale));
+      font-size: clamp(14px, 4vw, 16px);
       color: #5a3a28;
-      margin-bottom: calc(26px * var(--uiscale));
+      margin-bottom: 26px;
       line-height:1.5;
     }
 
     .modalBtns{
       display:flex;
-      gap: calc(12px * var(--uiscale));
+      gap: 12px;
       justify-content:center;
     }
 
     .modalBtn{
-      padding: calc(12px * var(--uiscale)) calc(24px * var(--uiscale));
-      border-radius: calc(10px * var(--uiscale));
+      padding: 12px 24px;
+      border-radius: 10px;
       border:2px solid rgba(0,0,0,0.25);
       font-weight:700;
-      font-size: calc(16px * var(--uiscale));
+      font-size: clamp(14px, 4vw, 16px);
       cursor:pointer;
       transition:all 0.12s ease;
       user-select:none;

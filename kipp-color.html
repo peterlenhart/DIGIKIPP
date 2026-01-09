@@ -409,19 +409,10 @@
       font-size: calc(18px * var(--uiscale));
       transform: translate(-50%, -50%);
     }
-    /* NEU: "klein" für Kippziel */
+    /* bleibt vorhanden, wird aber für KIPPZIEL nicht mehr benutzt */
     .hintSmall{
       font-size: calc(14px * var(--uiscale)) !important;
       opacity: 0.96;
-    }
-    /* NEU: Teile für "KIPPZIEL" groß, "VON 12" kleiner */
-    .hintTitle .hintMainPart{
-      font-size: 1em;
-    }
-    .hintTitle .hintSubPart{
-      font-size: 0.78em;
-      opacity: 0.9;
-      margin-left: 0.25em;
     }
 
     /* 2x2 Ziel-Button */
@@ -729,6 +720,7 @@
       text-transform: uppercase;
       line-height: 1.1;
       margin-bottom: calc(20px * var(--uiscale));
+      text-align: center; /* NEU: zentrierter Titel im Intro */
     }
 
     .introText{
@@ -1091,43 +1083,17 @@
 
     const MAX_TARGETS = 12;
 
-    // NEU: gibt Objekt { main, sub } zurück
     function getTargetHintText(){
       const nextIndex = drawsCount + 1; // 1..MAX_TARGETS
-      if(nextIndex >= MAX_TARGETS){
-        // Letztes Ziel ohne "von 12"
-        return { main: "LETZTES KIPPZIEL", sub: "" };
-      }
-      const ord = ordinals[nextIndex] || (nextIndex + ".");
-      return {
-        main: `${ord} KIPPZIEL`,
-        sub: "VON 12"
-      };
+      if(nextIndex >= MAX_TARGETS) return "LETZTES KIPPZIEL";
+      return `${ordinals[nextIndex] || (nextIndex + ".")} KIPPZIEL VON 12`;
     }
 
     function showHint(text, small=false){
-      hintTitle.classList.remove("hidden","hintSmall");
-      hintTitle.innerHTML = "";
-
-      if(typeof text === "string"){
-        hintTitle.textContent = text;
-      } else if(text && typeof text === "object"){
-        const mainSpan = document.createElement("span");
-        mainSpan.className = "hintMainPart";
-        mainSpan.textContent = text.main || "";
-        hintTitle.appendChild(mainSpan);
-
-        if(text.sub){
-          const subSpan = document.createElement("span");
-          subSpan.className = "hintSubPart";
-          subSpan.textContent = " " + text.sub;
-          hintTitle.appendChild(subSpan);
-        }
-      }
-
-      if(small) hintTitle.classList.add("hintSmall");
+      hintTitle.textContent = text;
+      hintTitle.classList.remove("hidden");
+      hintTitle.classList.toggle("hintSmall", !!small);
     }
-
     function hideHint(){
       hintTitle.classList.add("hidden");
     }
@@ -1776,7 +1742,8 @@
       }
 
       uiMode = "TARGET";
-      showHint(getTargetHintText(), true);
+      // KIPPZIEL-Hinweise jetzt in normaler Größe wie SCHAUKIPP-RUNDE / KIPP-ANZAHL
+      showHint(getTargetHintText());
 
       startBtnWrap.classList.add("hidden");
       kippAnzahlView.classList.add("hidden");

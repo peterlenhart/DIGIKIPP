@@ -659,9 +659,9 @@
     .backIcon::before{
       content:"";
       position:absolute;
-      left: 15%;
+      left: 50%;
       top: 50%;
-      width: 70%;
+      width: 35%;
       height: 6px;
       background: rgba(234,215,190,0.96);
       border-radius: 3px;
@@ -1863,12 +1863,11 @@
     }
 
     function positionBackButton(cellPx){
-      const col = 1;
-      const y = 1.0 * cellPx;
-      const left = (col - 1) * cellPx + cellPx / 2;
-      const top = y;
+      const headerY = 1.0 * cellPx;
+      const left = cellPx / 2; // Spalte A Mitte
+      const top = headerY;
 
-      const s = getComputedStyle(document.documentElement).getPropertyValue("--uiscale").trim() || 1;
+      const s = getComputedStyle(document.documentElement).getPropertyValue("--headerScale").trim() || 0.75;
 
       backBtn.style.left = left + "px";
       backBtn.style.top = top + "px";

@@ -395,8 +395,8 @@
 
   <div id="closeModal" class="modalOverlay hidden">
     <div class="modalBox">
-      <div class="modalTitle">App beenden?</div>
-      <div class="modalText">Möchtest du DigiKipp wirklich schließen?</div>
+      <div class="modalTitle">Spiel beenden?</div>
+      <div class="modalText">Möchtest du DigiKipp wirklich beenden?</div>
       <div class="modalBtns">
         <button class="modalBtn cancel" id="modalCancel">Abbrechen</button>
         <button class="modalBtn confirm" id="modalConfirm">Beenden</button>
@@ -526,16 +526,8 @@
     }
 
     function closeApp() {
-      // Versuche App/Tab zu schließen
-      window.close();
-      
-      // Fallback für Browser die window.close() blockieren
-      setTimeout(() => {
-        // Wenn Tab noch offen ist, gehe zurück oder zu about:blank
-        if (!document.hidden) {
-          window.history.back();
-        }
-      }, 100);
+      // Navigiere zur Tschüss-Seite
+      window.location.href = "tschuess.html";
     }
 
     closeBtn.addEventListener("click", showCloseModal);

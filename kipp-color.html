@@ -796,6 +796,32 @@
       transform: scale(0.98);
       filter: brightness(0.98);
     }
+
+    /* Zurück Button im Intro */
+    .introBackBtn{
+      margin-top: calc(10px * var(--uiscale));
+      margin-bottom: calc(10px * var(--uiscale));
+      width: calc(280px * var(--uiscale));
+      height: calc(44px * var(--uiscale));
+      border-radius: calc(12px * var(--uiscale));
+      border: 2px solid rgba(0,0,0,0.35);
+      background: rgba(234,215,190,0.75);
+      box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+      font-size: calc(17px * var(--uiscale));
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      color: #7a3f2b;
+      text-shadow: 0 1px 0 rgba(255,255,255,0.25);
+      cursor: pointer;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+      pointer-events: auto;
+      transition: transform 0.1s ease, filter 0.1s ease;
+    }
+    .introBackBtn:active{
+      transform: scale(0.97);
+      filter: brightness(0.96);
+    }
   </style>
 </head>
 
@@ -809,6 +835,7 @@
           Kippe die richtige Zahl<br>
           an die richtige Farbe
         </div>
+        <button class="introBackBtn" id="introBackBtn">← Zurück zur Auswahl</button>
         <button class="introBtn" id="introStartBtn">LOS GEHT'S</button>
       </div>
 
@@ -2161,12 +2188,17 @@
     // Intro Overlay Handler
     const introOverlay = document.getElementById("introOverlay");
     const introStartBtn = document.getElementById("introStartBtn");
+    const introBackBtn = document.getElementById("introBackBtn");
 
     introStartBtn.addEventListener("click", () => {
       introOverlay.classList.add("hidden");
       setTimeout(() => {
         introOverlay.remove();
       }, 400);
+    });
+
+    introBackBtn.addEventListener("click", () => {
+      window.location.href = "index.html";
     });
   </script>
 </body>

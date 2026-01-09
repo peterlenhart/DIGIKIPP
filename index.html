@@ -190,70 +190,22 @@
     .closeIcon::before{ transform: translate(-50%, -50%) rotate(45deg); }
     .closeIcon::after { transform: translate(-50%, -50%) rotate(-45deg); }
 
-    /* NEUES Teilen-Icon: 3 Punkte + 2 Linien, Punkte über den Linien */
-    .shareIcon{
-      position: relative;
-      width: calc(32px * var(--uiscale));
-      height: calc(32px * var(--uiscale));
+    /* FERTIGES Share-Icon als SVG */
+    .shareSvg{
+      width: calc(28px * var(--uiscale));
+      height: calc(28px * var(--uiscale));
     }
 
-    /* Linien zuerst (hinter den Punkten) */
-    .shareIcon::before,
-    .shareIcon::after{
-      content:"";
-      position:absolute;
-      width: calc(20px * var(--uiscale));
-      height: calc(3px * var(--uiscale));
-      background: rgba(234,215,190,0.96);
-      box-shadow: 0 2px 4px rgba(0,0,0,0.45);
-      transform-origin: center left;
-      left: 50%;
-      top: 35%;
-      transform: translate(-50%, -50%);
-      z-index:1;
+    .shareSvg circle{
+      fill: rgba(234,215,190,0.96);
+      stroke: rgba(234,215,190,0.96);
+      stroke-width: 2.4;
     }
 
-    /* links unten Verbindung */
-    .shareIcon::before{
-      transform: translate(-50%, -50%) rotate(140deg);
-    }
-
-    /* rechts unten Verbindung */
-    .shareIcon::after{
-      transform: translate(-50%, -50%) rotate(40deg);
-    }
-
-    /* Punkte oben drauf */
-    .shareIcon div{
-      position:absolute;
-      background: rgba(234,215,190,0.96);
-      border-radius: 50%;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.45);
-      z-index:2;
-    }
-
-    .shareIcon .p1{
-      width: calc(8px * var(--uiscale));
-      height: calc(8px * var(--uiscale));
-      left: 50%;
-      top: 28%;
-      transform: translate(-50%, -50%);
-    }
-
-    .shareIcon .p2{
-      width: calc(8px * var(--uiscale));
-      height: calc(8px * var(--uiscale));
-      left: 28%;
-      top: 72%;
-      transform: translate(-50%, -50%);
-    }
-
-    .shareIcon .p3{
-      width: calc(8px * var(--uiscale));
-      height: calc(8px * var(--uiscale));
-      left: 72%;
-      top: 72%;
-      transform: translate(-50%, -50%);
+    .shareSvg line{
+      stroke: rgba(234,215,190,0.96);
+      stroke-width: 2.4;
+      stroke-linecap: round;
     }
 
     /* Modal */
@@ -353,17 +305,21 @@
         </button>
 
         <!-- X -->
-        <button class="navBtn" id="closeBtn">
+        <button class="navBtn" id="closeBtn" aria-label="App beenden">
           <div class="closeIcon"></div>
         </button>
 
         <!-- TEILEN -->
-        <button class="navBtn" id="shareBtn">
-          <div class="shareIcon">
-            <div class="p1"></div>
-            <div class="p2"></div>
-            <div class="p3"></div>
-          </div>
+        <button class="navBtn" id="shareBtn" aria-label="Teilen">
+          <svg class="shareSvg" viewBox="0 0 24 24" aria-hidden="true">
+            <!-- drei Punkte -->
+            <circle cx="18" cy="6" r="2.4" />
+            <circle cx="6"  cy="12" r="2.4" />
+            <circle cx="18" cy="18" r="2.4" />
+            <!-- Verbindungs-Linien -->
+            <line x1="8.4" y1="12" x2="15.6" y2="7.8" />
+            <line x1="8.4" y1="12" x2="15.6" y2="16.2" />
+          </svg>
         </button>
 
       </div>
@@ -418,23 +374,23 @@
       const btnCard  = document.getElementById("btnCard");
       const btnFairy = document.getElementById("btnFairy");
 
-      const row10 = (((10 + HEADER_ROW_OFFSET) - 1) * cellPx) + cellPx/2;
+      const row10  = (((10   + HEADER_ROW_OFFSET) - 1) * cellPx) + cellPx/2;
       const row115 = (((11.5 + HEADER_ROW_OFFSET) - 1) * cellPx) + cellPx/2;
-      const row13 = (((13 + HEADER_ROW_OFFSET) - 1) * cellPx) + cellPx/2;
+      const row13  = (((13   + HEADER_ROW_OFFSET) - 1) * cellPx) + cellPx/2;
 
-      btnColor.style.top = row10 + "px";
+      btnColor.style.top = row10  + "px";
       btnCard.style.top  = row115 + "px";
-      btnFairy.style.top = row13 + "px";
+      btnFairy.style.top = row13  + "px";
 
-      // Close Button links
+      // Close Button links (0.1A)
       const closeBtn = document.getElementById("closeBtn");
       const closeLeft = cellPx * 0.5;
-      const closeTop = cellPx * 0.5;
+      const closeTop  = cellPx * 0.5;
       closeBtn.style.left = closeLeft + "px";
-      closeBtn.style.top = closeTop + "px";
+      closeBtn.style.top  = closeTop  + "px";
       closeBtn.style.transform = "translate(-50%, -50%)";
 
-      // Share Button rechts (Spiegelpunkt)
+      // Share Button rechts gespiegelt (0.1H)
       const shareBtn = document.getElementById("shareBtn");
       const shareLeft = cellPx * (8 - 0.5);
       shareBtn.style.left = shareLeft + "px";

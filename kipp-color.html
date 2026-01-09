@@ -690,11 +690,11 @@
 
     /* Intro Overlay */
     #introOverlay{
-      position: fixed;
-      top: 0;
+      position: absolute;
       left: 0;
-      width: 100vw;
-      height: 100vh;
+      top: 0;
+      width: var(--gridW);
+      height: var(--gridH);
       background: var(--ui-panel-bg);
       z-index: 10000;
       display: flex;
@@ -729,7 +729,7 @@
       text-align: center;
       line-height: 1.6;
       opacity: 0.95;
-      max-width: 90vw;
+      max-width: calc(600px * var(--uiscale));
     }
 
     .introBtn{
@@ -751,6 +751,7 @@
       cursor: pointer;
       user-select: none;
       -webkit-tap-highlight-color: transparent;
+      pointer-events: auto;
       transition: transform 0.1s ease, filter 0.1s ease;
     }
     .introBtn:active{
@@ -761,18 +762,18 @@
 </head>
 
 <body>
-  <!-- Intro Overlay -->
-  <div id="introOverlay">
-    <div class="introTitle">🎲 DIGIKIPP COLOR</div>
-    <div class="introText">
-      Kippe die richtige Zahl<br>
-      an die richtige Farbe
-    </div>
-    <button class="introBtn" id="introStartBtn">LOS GEHT'S</button>
-  </div>
-
   <div class="stage" id="stage">
     <div class="layout" id="layout">
+      <!-- Intro Overlay INNERHALB layout -->
+      <div id="introOverlay">
+        <div class="introTitle">🎲 DIGIKIPP COLOR</div>
+        <div class="introText">
+          Kippe die richtige Zahl<br>
+          an die richtige Farbe
+        </div>
+        <button class="introBtn" id="introStartBtn">LOS GEHT'S</button>
+      </div>
+
       <div class="bgPNG" aria-hidden="true"></div>
       <div class="ball" aria-label="Kugel"></div>
       <div class="colors" id="colors" aria-hidden="true"></div>

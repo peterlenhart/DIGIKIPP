@@ -110,20 +110,26 @@
 
     /* Z-INDEX: 0 - Box Hintergrund PNG (CARD) */
     .bgPNG{
-      position:absolute;
-      left: 0;
-      top: 0;
-      width: var(--gridW);
-      height: var(--gridH);
-      background-image: url("digikipp_card_hgr.webp");
-      background-repeat: no-repeat;
-      background-size: 100% auto;
-      background-position:
-        calc(0px + var(--bg-off-x))
-        calc(0px + var(--bg-off-y));
-      pointer-events: none;
-      z-index: 0;
-    }
+  position:absolute;
+  left: 0;
+  top: 0;
+  width: var(--gridW);
+  height: var(--gridH);
+  background-image:
+    /* Overlay: etwas Magenta + Abdunkeln */
+    linear-gradient(
+      rgba(80, 0, 60, 0.35),
+      rgba(20, 0, 20, 0.55)
+    ),
+    url("digikipp_card_hgr.webp");
+  background-repeat: no-repeat;
+  background-size: 100% auto;
+  background-position:
+    calc(0px + var(--bg-off-x))
+    calc(0px + var(--bg-off-y));
+  pointer-events: none;
+  z-index:0;
+}
 
     /* Z-INDEX: 1 - Kugel (UNTER dem Würfel) */
     .ball{

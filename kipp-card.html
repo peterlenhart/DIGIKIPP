@@ -183,6 +183,8 @@
       height: var(--gridH);
       pointer-events: none;
       z-index: 10;
+      /* Farbfelder optisch komplett weg */
+      display:none;
     }
 
     .colorSq{
@@ -416,6 +418,58 @@
       height: calc(44px * var(--uiscale));
     }
 
+    /* NEU: Scrollband für Kippanzahl (ersetzt 1–6 Buttons) */
+    .scrollBandWrap{
+      position:absolute;
+      left:50%;
+      transform:translateX(-50%);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      pointer-events:none;
+      z-index:50;
+    }
+    .scrollBand{
+      pointer-events:auto;
+      display:flex;
+      gap:calc(10px * var(--uiscale));
+      overflow-x:auto;
+      padding:calc(4px * var(--uiscale)) calc(6px * var(--uiscale));
+      max-width:calc(7 * var(--cell));
+      scrollbar-width:none;
+    }
+    .scrollBand::-webkit-scrollbar{
+      display:none;
+    }
+    .scrollItem{
+      min-width:calc(44px * var(--uiscale));
+      height:calc(44px * var(--uiscale));
+      border-radius:calc(14px * var(--uiscale));
+      border:2px solid rgba(0,0,0,0.65);
+      background:rgba(234,215,190,0.96);
+      box-shadow:
+        0 10px 18px rgba(0,0,0,0.22),
+        0 0 0 1px rgba(255,255,255,0.18) inset;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-weight:1000;
+      letter-spacing:0.06em;
+      color:#7a3f2b;
+      text-shadow:0 1px 0 rgba(255,255,255,0.35);
+      user-select:none;
+      -webkit-tap-highlight-color:transparent;
+      cursor:pointer;
+    }
+    .scrollItem:active{
+      transform:scale(0.98);
+      filter:brightness(0.98);
+    }
+    .scrollItem.disabled{
+      opacity:0.5;
+      pointer-events:none;
+    }
+
     @keyframes pulseScale{
       0%   { transform: scale(1);   filter: drop-shadow(0 0 0 rgba(255,255,255,0)); }
       100% { transform: scale(1.06); filter: drop-shadow(0 0 14px rgba(255,255,255,0.45)); }
@@ -544,9 +598,10 @@
       font-family: "Noto Serif", serif;
     }
 
+    /* NEU: mehr Abstand für 10 am Würfelslot */
     .slot .num > span.twodigit{
-      letter-spacing: -0.16em !important;
-      transform: rotate(var(--num-rot, 0deg)) translateX(-0.10em);
+      letter-spacing: 0.04em !important;
+      transform: rotate(var(--num-rot, 0deg)); /* kein negatives Zusammenziehen mehr */
     }
 
     .read-south { --num-rot: calc(var(--rotSign) * 0deg); }
@@ -886,7 +941,7 @@
 
     .targetSuitImg{
       position:absolute;
-      z-index:8; /* über target_1, unter targetCovered */
+      z-index:8; /* über target_1..n, unter targetCovered */
       display:none;
       pointer-events:none;
     }
@@ -1032,6 +1087,11 @@
           </button>
         </div>
 
+        <!-- NEU: Scrollband für Kippanzahl (Zeile 13, gleiche Position wie Startbutton) -->
+        <div class="scrollBandWrap hidden" id="scrollBandWrap">
+          <div class="scrollBand" id="scrollBand"></div>
+        </div>
+
         <button class="targetPadBtn hidden" id="targetPadBtn" type="button" aria-label="Ziel erzeugen">
           <div class="targetPadCircle" id="targetPadCircle"></div>
           <div class="targetPadNum" id="targetPadNum"></div>
@@ -1077,6 +1137,9 @@
 
     const targetRank10D   = document.getElementById("targetRank10D");
     const targetSuitImg   = document.getElementById("targetSuitImg");
+
+    const scrollBandWrap  = document.getElementById("scrollBandWrap");
+    const scrollBand      = document.getElementById("scrollBand");
 
     const shadowQ0 = document.getElementById("shadowQ0");
     const shadowQ1 = document.getElementById("shadowQ1");
@@ -1650,23 +1713,36 @@
       runningKipp = false;
     }
 
-    // ---------- UI: Kippzahl Buttons ----------
-    function buildKippAnzahlButtons(){
-      kippAnzahlBtns.innerHTML = "";
-      kippAnzahlBtns.classList.add("compact");
-
-      [1, 2, 3, 4, 5, 6].forEach(num => {
-        const btn = document.createElement("button");
-        btn.className = "squareBtn";
-        btn.dataset.anzahl = num;
-        btn.type = "button";
-        btn.innerHTML = `<span class="anzahlText pulse">${String(num)}</span>`;
-        btn.addEventListener("click", () => handleAnzahlClick(num, btn));
-        kippAnzahlBtns.appendChild(btn);
+    // ---------- NEU: Scrollband für Kippanzahl (statt 1–6 Buttons) ----------
+    function buildScrollBand(){
+      if(!scrollBand) return;
+      scrollBand.innerHTML = "";
+      [1,2,3,4,5,6].forEach(num => {
+        const item = document.createElement("div");
+        item.className = "scrollItem";
+        item.dataset.anzahl = num;
+        item.textContent = String(num);
+        item.addEventListener("click", () => handleAnzahlClick(num, null));
+        scrollBand.appendChild(item);
       });
     }
 
+    function setScrollBandLocked(locked){
+      if(!scrollBand) return;
+      scrollBand.querySelectorAll(".scrollItem").forEach(item => {
+        item.classList.toggle("disabled", !!locked);
+      });
+    }
+
+    // (alte Kipp-Anzahl-Buttons bleiben als Logik-Leiche, werden aber nicht mehr verwendet)
+    function buildKippAnzahlButtons(){
+      kippAnzahlBtns.innerHTML = "";
+      kippAnzahlBtns.classList.add("compact");
+      // NICHT MEHR AUFGERUFEN
+    }
+
     function setAnzahlButtonsLocked(locked){
+      // NICHT MEHR VERWENDET
       kippAnzahlBtns.querySelectorAll("button").forEach(b => b.disabled = locked);
       testTargetBtn.disabled = locked;
     }
@@ -1743,13 +1819,14 @@
       btnErgebnis.classList.remove("hidden");
 
       kippAnzahlView.classList.add("hidden");
+      if(scrollBandWrap) scrollBandWrap.classList.add("hidden");
 
       showHint("SCHLUSS KIPPRUNDE", false);
 
       btnErgebnisText.textContent = "ERGEBNIS";
       btnErgebnis.disabled = false;
 
-      setAnzahlButtonsLocked(true);
+      setScrollBandLocked(true);
       positionUI();
     }
 
@@ -1794,7 +1871,7 @@
       attemptsForTarget++;
 
       markRunSelected(clickedBtn);
-      setAnzahlButtonsLocked(true);
+      setScrollBandLocked(true);
 
       runSchauKippSequence(anzahl, { kipFactor: 1 }).finally(async () => {
         clearHitPulse();
@@ -1812,7 +1889,7 @@
         }
 
         resetToNewTargetChoice();
-        setAnzahlButtonsLocked(false);
+        setScrollBandLocked(false);
         renderW();
       });
     }
@@ -1831,6 +1908,8 @@
       startBtnWrap.classList.remove("hidden");
       btnSchauen.classList.remove("hidden");
       btnErgebnis.classList.add("hidden");
+
+      if(scrollBandWrap) scrollBandWrap.classList.add("hidden");
 
       btnSchauenPulse.classList.add("pulse");
 
@@ -1863,6 +1942,7 @@
       showHint(getTargetHintText());
 
       startBtnWrap.classList.add("hidden");
+      if(scrollBandWrap) scrollBandWrap.classList.add("hidden");
       kippAnzahlView.classList.add("hidden");
 
       hideTargetRankAndSuit();
@@ -1871,13 +1951,25 @@
         targetLayer.style.display = "block";
       }
 
-      // nur target_1 sichtbar, darüber die verdeckte Karte (pulsierend)
-      [targetImg1, targetImg2, targetImg3, targetImg4, targetImg5, targetImg6].forEach(img => {
-        if(img) img.style.display = "none";
-      });
-      if(targetImg1){
-        targetImg1.style.display = "block";
+      // gewählte Zielkarte je nach nächstem Index
+      const imgs = [targetImg1, targetImg2, targetImg3, targetImg4, targetImg5, targetImg6];
+      imgs.forEach(img => { if(img) img.style.display = "none"; });
+
+      const nextIdx = drawsCount + 1; // 1..6
+      let activeImg = null;
+      switch(nextIdx){
+        case 1: activeImg = targetImg1; break;
+        case 2: activeImg = targetImg2; break;
+        case 3: activeImg = targetImg3; break;
+        case 4: activeImg = targetImg4; break;
+        case 5: activeImg = targetImg5; break;
+        case 6: activeImg = targetImg6; break;
+        default: activeImg = targetImg6; break;
       }
+      if(activeImg){
+        activeImg.style.display = "block";
+      }
+
       if(targetImgCovered){
         targetImgCovered.style.display = "block";
         targetImgCovered.classList.add("pulse");
@@ -1894,9 +1986,13 @@
       showHint("KIPP-ANZAHL", false);
 
       startBtnWrap.classList.add("hidden");
+      kippAnzahlView.classList.add("hidden");
 
-      kippAnzahlView.classList.remove("hidden");
-      buildKippAnzahlButtons();
+      if(scrollBandWrap){
+        scrollBandWrap.classList.remove("hidden");
+        buildScrollBand();
+        setScrollBandLocked(false);
+      }
 
       testTargetBtn.classList.add("hidden");
       testTargetBtn.disabled = true;
@@ -1958,8 +2054,10 @@
         ["3H","c-violett"],["4H","c-gruen"],  ["5H","c-gruen"],  ["6H","c-orange"],
       ];
 
+      // Visuell nicht mehr sichtbar, Logik bleibt
       for(const [coord, cls] of placements){
-        placeColorSquare(coord, cls, cellPx, sizePx);
+        // optional: nichts tun, da .colors display:none ist
+        // placeColorSquare(coord, cls, cellPx, sizePx);
       }
     }
 
@@ -2092,7 +2190,13 @@
       // SCHAUEN-&-MERKEN Button: Grundposition Zeile 13, dann ½ Zeilenhöhe nach Norden verschoben
       const row13VisualTop = (((13 + HEADER_ROW_OFFSET) - 1) * cellPx);
       const row13CenterY   = row13VisualTop + (cellPx / 2);
-      startBtnWrap.style.top = (row13CenterY - (cellPx / 2)) + "px";
+      const startTop = (row13CenterY - (cellPx / 2));
+      startBtnWrap.style.top = startTop + "px";
+
+      // Scrollband auf exakt dieselbe Höhe wie Startbutton
+      if(scrollBandWrap){
+        scrollBandWrap.style.top = startTop + "px";
+      }
 
       if(uiMode === "TARGET"){
         hintTitle.style.top = row11CenterY + "px";
@@ -2242,6 +2346,7 @@
       hideStartUI();
 
       kippAnzahlView.classList.add("hidden");
+      if(scrollBandWrap) scrollBandWrap.classList.add("hidden");
 
       targetRevealed = false;
       currentTarget = null;
@@ -2252,7 +2357,7 @@
 
       await runSchauKippSequence(4, { kipFactor: 2 });
 
-      // Nach 4-Kipp-Zyklus Target zeigen (target_1 + verdeckt)
+      // Nach 4-Kipp-Zyklus Target zeigen (target_n + verdeckt)
       showTargetSelectView();
     });
 

@@ -461,7 +461,9 @@
     }
 
     .scrollItem{
-      width: calc(var(--cell) * 0.95);
+      .scrollItem{
+      min-width: calc(var(--cell) * 0.85)
+    }
       height:    calc(var(--cell) * 0.85);
       border-radius: calc(0.20 * var(--cell));
       border:2px solid rgba(0,0,0,0.65);

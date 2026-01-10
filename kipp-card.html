@@ -179,6 +179,8 @@
       height: var(--gridH);
       pointer-events: none;
       z-index: 10;
+      /* Farbfelder für den Spieler unsichtbar, Logik bleibt erhalten */
+      opacity: 0;
     }
 
     .colorSq{
@@ -445,7 +447,7 @@
       opacity: 0.96;
     }
 
-    /* 2x2 Ziel-Button */
+    /* 2x2 Ziel-Button (wird in dieser Version nicht verwendet, bleibt aber im Code) */
     .targetPadBtn{
       position: absolute;
       box-sizing: border-box;
@@ -1336,11 +1338,8 @@
     }
 
     // =========================
-    // Random-Regeln:
-    // - 12er Deck (jede Zahl 1..12 genau 1x)
-    // - Aktuell sichtbare Farb-Zahl-Paare verboten
-    // - Nur Ziele, die in max 6 CW-Kipps erreichbar sind
-    // - Offen/Verdeckt nach Pattern (1..12)
+    // Random-Regeln (werden in dieser Version visuell nicht verwendet,
+    // bleiben aber im Code für später)
     // =========================
     const TARGET_VIS_PATTERN = [
       false,  // 1
@@ -1375,7 +1374,6 @@
       return new Set(getVisibleSlotInfos().map(s => s.num).filter(n => n != null));
     }
 
-    // Sichtbare Slots (nur Daten) für beliebigen Zustand (ohne UI)
     function getVisibleInfosAt(rotIdx, faceIdx){
       const curr = sets[faceIdx];
       const zsCoords = ZS_COORDS_BY_ROT_ZSINDEX[rotIdx];
@@ -1392,7 +1390,6 @@
     }
 
     function isPairReachableWithin6(num, color){
-      // Simuliere 1..6 CW-Kipps ab aktuellem rotIndex/faceIndex
       let r = rotIndex;
       let f = faceIndex;
       for(let step=1; step<=6; step++){
@@ -1423,7 +1420,7 @@
 
     function shuffled(arr){
       const a = arr.slice();
-      for(let i=a.length-1;i>0;i--){
+      for(let i=a.length-1; i>0; i--){
         const j = Math.floor(Math.random()*(i+1));
         [a[i], a[j]] = [a[j], a[i]];
       }
@@ -1439,20 +1436,17 @@
       const forbidden = getForbiddenPairsForCurrentState();
       const visibleNums = getVisibleNumbersSet();
 
-      // Zahl-Kandidaten nach Offen/Verdeckt + Deck
       let numberCandidates = [];
       for(let n=1; n<=12; n++){
         if(usedNumbers.has(n)) continue;
 
         const isVisibleNow = visibleNums.has(n);
-        if(mustBeVisible && !isVisibleNow) continue;    // Offen => Zahl muss aktuell sichtbar sein
-        if(!mustBeVisible && isVisibleNow) continue;    // Verdeckt => Zahl darf aktuell NICHT sichtbar sein
+        if(mustBeVisible && !isVisibleNow) continue;
+        if(!mustBeVisible && isVisibleNow) continue;
 
         numberCandidates.push(n);
       }
 
-      // Falls (selten) keine Kandidaten, dann (ohne Deck zu brechen) nur Offen/Verdeckt lockern,
-      // aber weiterhin: verbotenes Paar + max 6 erreichbar.
       let relaxed = false;
       if(numberCandidates.length === 0){
         relaxed = true;
@@ -1462,7 +1456,6 @@
         }
       }
 
-      // Baue alle gültigen (num,color) Kandidaten:
       const candidates = [];
       for(const n of numberCandidates){
         for(const c of allColors){
@@ -1773,7 +1766,7 @@
     function showEndResultView(){
       uiMode = "END";
       startBtnWrap.classList.remove("hidden");
-      btnSchauen.classList.add("hidden");
+      btnSchauen.classList.remove("hidden");
       btnErgebnis.classList.remove("hidden");
 
       kippAnzahlView.classList.add("hidden");
@@ -1818,9 +1811,6 @@
       hintTitle.classList.add("hidden");
     }
 
-    // =========================
-    // Nach dem Kipp immer Ziel beendet (nur 1 Versuch)
-    // =========================
     function handleAnzahlClick(anzahl, clickedBtn){
       if(!currentTarget) return;
       if(runningKipp) return;
@@ -1953,6 +1943,7 @@
       positionUI();
     }
 
+    // TargetPad-Klick – wird in dieser Version faktisch nicht verwendet
     targetPadBtn.addEventListener("click", () => {
       if(targetRevealed) return;
 
@@ -1971,6 +1962,28 @@
       showKippCountView();
       checkHitAndAnimate();
     });
+
+    // NEU: Target-Karten erst nach 4-Kipp-Zyklus einblenden
+    function showTargetAfterKipp(){
+      // alle Targets zunächst weg
+      [targetImg1, targetImg2, targetImg3, targetImg4, targetImg5, targetImg6, targetImgCovered].forEach(img => {
+        if(img){
+          img.style.display = "none";
+          img.classList.remove("pulse");
+        }
+      });
+
+      // 1. ausgespielte Karte sichtbar
+      if(targetImg1){
+        targetImg1.style.display = "block";
+      }
+
+      // darüber die verdeckte Target-Karte, pulsierend
+      if(targetImgCovered){
+        targetImgCovered.style.display = "block";
+        targetImgCovered.classList.add("pulse");
+      }
+    }
 
     btnSchauen.addEventListener("click", async () => {
       if(runningKipp) return;
@@ -1997,9 +2010,11 @@
       resetTargetPadUI();
       clearHitPulse();
 
+      // 4-Kipp-Zyklus
       await runSchauKippSequence(4, { kipFactor: 2 });
 
-      showTargetSelectView();
+      // Danach Target-Stack (target_1 + target_verdeckt) anzeigen
+      showTargetAfterKipp();
     });
 
     btnErgebnis.addEventListener("click", () => {
@@ -2189,7 +2204,6 @@
       kippAnzahlBtns.style.left = "50%";
       kippAnzahlBtns.style.transform = "translate(-50%, -50%)";
 
-      // SCHAUEN-&-MERKEN Button: Grundposition Zeile 13, dann ½ Zeilenhöhe nach Norden verschoben
       const row13VisualTop = (((13 + HEADER_ROW_OFFSET) - 1) * cellPx);
       const row13CenterY   = row13VisualTop + (cellPx / 2);
       startBtnWrap.style.top = (row13CenterY - (cellPx / 2)) + "px";
@@ -2253,16 +2267,13 @@
       showW();
       renderW();
 
-      // Target-Karten-Startzustand:
-      if(targetImg1){
-        [targetImg1, targetImg2, targetImg3, targetImg4, targetImg5, targetImg6].forEach(img => {
-          if(img) img.style.display = "none";
-        });
-      }
-      if(targetImgCovered){
-        targetImgCovered.style.display = "block";
-        targetImgCovered.classList.add("pulse");
-      }
+      // Target-Karten-Startzustand: ALLES unsichtbar, kein Puls
+      [targetImg1, targetImg2, targetImg3, targetImg4, targetImg5, targetImg6, targetImgCovered].forEach(img => {
+        if(img){
+          img.style.display = "none";
+          img.classList.remove("pulse");
+        }
+      });
 
       btnErgebnis.onclick = null;
 

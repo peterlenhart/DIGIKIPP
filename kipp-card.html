@@ -4,16 +4,16 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>DigiKipp – KIPP CARD</title>
-  
+
   <!-- Web App Manifest -->
   <link rel="manifest" href="manifest.json">
-  
+
   <!-- iOS Meta Tags -->
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="DigiKipp">
   <link rel="apple-touch-icon" href="icon-192.png">
-  
+
   <!-- Theme Color -->
   <meta name="theme-color" content="#4a2418">
 
@@ -125,7 +125,35 @@
       z-index: 0;
     }
 
-    /* Z-INDEX: 1 - Kugel (UNTER dem Würfel) */
+    /* Zielkarten-Layer direkt über dem CARD-Hintergrund */
+    .targetLayer{
+      position:absolute;
+      left:0;
+      top:0;
+      width:var(--gridW);
+      height:var(--gridH);
+      z-index:1; /* über bgPNG, unter Rest */
+      pointer-events:none;
+    }
+    .targetCard{
+      position:absolute;
+      left:0;
+      top:0;
+      display:none;
+    }
+    .targetCard-6{ z-index:1; }
+    .targetCard-5{ z-index:2; }
+    .targetCard-4{ z-index:3; }
+    .targetCard-3{ z-index:4; }
+    .targetCard-2{ z-index:5; }
+    .targetCard-1{ z-index:6; }
+    .targetCard-covered{
+      z-index:7;
+      pointer-events:auto;
+      cursor:pointer;
+    }
+
+    /* Z-INDEX: Kugel (unter dem Würfel, über den Zielkarten) */
     .ball{
       position: absolute;
       left: calc(4 * var(--cell));
@@ -139,7 +167,7 @@
         radial-gradient(circle at 55% 60%, rgba(0,0,0,0.18), rgba(0,0,0,0.00) 55%),
         radial-gradient(circle at 50% 55%, #d6b996, #b88d63 70%);
       box-shadow: 0 5px 10px rgba(0,0,0,0.28);
-      z-index: 1;
+      z-index: 10;
       pointer-events: none;
     }
 
@@ -150,7 +178,7 @@
       width: var(--gridW);
       height: var(--gridH);
       pointer-events: none;
-      z-index: 1;
+      z-index: 10;
     }
 
     .colorSq{
@@ -384,7 +412,7 @@
       height: calc(44px * var(--uiscale));
     }
 
-    @keyframes pulseScale {
+    @keyframes pulseScale{
       0%   { transform: scale(1);   filter: drop-shadow(0 0 0 rgba(255,255,255,0)); }
       100% { transform: scale(1.06); filter: drop-shadow(0 0 14px rgba(255,255,255,0.45)); }
     }
@@ -625,7 +653,7 @@
     .scoreDisplay.finalVisible{
       opacity: 1;
     }
-    @keyframes scorePulse {
+    @keyframes scorePulse{
       0%{
         transform: translate(-50%, -50%) scale(1.00);
         filter: drop-shadow(0 -26px 0 rgba(0,0,0,0.0));
@@ -724,7 +752,7 @@
       transform: translateY(-50%);
     }
 
-    @keyframes kippPulseGlow {
+    @keyframes kippPulseGlow{
       0%   { transform: scale(1);   filter: drop-shadow(0 0 0 rgba(255,255,255,0)); }
       100% { transform: scale(1.09); filter: drop-shadow(0 0 14px rgba(255,255,255,0.95)); }
     }
@@ -842,10 +870,10 @@
     }
   </style>
 </head>
-
 <body>
   <div class="stage" id="stage">
     <div class="layout" id="layout">
+
       <!-- Intro Overlay INNERHALB layout – CARD-Text -->
       <div id="introOverlay">
         <div class="introTitle">STICH DIE BANK!</div>
@@ -854,12 +882,23 @@
           Kartenwert an das<br>
           gleiche Symbol.
         </div>
-
         <button class="introBackBtn" id="introBackBtn">← Zur Auswahl</button>
         <button class="introBtn" id="introStartBtn">LOS GEHT'S</button>
       </div>
 
       <div class="bgPNG" aria-hidden="true"></div>
+
+      <!-- Zielkarten WebP-Layer (über CARD, unter Kugel & Würfel) -->
+      <div class="targetLayer" id="targetLayer" aria-hidden="false">
+        <img id="target6" class="targetCard targetCard-6" src="target_6.webp" alt="">
+        <img id="target5" class="targetCard targetCard-5" src="target_5.webp" alt="">
+        <img id="target4" class="targetCard targetCard-4" src="target_4.webp" alt="">
+        <img id="target3" class="targetCard targetCard-3" src="target_3.webp" alt="">
+        <img id="target2" class="targetCard targetCard-2" src="target_2.webp" alt="">
+        <img id="target1" class="targetCard targetCard-1" src="target_1.webp" alt="">
+        <img id="targetCovered" class="targetCard targetCard-covered" src="target_verdeckt.webp" alt="">
+      </div>
+
       <div class="ball" aria-label="Kugel"></div>
       <div class="colors" id="colors" aria-hidden="true"></div>
 
@@ -991,19 +1030,19 @@
   <script>
     const colorsEl = document.getElementById("colors");
 
-    const btnSchauen     = document.getElementById("btnSchauen");
-    const btnSchauenPulse= document.getElementById("btnSchauenPulse");
-    const btnErgebnis    = document.getElementById("btnErgebnis");
-    const btnErgebnisText= document.getElementById("btnErgebnisText");
-    const startBtnWrap   = document.getElementById("startBtnWrap");
-    const hintTitle      = document.getElementById("hintTitle");
+    const btnSchauen      = document.getElementById("btnSchauen");
+    const btnSchauenPulse = document.getElementById("btnSchauenPulse");
+    const btnErgebnis     = document.getElementById("btnErgebnis");
+    const btnErgebnisText = document.getElementById("btnErgebnisText");
+    const startBtnWrap    = document.getElementById("startBtnWrap");
+    const hintTitle       = document.getElementById("hintTitle");
 
-    const kippAnzahlView = document.getElementById("kippAnzahlView");
-    const kippAnzahlBtns = document.getElementById("kippAnzahlBtns");
+    const kippAnzahlView  = document.getElementById("kippAnzahlView");
+    const kippAnzahlBtns  = document.getElementById("kippAnzahlBtns");
 
     const backBtn  = document.getElementById("backBtn");
 
-    const testTargetBtn = document.getElementById("testTargetBtn");
+    const testTargetBtn   = document.getElementById("testTargetBtn");
 
     const targetPadBtn    = document.getElementById("targetPadBtn");
     const targetPadCircle = document.getElementById("targetPadCircle");
@@ -1016,6 +1055,16 @@
     const allShadows = [shadowQ0, shadowQ1, shadowQ2, shadowQ3];
 
     const cubeShadowLayer = document.getElementById("cubeShadowLayer");
+
+    /* Target-Karten WebP-Elemente */
+    const targetLayer      = document.getElementById("targetLayer");
+    const targetImg1       = document.getElementById("target1");
+    const targetImg2       = document.getElementById("target2");
+    const targetImg3       = document.getElementById("target3");
+    const targetImg4       = document.getElementById("target4");
+    const targetImg5       = document.getElementById("target5");
+    const targetImg6       = document.getElementById("target6");
+    const targetImgCovered = document.getElementById("targetCovered");
 
     function sleep(ms){ return new Promise(res => setTimeout(res, ms)); }
 
@@ -1708,15 +1757,15 @@
       resetTargetDeck();
       resetLockedColors();
       rotIndex = 0;
-      
+
       // WICHTIG: Zahlen neu mischen!
       reroll12_keepAssigned();
-      
+
       renderW();
-      
+
       const scoreEl = document.getElementById("scoreDisplay");
       scoreEl.classList.remove("finalVisible", "scorePulse");
-      
+
       showStartView();
     }
 
@@ -1765,7 +1814,7 @@
       endRestartMode = true;
       btnErgebnisText.textContent = "NEUES SPIEL";
       btnErgebnis.disabled = false;
-      
+
       hintTitle.classList.add("hidden");
     }
 
@@ -2060,50 +2109,6 @@
       score.style.fontSize = fontSize + "px";
     }
 
-    function positionUI(){
-      const cellPx = numVar("--cell") || 142;
-
-      const headerY = 1.0 * cellPx;
-
-      positionScoreRun(cellPx);
-      positionScoreDisplay(cellPx);
-
-      const title = document.getElementById("titleLeft");
-      title.style.left = "50%";
-      title.style.top = headerY + "px";
-      title.style.transform = "translate(-50%, -50%)";
-
-      const row11VisualTop = (((11 + HEADER_ROW_OFFSET) - 1) * cellPx);
-      const row11CenterY   = row11VisualTop + (cellPx / 2);
-      const between10and11 = row11VisualTop;
-
-      const kippBtnsCenterY = between10and11;
-
-      kippAnzahlBtns.style.top = kippBtnsCenterY + "px";
-      kippAnzahlBtns.style.left = "50%";
-      kippAnzahlBtns.style.transform = "translate(-50%, -50%)";
-
-      // SCHAUEN-&-MERKEN Button (Start) jetzt in Zeile 13 zentriert
-      const row13VisualTop = (((13 + HEADER_ROW_OFFSET) - 1) * cellPx);
-      const row13CenterY   = row13VisualTop + (cellPx / 2);
-      startBtnWrap.style.top = row13CenterY + "px";
-
-      if(uiMode === "TARGET"){
-        hintTitle.style.top = row11CenterY + "px";
-      } else if(uiMode === "START" || uiMode === "COUNT" || uiMode === "END"){
-        const row9VisualTop  = (((9 + HEADER_ROW_OFFSET) - 1) * cellPx);
-        const row10VisualTop = (((10 + HEADER_ROW_OFFSET) - 1) * cellPx);
-        const midBetween9and10 = (row9VisualTop + row10VisualTop) / 2;
-        hintTitle.style.top = (midBetween9and10 + 40) + "px";
-      } else {
-        hintTitle.style.top = row11CenterY + "px";
-      }
-
-      placeTargetPad_12D_13E(cellPx);
-      positionBackButton(cellPx);
-      positionTestButton(cellPx);
-    }
-
     function positionBackButton(cellPx){
       const headerY = 1.0 * cellPx;
       const left = cellPx / 2;
@@ -2130,6 +2135,23 @@
       testTargetBtn.style.pointerEvents = "auto";
     }
 
+    /* Target-Karten exakt mit linkem oberen Eck in 9A verankern */
+    function positionTargetCards(cellPx){
+      if(!targetLayer) return;
+      const coord = coordToXY("9A");
+      const visualRow = coord.row + HEADER_ROW_OFFSET;
+
+      const left = (coord.col - 1) * cellPx;
+      const top  = (visualRow - 1) * cellPx;
+
+      const imgs = [targetImg1, targetImg2, targetImg3, targetImg4, targetImg5, targetImg6, targetImgCovered];
+      imgs.forEach(img => {
+        if(!img) return;
+        img.style.left = left + "px";
+        img.style.top  = top + "px";
+      });
+    }
+
     function placeTargetPad_12D_13E(cellPx){
       const row = 12;
       const col = 4;
@@ -2142,6 +2164,51 @@
       targetPadBtn.style.top  = top + "px";
       targetPadBtn.style.width  = (2 * cellPx) + "px";
       targetPadBtn.style.height = (2 * cellPx) + "px";
+    }
+
+    function positionUI(){
+      const cellPx = numVar("--cell") || 142;
+
+      const headerY = 1.0 * cellPx;
+
+      positionScoreRun(cellPx);
+      positionScoreDisplay(cellPx);
+
+      const title = document.getElementById("titleLeft");
+      title.style.left = "50%";
+      title.style.top = headerY + "px";
+      title.style.transform = "translate(-50%, -50%)";
+
+      const row11VisualTop = (((11 + HEADER_ROW_OFFSET) - 1) * cellPx);
+      const row11CenterY   = row11VisualTop + (cellPx / 2);
+      const between10and11 = row11VisualTop;
+
+      const kippBtnsCenterY = between10and11;
+
+      kippAnzahlBtns.style.top = kippBtnsCenterY + "px";
+      kippAnzahlBtns.style.left = "50%";
+      kippAnzahlBtns.style.transform = "translate(-50%, -50%)";
+
+      // SCHAUEN-&-MERKEN Button: Grundposition Zeile 13, dann ½ Zeilenhöhe nach Norden verschoben
+      const row13VisualTop = (((13 + HEADER_ROW_OFFSET) - 1) * cellPx);
+      const row13CenterY   = row13VisualTop + (cellPx / 2);
+      startBtnWrap.style.top = (row13CenterY - (cellPx / 2)) + "px";
+
+      if(uiMode === "TARGET"){
+        hintTitle.style.top = row11CenterY + "px";
+      } else if(uiMode === "START" || uiMode === "COUNT" || uiMode === "END"){
+        const row9VisualTop  = (((9 + HEADER_ROW_OFFSET) - 1) * cellPx);
+        const row10VisualTop = (((10 + HEADER_ROW_OFFSET) - 1) * cellPx);
+        const midBetween9and10 = (row9VisualTop + row10VisualTop) / 2;
+        hintTitle.style.top = (midBetween9and10 + 40) + "px";
+      } else {
+        hintTitle.style.top = row11CenterY + "px";
+      }
+
+      placeTargetPad_12D_13E(cellPx);
+      positionTargetCards(cellPx);
+      positionBackButton(cellPx);
+      positionTestButton(cellPx);
     }
 
     function rebuild(){
@@ -2186,6 +2253,17 @@
       showW();
       renderW();
 
+      // Target-Karten-Startzustand:
+      if(targetImg1){
+        [targetImg1, targetImg2, targetImg3, targetImg4, targetImg5, targetImg6].forEach(img => {
+          if(img) img.style.display = "none";
+        });
+      }
+      if(targetImgCovered){
+        targetImgCovered.style.display = "block";
+        targetImgCovered.classList.add("pulse");
+      }
+
       btnErgebnis.onclick = null;
 
       showStartView();
@@ -2220,6 +2298,17 @@
     introBackBtn.addEventListener("click", () => {
       window.location.href = "index.html";
     });
+
+    // Klick-Logik: verdeckte Karte → target_1 anzeigen
+    if(targetImgCovered){
+      targetImgCovered.addEventListener("click", () => {
+        targetImgCovered.classList.remove("pulse");
+        targetImgCovered.style.display = "none";
+        if(targetImg1){
+          targetImg1.style.display = "block";
+        }
+      });
+    }
   </script>
 </body>
 </html>

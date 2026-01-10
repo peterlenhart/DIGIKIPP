@@ -440,7 +440,7 @@
     .scrollBand{
       pointer-events:auto;
       display:flex;
-      gap:calc(10px * var(--uiscale));
+      gap:calc(7px * var(--uiscale));
       overflow-x:auto;
       padding:calc(4px * var(--uiscale)) calc(6px * var(--uiscale));
       max-width:calc(6 * var(--cell)); /* bewusst enger, damit links/rechts abgeschnitten wird */
@@ -2188,7 +2188,7 @@
       const row13VisualTop = (((13 + HEADER_ROW_OFFSET) - 1) * cellPx);
       const row13CenterY   = row13VisualTop + (cellPx / 2);
       const startTop = (row13CenterY - (cellPx / 2));
-      startBtnWrap.style.top = startTop + "px";
+      startBtnWrap.style.top = (startTop - 4)+ "px";
 
       // Scrollband auf exakt dieselbe Höhe wie Startbutton
       if(scrollBandWrap){

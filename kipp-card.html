@@ -428,42 +428,23 @@
       justify-content:center;
       pointer-events:none;
       z-index:50;
-      padding: calc(4px * var(--uiscale)) calc(8px * var(--uiscale));
-      background: rgba(234,215,190,0.55); /* beige Streifen */
-      border-radius: calc(18px * var(--uiscale));
-      box-shadow: 0 6px 12px rgba(0,0,0,0.25);
     }
-    .scrollBandWrap.locked{
-      opacity:0.4; /* inaktiv, aber sichtbar */
-    }
-
     .scrollBand{
       pointer-events:auto;
       display:flex;
       gap:calc(10px * var(--uiscale));
       overflow-x:auto;
       padding:calc(4px * var(--uiscale)) calc(6px * var(--uiscale));
-      max-width:calc(6 * var(--cell)); /* bewusst enger, damit links/rechts abgeschnitten wird */
+      max-width:calc(7 * var(--cell));
       scrollbar-width:none;
     }
     .scrollBand::-webkit-scrollbar{
       display:none;
     }
-
-    /* Pendel-Animation West–Ost */
-    @keyframes scrollWiggle{
-      0%   { transform: translateX(-10px); }
-      100% { transform: translateX(10px); }
-    }
-    .scrollBand.wiggle{
-      animation: scrollWiggle 1.1s ease-in-out 0.3s infinite alternate;
-      will-change: transform;
-    }
-
     .scrollItem{
-      min-width: calc(var(--cell) * 0.85);
-      height:    calc(var(--cell) * 0.55);
-      border-radius: calc(0.20 * var(--cell));
+      min-width:calc(44px * var(--uiscale));
+      height:calc(44px * var(--uiscale));
+      border-radius:calc(14px * var(--uiscale));
       border:2px solid rgba(0,0,0,0.65);
       background:rgba(234,215,190,0.96);
       box-shadow:
@@ -479,7 +460,6 @@
       user-select:none;
       -webkit-tap-highlight-color:transparent;
       cursor:pointer;
-      font-size: calc(var(--cell) * 0.30); /* große Zahlen, fast flächendeckend */
     }
     .scrollItem:active{
       transform:scale(0.98);
@@ -645,7 +625,7 @@
       transform:
         translate(var(--pivot-x), var(--pivot-y))
         scaleX(0.6666667)
-        translate(calc(-1 * var(--pivot-x)), calc(-1 * var(--pivot-y)));
+        translate(calc(-1 * var(--pivot-x)), calc(-1 * var(--pivot-y));
       transform-origin: 0 0;
     }
 
@@ -1290,11 +1270,15 @@
 
     const allColors = ["violett","blau","gruen","orange"];
 
-    /* Mapping Board-Farbe -> Suit-WebP */
+    /* Mapping Board-Farbe -> Suit-WebP
+       WICHTIG: Hier ist definiert, welche Kartenfarbe
+       welchem Brett-Farbfeld entspricht.
+       => z.B. "karo" steht intern für grün.
+    */
     const SUIT_IMG_BY_COLOR = {
-      violett: "karo.webp",   // ♦
-      blau:    "herz.webp",   // ♥ (Bezug: Herz = intern blau)
-      gruen:   "pik.webp",    // ♠
+      gruen:   "karo.webp",   // ♦  (Karo = grünes Brettfeld)
+      violett: "herz.webp",   // ♥
+      blau:    "pik.webp",    // ♠
       orange:  "kreuz.webp"   // ♣
     };
 
@@ -1429,7 +1413,6 @@
 
         const zfCoord = getAdjacentZFCoordForZS(si.zsCoord);
         if(!zfCoord) continue;
-
         const borderColor = COLOR_BY_ZF_COORD[zfCoord];
         if(borderColor !== currentTarget.color) continue;
 
@@ -1450,7 +1433,7 @@
     }
 
     // =========================
-    // Random-Regeln neu:
+    // Random-Regeln:
     // - 12er Deck (1..12), jeder Wert max 1x
     // - Verbot: aktuell am Würfel anliegende (Nummer | Farbe)
     // - 6 Ziele insgesamt
@@ -1482,7 +1465,7 @@
       return arr[Math.floor(Math.random() * arr.length)];
     }
 
-    // Neues Target gemäß 1.a & 1.b
+    // Neues Target, jetzt mit korrekter Zuordnung Zahl + Brettfarbe
     function generateCardTarget(){
       if(drawsCount >= MAX_TARGETS) return null;
 
@@ -1492,7 +1475,7 @@
       for(let n=1; n<=12; n++){
         if(usedNumbers.has(n)) continue; // Wert schon vergeben
         for(const c of allColors){
-          if(forbidden.has(`${n}|${c}`)) continue; // bereits aufliegende Kombi
+          if(forbidden.has(`${n}|${c}`)) continue; // aktuell aufliegende Kombi
           candidates.push({ num:n, color:c });
         }
       }
@@ -1638,7 +1621,7 @@
       return [f4, f3, f2, f1];
     }
 
-    // Karten-Visualisierung: 1–12 → 3–A
+    // Karten-Visualisierung: 1–12 → 3–A (inkl. Bube/J = 9)
     function getVisualRank(n){
       switch(n){
         case 12: return "A";
@@ -1737,16 +1720,14 @@
     function buildScrollBand(){
       if(!scrollBand) return;
       scrollBand.innerHTML = "";
-      for(let num = 1; num <= 11; num++){
+      [1,2,3,4,5,6].forEach(num => {
         const item = document.createElement("div");
         item.className = "scrollItem";
         item.dataset.anzahl = num;
         item.textContent = String(num);
         item.addEventListener("click", () => handleAnzahlClick(num, null));
         scrollBand.appendChild(item);
-      }
-      // Pendel-Animation aktivieren
-      scrollBand.classList.add("wiggle");
+      });
     }
 
     function setScrollBandLocked(locked){
@@ -1754,9 +1735,6 @@
       scrollBand.querySelectorAll(".scrollItem").forEach(item => {
         item.classList.toggle("disabled", !!locked);
       });
-      if(scrollBandWrap){
-        scrollBandWrap.classList.toggle("locked", !!locked);
-      }
     }
 
     // (alte Kipp-Anzahl-Buttons bleiben als Logik-Leiche, werden aber nicht mehr verwendet)
@@ -1836,15 +1814,53 @@
       showStartView();
     }
 
-    // ---------- End „Ergebnis“ (Schlusskipprunde entfällt) ----------
+    // ---------- End Screen ----------
     function showEndResultView(){
-      // Kein Ergebnis-Button / Schlusskipprunde mehr – direkt zurück zum Start
-      resetGameToStart();
+      uiMode = "END";
+      startBtnWrap.classList.remove("hidden");
+      btnSchauen.classList.add("hidden");
+      btnErgebnis.classList.remove("hidden");
+
+      kippAnzahlView.classList.add("hidden");
+      if(scrollBandWrap) scrollBandWrap.classList.add("hidden");
+
+      showHint("SCHLUSS KIPPRUNDE", false);
+
+      btnErgebnisText.textContent = "ERGEBNIS";
+      btnErgebnis.disabled = false;
+
+      setScrollBandLocked(true);
+      positionUI();
     }
 
     async function runErgebnisPresentation(){
-      // Ergebnis-Logik entfällt, direkt neues Spiel
-      resetGameToStart();
+      if(runningKipp) return;
+
+      if(endRestartMode){
+        resetGameToStart();
+        return;
+      }
+
+      btnErgebnis.disabled = true;
+      btnErgebnisText.textContent = "ERGEBNIS…";
+
+      showW();
+      renderW();
+
+      let stepsToQ0 = (4 - rotIndex) % 4;
+      if(stepsToQ0 === 0) stepsToQ0 = 4;
+      if(stepsToQ0 < 3) stepsToQ0 += 4;
+
+      await runSchauKippSequence(stepsToQ0, { kipFactor: 2 });
+
+      const scoreEl = document.getElementById("scoreDisplay");
+      scoreEl.classList.add("finalVisible", "scorePulse");
+
+      endRestartMode = true;
+      btnErgebnisText.textContent = "NEUES SPIEL";
+      btnErgebnis.disabled = false;
+
+      hintTitle.classList.add("hidden");
     }
 
     // =========================
@@ -1858,7 +1874,8 @@
       attemptsForTarget++;
 
       markRunSelected(clickedBtn);
-      setScrollBandLocked(true);   // Band inaktiv während Kipp
+      setScrollBandLocked(true);
+
       runSchauKippSequence(anzahl, { kipFactor: 1 }).finally(async () => {
         clearHitPulse();
         const hit = checkHitAndAnimate();
@@ -1874,9 +1891,8 @@
           return;
         }
 
-        // Neues Ziel vorbereiten: Band bleibt vorerst inaktiv,
-        // bis die neue Deckkarte aufgedeckt wird.
         resetToNewTargetChoice();
+        setScrollBandLocked(false);
         renderW();
       });
     }
@@ -1929,17 +1945,7 @@
       showHint(getTargetHintText());
 
       startBtnWrap.classList.add("hidden");
-
-      // NEU: Scrollband bleibt sichtbar, aber inaktiv,
-      // während die neue Zielkarte eingeblendet/verdeckt ist.
-      if(scrollBandWrap){
-        scrollBandWrap.classList.remove("hidden");
-        if(!scrollBand.innerHTML.trim()){
-          buildScrollBand();
-        }
-        setScrollBandLocked(true);
-      }
-
+      if(scrollBandWrap) scrollBandWrap.classList.add("hidden");
       kippAnzahlView.classList.add("hidden");
 
       hideTargetRankAndSuit();
@@ -1987,7 +1993,7 @@
 
       if(scrollBandWrap){
         scrollBandWrap.classList.remove("hidden");
-        // Hier wird das Band wieder aktiv, bis der Spieler eine Zahl wählt.
+        buildScrollBand();
         setScrollBandLocked(false);
       }
 
@@ -2378,11 +2384,9 @@
 
     window.addEventListener("resize", rebuild);
 
-    // WICHTIG: Scrollband soll scrollbar bleiben – hier erlauben wir Touchmove im Band
     document.addEventListener("touchmove", (e) => {
       const inRange = e.target && e.target.closest && e.target.closest('input[type="range"]');
-      const inScrollBand = e.target && e.target.closest && e.target.closest('#scrollBand');
-      if(inRange || inScrollBand) return;
+      if(inRange) return;
       e.preventDefault();
     }, { passive:false });
 

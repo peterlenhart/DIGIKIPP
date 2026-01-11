@@ -1342,8 +1342,9 @@
     // Textfarbe nach Suit (Rot bei Herz/Karo, sonst Schwarz)
     function applySlotTextColor(spanEl, suitColor){
       if(!spanEl) return;
-      const isRed = (suitColor === "gruen" || suitColor === "blau"); // gruen=Karo, blau=Herz
-      spanEl.style.color = isRed ? "#b00000" : "#111111";
+      
+      // ALLE Kartenwerte immer blau - einheitliche Farbe
+      spanEl.style.color = "rgba(38, 77, 120, 1.0)";
     }
 
     // Neutral-Blau für Zwischenkipp
@@ -1918,8 +1919,8 @@
       const text = getVisualRank(target.num);
       if (targetRank10D){
         targetRank10D.textContent = text;
-        const isRed = (target.color === "gruen" || target.color === "blau");
-        targetRank10D.style.color = isRed ? "#b00000" : "#111111";
+        // Einheitliche blaue Farbe für Zielwert
+        targetRank10D.style.color = "rgba(38, 77, 120, 1.0)";
         targetRank10D.style.display = "block";
       }
       if (targetSuitImg){

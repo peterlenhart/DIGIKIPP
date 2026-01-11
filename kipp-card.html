@@ -69,7 +69,7 @@
       --clipRight:  calc((8 - 7) * var(--cell));
       --clipBottom: calc(var(--gridH) - (7 * var(--cell)));
 
-      /* Neutrales Blau für Zwischenkipp-Zahlen (≈C86/M43) */
+      /* Neutrales Blau (Reserve) */
       --rankBlue: rgb(36, 145, 255);
     }
 
@@ -640,11 +640,11 @@
 
     /* Kartenfarben: Rot und Schwarz */
     .slot .num > span.cardRed{
-      color: #d32f2f; /* Rot */
+      color: #d32f2f;
       text-shadow: 0 2px 0 rgba(255,255,255,0.35);
     }
     .slot .num > span.cardBlack{
-      color: #212121; /* Schwarz */
+      color: #212121;
       text-shadow: 0 2px 0 rgba(255,255,255,0.35);
     }
 
@@ -656,7 +656,7 @@
     /* NEU: mehr Abstand für 10 am Würfelslot */
     .slot .num > span.twodigit{
       letter-spacing: 0.04em !important;
-      transform: rotate(var(--num-rot, 0deg)); /* kein negatives Zusammenziehen mehr */
+      transform: rotate(var(--num-rot, 0deg));
     }
 
     .read-south { --num-rot: calc(var(--rotSign) * 0deg); }
@@ -1007,9 +1007,8 @@
       <div id="introOverlay">
         <div class="introTitle">STICH DIE BANK!</div>
         <div class="introText">
-          Kippe einen höheren<br>
-          Kartenwert an das<br>
-          gleiche Symbol.
+          Jedes Target lässt sich überstechen.<br>
+          Highscore: 118
         </div>
         <button class="introBackBtn" id="introBackBtn">← Zur Auswahl</button>
         <button class="introBtn" id="introStartBtn">LOS GEHT'S</button>
@@ -1339,15 +1338,14 @@
       return kipSlotCache[kipId];
     }
 
-    // Textfarbe nach Suit (Rot bei Herz/Karo, sonst Schwarz)
+    // Textfarbe nach Suit – hier keine direkte Manipulation,
+    // Farbe kommt aus cardRed/cardBlack.
     function applySlotTextColor(spanEl, suitColor){
       if(!spanEl) return;
-      
-      // ALLE Kartenwerte immer blau - einheitliche Farbe
-      spanEl.style.color = "rgba(38, 77, 120, 1.0)";
+      spanEl.style.color = "";
     }
 
-    // Neutral-Blau für Zwischenkipp
+    // Neutral-Blau (Reserve)
     function applyNeutralTextColor(spanEl){
       if(!spanEl) return;
       spanEl.style.color = "var(--rankBlue)";
@@ -1362,6 +1360,13 @@
       blau:    "herz.webp",   // ♥
       violett: "pik.webp"     // ♠
     };
+
+    function isRedSuitColor(boardColor){
+      return boardColor === "blau" || boardColor === "gruen"; // Herz oder Karo
+    }
+    function isBlackSuitColor(boardColor){
+      return boardColor === "violett" || boardColor === "orange"; // Pik oder Kreuz
+    }
 
     const HEADER_ROW_OFFSET = 2;
     const colMap = {A:1,B:2,C:3,D:4,E:5,F:6,G:7,H:8};
@@ -1390,21 +1395,39 @@
     let playerScore = 0;
     let bankScore   = 0;
 
-    // Player-/Bank-Stiche (noch ohne Logik)
+    // Player-/Bank-Stiche
     let playerTricks = 0;
     let bankTricks   = 0;
 
-    // Random Kartenfarben (rot/schwarz) - fix pro Spiel
-    let cardColors = {}; // { 1: "red", 2: "black", 3: "red", ... }
+    // Feste Zuordnung für interne Karten 1–12
+    // 1 = 9 rot, 2 = 9 schwarz, 3 = 10 rot, 4 = 10 schwarz,
+    // 5 = J rot, 6 = J schwarz, 7 = Q rot, 8 = Q schwarz,
+    // 9 = K rot, 10 = K schwarz, 11 = A rot, 12 = A schwarz.
+    const CARD_DEFS = {
+      1:  { rank: "9",  color: "red"    },
+      2:  { rank: "9",  color: "black"  },
+      3:  { rank: "10", color: "red"    },
+      4:  { rank: "10", color: "black"  },
+      5:  { rank: "J",  color: "red"    },
+      6:  { rank: "J",  color: "black"  },
+      7:  { rank: "Q",  color: "red"    },
+      8:  { rank: "Q",  color: "black"  },
+      9:  { rank: "K",  color: "red"    },
+      10: { rank: "K",  color: "black"  },
+      11: { rank: "A",  color: "red"    },
+      12: { rank: "A",  color: "black"  },
+    };
+
+    function getCardColor(n){
+      return CARD_DEFS[n]?.color || "black";
+    }
 
     // Verbrauchte Karten (transparent, inaktiv)
-    let usedCards = new Set(); // Set mit Kartennummern die bereits gespielt wurden
+    let usedCards = new Set();
 
-    function initRandomCardColors(){
-      cardColors = {};
-      for (let num = 1; num <= 12; num++){
-        cardColors[num] = Math.random() < 0.5 ? "red" : "black";
-      }
+    function resetUsedCards(){
+      usedCards = new Set();
+      clearAllUsedClasses();
     }
 
     function updateScoresUI(){
@@ -1422,8 +1445,6 @@
     function resetStichLayers(){
       playerTricks = 0;
       bankTricks   = 0;
-      // Platzhalter: wenn du stich1_pl.webp etc. als <img> eingebunden hast,
-      // kannst du sie hier schon alle unsichtbar schalten.
       for (let i = 1; i <= 6; i++){
         const pl = document.getElementById(`stich${i}_pl`);
         const b  = document.getElementById(`stich${i}_b`);
@@ -1524,30 +1545,22 @@
       }, 2600);
     }
 
-    // Karten-Visualisierung: 1–12 → 3–A
+    // Karten-Visualisierung 1–12 → Rank laut CARD_DEFS
     function getVisualRank(n){
-      switch (n){
-        case 12: return "A";
-        case 11: return "K";
-        case 10: return "Q";
-        case 9:  return "J";
-        case 8:  return "10";
-        case 7:  return "9";
-        case 6:  return "8";
-        case 5:  return "7";
-        case 4:  return "6";
-        case 3:  return "5";
-        case 2:  return "4";
-        case 1:  return "3";
-        default:
-          return (n === null || n === undefined) ? "" : String(n);
+      const def = CARD_DEFS[n];
+      if (!def){
+        return (n === null || n === undefined) ? "" : String(n);
       }
+      return def.rank;
     }
+
+    // erlaubt als Targets: 8, 9, 10, J, Q, K
+    const ALLOWED_TARGET_RANKS = new Set(["8","9","10","J","Q","K"]);
 
     // Wert & Rang-Index für Vergleich und Punkte
     function getCardInfo(n){
       const rankStr = getVisualRank(n);
-      const order = ["3","4","5","6","7","8","9","10","J","Q","K","A"];
+      const order = ["8","9","10","J","Q","K","A"];
       const rankIndex = order.indexOf(rankStr);
 
       let value;
@@ -1563,15 +1576,24 @@
       return { rank: rankStr, value, rankIndex };
     }
 
-    // Player-Karte auf Ziel-Farbe finden
+    // Player-Karte auf Ziel-Farbe finden (mit Rot/Schwarz-Regel)
     function getPlayerCardOnTargetColor(){
       if (!currentTarget) return null;
       const infos = getVisibleSlotInfos();
+      const targetColor = currentTarget.color;
+
       for (const info of infos){
         if (info.num == null) continue;
-        if (info.color === currentTarget.color){
-          return info;
-        }
+        if (info.color !== targetColor) continue;
+
+        const cardColor = getCardColor(info.num);
+
+        // Stichregel:
+        // Rot darf nur Herz/Karo stechen, Schwarz nur Pik/Kreuz
+        if (isRedSuitColor(targetColor) && cardColor !== "red") continue;
+        if (isBlackSuitColor(targetColor) && cardColor !== "black") continue;
+
+        return info;
       }
       return null;
     }
@@ -1583,7 +1605,6 @@
       const info = getPlayerCardOnTargetColor();
       if (!info) return false;
 
-      // Prüfe ob die Karte bereits verbraucht ist
       if (usedCards.has(info.num)) {
         console.log("Karte", info.num, "ist bereits verbraucht!");
         return false;
@@ -1592,7 +1613,6 @@
       const playerCard = getCardInfo(info.num);
       const targetCard = getCardInfo(currentTarget.num);
 
-      // Vergleich über Rang-Reihenfolge (A > K > Q > J > 10 > 9 ... 3)
       let winner = "bank";
       if (playerCard.rankIndex > targetCard.rankIndex){
         winner = "player";
@@ -1611,27 +1631,22 @@
       updateScoresUI();
       applyHitVisual(info);
 
-      // *** KARTE ALS VERBRAUCHT MARKIEREN ***
       usedCards.add(info.num);
-      // Rendering aktualisieren um Transparenz zu zeigen
       renderW();
 
-      // *** STICH-EINBLENDUNG ***
-      // Die Nummer in stichX_pl/stichX_b zeigt die ANZAHL der Stiche, die der Spieler hat
+      // Stich-Grafik
       if (winner === "player"){
-        if (stichPLImgs[playerTricks]){  // playerTricks wurde gerade hochgezählt!
+        if (stichPLImgs[playerTricks]){
           stichPLImgs[playerTricks].style.display = "block";
         }
       } else {
-        if (stichBImgs[bankTricks]){  // bankTricks wurde gerade hochgezählt!
+        if (stichBImgs[bankTricks]){
           stichBImgs[bankTricks].style.display = "block";
         }
       }
 
       return (winner === "player");
     }
-
-    // Hilfsfunktionen usw. – von hier an unverändert
 
     function getVisibleNumbersSet(){
       return new Set(getVisibleSlotInfos().map(s => s.num).filter(n => n != null));
@@ -1723,20 +1738,16 @@
       renderNumber(spanEl, n);
       applyPersistentFill(slotEl, n);
       
-      // Kartenfarben und verbrauchte Karten
       if (spanEl && n != null) {
-        // Entferne alte Klassen
         spanEl.classList.remove("cardRed", "cardBlack", "used");
-        
-        // Setze Kartenfarbe (rot/schwarz)
-        const cardColor = cardColors[n];
+
+        const cardColor = getCardColor(n);
         if (cardColor === "red") {
           spanEl.classList.add("cardRed");
         } else if (cardColor === "black") {
           spanEl.classList.add("cardBlack");
         }
-        
-        // Markiere verbrauchte Karten
+
         if (usedCards.has(n)) {
           spanEl.classList.add("used");
         }
@@ -1919,8 +1930,11 @@
       const text = getVisualRank(target.num);
       if (targetRank10D){
         targetRank10D.textContent = text;
-        // Einheitliche blaue Farbe für Zielwert
-        targetRank10D.style.color = "rgba(38, 77, 120, 1.0)";
+
+        let rankColor = "#212121";
+        if (isRedSuitColor(target.color)) rankColor = "#d32f2f";
+        targetRank10D.style.color = rankColor;
+
         targetRank10D.style.display = "block";
       }
       if (targetSuitImg){
@@ -1942,7 +1956,6 @@
     }
 
     function clearAllUsedClasses(){
-      // Entferne "used"-Klasse von allen Slots (W-Face und alle Kipp-Gruppen)
       document.querySelectorAll('.slot .num > span').forEach(span => {
         span.classList.remove("used");
       });
@@ -1960,14 +1973,8 @@
       resetStichLayers();
       rotIndex = 0;
 
-      // *** FIX: Verbrauchte Karten zurücksetzen ***
-      usedCards.clear();
-      
-      // *** FIX: Entferne "used"-Klasse von allen DOM-Elementen ***
-      clearAllUsedClasses();
-      
-      // *** FIX: Neue zufällige Kartenfarben (Rot/Schwarz) ***
-      initRandomCardColors();
+      // Verbrauchte Karten & Transparenzen zurücksetzen
+      resetUsedCards();
 
       reroll12_keepAssigned();
       renderW();
@@ -1990,7 +1997,6 @@
       btnErgebnis.classList.remove("hidden");
       btnErgebnisText.textContent = "NEU SPIELEN";
 
-      // *** FIX: Alle Zielkarten ausblenden ***
       if (targetLayer) targetLayer.style.display = "none";
       [targetImg1, targetImg2, targetImg3, targetImg4, targetImg5, targetImg6].forEach(img => {
         if (img) img.style.display = "none";
@@ -1999,8 +2005,6 @@
         targetImgCovered.style.display = "none";
         targetImgCovered.classList.remove("pulse");
       }
-      
-      // *** FIX: Random-Zielwert und Symbol ausblenden ***
       hideTargetRankAndSuit();
 
       showHint("ENDE – VERGLEICHE DIE SCORES", true);
@@ -2197,7 +2201,7 @@
         ["3H","c-violett"],["4H","c-gruen"],  ["5H","c-gruen"],  ["6H","c-orange"],
       ];
 
-      // Farbflächen sind aktuell unsichtbar; Logik bleibt trotzdem erhalten
+      // aktuell unsichtbar; Logik bleibt
       for (const [coord, cls] of placements){
         // placeColorSquare(coord, cls, cellPx, sizePx);
       }
@@ -2480,6 +2484,10 @@
 
       for (let n=1; n<=12; n++){
         if (usedNumbers.has(n)) continue;
+
+        const rankStr = getVisualRank(n);
+        if (!ALLOWED_TARGET_RANKS.has(rankStr)) continue; // nur 8,9,10,J,Q,K
+
         for (const c of allColors){
           if (forbidden.has(`${n}|${c}`)) continue;
           candidates.push({ num:n, color:c });
@@ -2506,12 +2514,8 @@
 
       resetLockedColors();
       resetStichLayers();
-      
-      // Random Kartenfarben initialisieren
-      initRandomCardColors();
-      // Verbrauchte Karten zurücksetzen
-      usedCards.clear();
-      
+      resetUsedCards();
+
       playerScore = 0;
       bankScore   = 0;
       playerTricks= 0;

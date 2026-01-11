@@ -659,11 +659,6 @@
       transform: rotate(var(--num-rot, 0deg)); /* kein negatives Zusammenziehen mehr */
     }
 
-    /* Zwischenkipp-Zahlen: spezielle Farbe */
-    .kipGroup .slot .num > span{
-      color: rgba(38, 77, 120, 0.9);
-    }
-
     .read-south { --num-rot: calc(var(--rotSign) * 0deg); }
     .read-west  { --num-rot: calc(var(--rotSign) * 90deg); }
     .read-east  { --num-rot: calc(var(--rotSign) * -90deg); }
@@ -1347,6 +1342,14 @@
     // Textfarbe nach Suit (Rot bei Herz/Karo, sonst Schwarz)
     function applySlotTextColor(spanEl, suitColor){
       if(!spanEl) return;
+      
+      // Zwischenkipp: suitColor ist null
+      if (suitColor === null) {
+        spanEl.style.color = "rgba(38, 77, 120, 0.9)";
+        return;
+      }
+      
+      // Würfel: Farbe nach Symbol
       const isRed = (suitColor === "gruen" || suitColor === "blau"); // gruen=Karo, blau=Herz
       spanEl.style.color = isRed ? "#b00000" : "#111111";
     }

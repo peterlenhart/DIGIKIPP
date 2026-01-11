@@ -1588,6 +1588,21 @@
         return false;
       }
 
+      // *** FARBKOMPATIBILITÄTSPRÜFUNG ***
+      const cardColor = cardColors[info.num]; // "red" oder "black"
+      const targetColor = currentTarget.color; // "blau", "gruen", "violett", "orange"
+      
+      // Rot passt nur auf Herz (blau) oder Karo (grün)
+      // Schwarz passt nur auf Pik (violett) oder Kreuz (orange)
+      const isRedCard = (cardColor === "red");
+      const isRedSymbol = (targetColor === "blau" || targetColor === "gruen");
+      
+      if (isRedCard !== isRedSymbol) {
+        // Farbe passt nicht! Rot auf Schwarz oder Schwarz auf Rot
+        console.log("Farbfehler! Karte", info.num, "ist", cardColor, "aber Symbol ist", targetColor);
+        return false; // Kein Treffer möglich
+      }
+
       const playerCard = getCardInfo(info.num);
       const targetCard = getCardInfo(currentTarget.num);
 

@@ -2055,19 +2055,38 @@
     }
 
     function showEndResultView(){
-      uiMode = "END";
+  uiMode = "END";
 
-      if (scrollBandWrap){
-        scrollBandWrap.classList.add("hidden");
-      }
+  // NEU: alle Zielkarten ausblenden (inkl. Target6) + Rank/Suit
+  if (targetLayer){
+    targetLayer.style.display = "none";
 
-      startBtnWrap.classList.remove("hidden");
-      btnSchauen.classList.add("hidden");
-      btnErgebnis.classList.remove("hidden");
-      btnErgebnisText.textContent = "NEU SPIELEN";
+    [targetImg1, targetImg2, targetImg3, targetImg4, targetImg5, targetImg6].forEach(img => {
+      if (img) img.style.display = "none";
+    });
 
-      showHint("ENDE – VERGLEICHE DIE SCORES", true);
+    if (targetImgCovered){
+      targetImgCovered.style.display = "none";
+      targetImgCovered.classList.remove("pulse");
+      targetImgCovered.style.transform = "";
     }
+  }
+  hideTargetRankAndSuit();
+  currentTarget    = null;
+  targetRevealed   = false;
+  attemptsForTarget = 0;
+
+  if (scrollBandWrap){
+    scrollBandWrap.classList.add("hidden");
+  }
+
+  startBtnWrap.classList.remove("hidden");
+  btnSchauen.classList.add("hidden");
+  btnErgebnis.classList.remove("hidden");
+  btnErgebnisText.textContent = "NEU SPIELEN";
+
+  showHint("ENDE – VERGLEICHE DIE SCORES", true);
+}
 
     function handleAnzahlClick(anzahl, clickedBtn){
       if (!currentTarget) return;

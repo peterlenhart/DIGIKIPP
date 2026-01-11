@@ -2037,8 +2037,9 @@
 
       showHint("ENDE – VERGLEICHE DIE SCORES", true);
       
-      // BUG 1 FIX: Target-Karte ausblenden nach 6. Stich
+      // BUG 1 FIX: Target-Karte UND Target-Anzeige ausblenden
       if (targetLayer) targetLayer.style.display = "none";
+      hideTargetRankAndSuit(); // ← Blendet 4♦ unten aus!
     }
 
     function handleAnzahlClick(anzahl, clickedBtn){

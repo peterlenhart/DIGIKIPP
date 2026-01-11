@@ -1886,6 +1886,7 @@
       runningKipp = true;
 
       const myToken = ++previewToken;
+      const forceKSP = opts.forceKSP || null; // Option: fixe KSP für Vorrunde
 
       showW();
       renderW();
@@ -1894,12 +1895,29 @@
       const totalSteps = Math.max(1, steps);
 
       for (let i=0;i<steps;i++){
-        // Alte stepMul bleibt (leichte Beschleunigung innerhalb des Durchlaufs)
+        // stepMul: Leichte Beschleunigung innerhalb des Durchlaufs
         const tStep = (totalSteps <= 1) ? 0 : (i / (totalSteps - 1));
         const stepMul = lerp(1.0, STEP_MAX, tStep);
 
-        // EINFACH: Keine KSP-Änderung, alles konstant
-        const kipFactor = 1; // KSP=3 ist schon fix in FIXED_SPEED
+        // Berechne KSP (Kippgeschwindigkeit)
+        let KSP;
+        if (forceKSP !== null) {
+          // Vorrunde: Fixe KSP (langsam)
+          KSP = forceKSP;
+        } else {
+          // Spielen: Dynamische Beschleunigung
+          if (i < 6) {
+            // Phase 1: Kipps 1-6 (i=0-5), KSP von 1.0 → 4.0
+            const t = (i === 0) ? 0 : Math.min(i / 5, 1);
+            KSP = lerp(1.0, 4.0, t);
+          } else {
+            // Phase 2: Kipps 7-11 (i≥6), KSP von 4.0 → 5.5 (sanfter!)
+            const t = Math.min((i - 6) / 4, 1);
+            KSP = lerp(4.0, 5.5, t); // Nicht mehr bis 8, sondern nur 5.5!
+          }
+        }
+        
+        const kipFactor = 1 / KSP;
 
         showKip();
         renderKip();
@@ -2631,7 +2649,7 @@
       resetTargetPadUI();
       clearHitPulse();
 
-      await runSchauKippSequence(4);
+      await runSchauKippSequence(4, { forceKSP: 1 });
 
       showTargetSelectView();
     });

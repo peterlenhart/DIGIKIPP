@@ -68,6 +68,9 @@
       --clipLeft:   calc((2 - 1) * var(--cell));
       --clipRight:  calc((8 - 7) * var(--cell));
       --clipBottom: calc(var(--gridH) - (7 * var(--cell)));
+
+      /* Neutrales Blau für Zwischenkipp-Zahlen (≈C86/M43) */
+      --rankBlue: rgb(36, 145, 255);
     }
 
     html, body{
@@ -128,14 +131,33 @@
       z-index: 0;
     }
 
-    /* Zielkarten-Layer direkt über dem CARD-Hintergrund */
+    /* Stich-Grafiken über Hintergrund, unter Zielkarten */
+    .stichLayer{
+      position:absolute;
+      left:0;
+      top:0;
+      width:var(--gridW);
+      height:var(--gridH);
+      pointer-events:none;
+      z-index:1;
+    }
+    .stichLayer img{
+      position:absolute;
+      left:0;
+      top:0;
+      width:100%;
+      height:auto;
+      display:none;
+    }
+
+    /* Zielkarten-Layer direkt über Stich-Layer */
     .targetLayer{
       position:absolute;
       left:0;
       top:0;
       width:var(--gridW);
       height:var(--gridH);
-      z-index:1; /* über bgPNG, unter Rest */
+      z-index:2; /* über Stich, unter Kugel/Würfel */
       pointer-events:none;
       display:none; /* Start: unsichtbar */
     }
@@ -155,24 +177,6 @@
       z-index:7;
       pointer-events:auto;
       cursor:pointer;
-    }
-
-    /* STICH-Layer Player & Bank */
-    .stichLayer{
-      position:absolute;
-      left:0;
-      top:0;
-      width:var(--gridW);
-      height:var(--gridH);
-      pointer-events:none;
-      z-index:2; /* über Hintergrund, unter Kugel/Würfel */
-      display:none;
-    }
-    .stichCard{
-      position:absolute;
-      left:0;
-      top:0;
-      display:none;
     }
 
     /* Z-INDEX: Kugel (unter dem Würfel, über den Zielkarten) */
@@ -634,16 +638,6 @@
       position: relative;
       line-height: 1;
       font-family: "Noto Serif", serif;
-      transition: color 0.1s ease;
-    }
-
-    /* „Verbrauchte“ Karte */
-    .slot .num > span.usedCard{
-      opacity: 0.25;
-    }
-
-    .targetUsed{
-      opacity: 0.25;
     }
 
     /* NEU: mehr Abstand für 10 am Würfelslot */
@@ -1010,7 +1004,27 @@
 
       <div class="bgPNG" aria-hidden="true"></div>
 
-      <!-- Zielkarten WebP-Layer (über CARD, unter Kugel & Würfel) -->
+      <!-- Stich-Grafiken Player -->
+      <div class="stichLayer" id="stichLayerPL" aria-hidden="true">
+        <img id="stich1_pl" src="stich1_pl.webp" alt="">
+        <img id="stich2_pl" src="stich2_pl.webp" alt="">
+        <img id="stich3_pl" src="stich3_pl.webp" alt="">
+        <img id="stich4_pl" src="stich4_pl.webp" alt="">
+        <img id="stich5_pl" src="stich5_pl.webp" alt="">
+        <img id="stich6_pl" src="stich6_pl.webp" alt="">
+      </div>
+
+      <!-- Stich-Grafiken Bank -->
+      <div class="stichLayer" id="stichLayerB" aria-hidden="true">
+        <img id="stich1_b" src="stich1_b.webp" alt="">
+        <img id="stich2_b" src="stich2_b.webp" alt="">
+        <img id="stich3_b" src="stich3_b.webp" alt="">
+        <img id="stich4_b" src="stich4_b.webp" alt="">
+        <img id="stich5_b" src="stich5_b.webp" alt="">
+        <img id="stich6_b" src="stich6_b.webp" alt="">
+      </div>
+
+      <!-- Zielkarten WebP-Layer (über CARD & Stich, unter Kugel & Würfel) -->
       <div class="targetLayer" id="targetLayer" aria-hidden="false">
         <img id="target6" class="targetCard targetCard-6" src="target_6.webp" alt="">
         <img id="target5" class="targetCard targetCard-5" src="target_5.webp" alt="">
@@ -1019,25 +1033,6 @@
         <img id="target2" class="targetCard targetCard-2" src="target_2.webp" alt="">
         <img id="target1" class="targetCard targetCard-1" src="target_1.webp" alt="">
         <img id="targetCovered" class="targetCard targetCard-covered" src="target_verdeckt.webp" alt="">
-      </div>
-
-      <!-- STICH-Layer Player & Bank -->
-      <div class="stichLayer" id="stichLayerPlayer" aria-hidden="true">
-        <img id="stichPl1" class="stichCard" src="stich_1_pl.webp" alt="">
-        <img id="stichPl2" class="stichCard" src="stich_2_pl.webp" alt="">
-        <img id="stichPl3" class="stichCard" src="stich_3_pl.webp" alt="">
-        <img id="stichPl4" class="stichCard" src="stich_4_pl.webp" alt="">
-        <img id="stichPl5" class="stichCard" src="stich_5_pl.webp" alt="">
-        <img id="stichPl6" class="stichCard" src="stich_6_pl.webp" alt="">
-      </div>
-
-      <div class="stichLayer" id="stichLayerBank" aria-hidden="true">
-        <img id="stichB1" class="stichCard" src="stich_1_b.webp" alt="">
-        <img id="stichB2" class="stichCard" src="stich_2_b.webp" alt="">
-        <img id="stichB3" class="stichCard" src="stich_3_b.webp" alt="">
-        <img id="stichB4" class="stichCard" src="stich_4_b.webp" alt="">
-        <img id="stichB5" class="stichCard" src="stich_5_b.webp" alt="">
-        <img id="stichB6" class="stichCard" src="stich_6_b.webp" alt="">
       </div>
 
       <div class="ball" aria-label="Kugel"></div>
@@ -1222,25 +1217,13 @@
     const targetImg6       = document.getElementById("target6");
     const targetImgCovered = document.getElementById("targetCovered");
 
-    /* STICH-Elemente */
-    const stichLayerPlayer = document.getElementById("stichLayerPlayer");
-    const stichLayerBank   = document.getElementById("stichLayerBank");
-    const stichPlImgs = [
-      document.getElementById("stichPl1"),
-      document.getElementById("stichPl2"),
-      document.getElementById("stichPl3"),
-      document.getElementById("stichPl4"),
-      document.getElementById("stichPl5"),
-      document.getElementById("stichPl6"),
-    ];
-    const stichBImgs = [
-      document.getElementById("stichB1"),
-      document.getElementById("stichB2"),
-      document.getElementById("stichB3"),
-      document.getElementById("stichB4"),
-      document.getElementById("stichB5"),
-      document.getElementById("stichB6"),
-    ];
+    /* Stich-Grafiken */
+    const stichPLImgs = [];
+    const stichBImgs  = [];
+    for(let i=1;i<=6;i++){
+      stichPLImgs[i] = document.getElementById(`stich${i}_pl`);
+      stichBImgs[i]  = document.getElementById(`stich${i}_b`);
+    }
 
     function sleep(ms){ return new Promise(res => setTimeout(res, ms)); }
 
@@ -1299,14 +1282,6 @@
       });
     }
 
-    function resetUsedCards(){
-      document.querySelectorAll(".slot .num > span.usedCard").forEach(el => {
-        el.classList.remove("usedCard");
-      });
-      if(targetRank10D) targetRank10D.classList.remove("targetUsed");
-      if(targetSuitImg) targetSuitImg.classList.remove("targetUsed");
-    }
-
     const kipSlotCache = {};
     function getKipSlots(kipId){
       if(kipSlotCache[kipId]) return kipSlotCache[kipId];
@@ -1351,18 +1326,17 @@
       return kipSlotCache[kipId];
     }
 
-    // Textfarbe: neutral Blau während Kipp, danach Rot/Schwarz je nach Suit
-    function applySlotTextColor(spanEl, suitColor, mode){
+    // Textfarbe nach Suit (Rot bei Herz/Karo, sonst Schwarz)
+    function applySlotTextColor(spanEl, suitColor){
       if(!spanEl) return;
-
-      if(mode === "kip"){
-        // neutrales Blau (C≈85, M≈42, Y=0, K=0)
-        spanEl.style.color = "rgb(38,148,255)";
-        return;
-      }
-
       const isRed = (suitColor === "gruen" || suitColor === "blau"); // gruen=Karo, blau=Herz
-      spanEl.style.color = isRed ? "rgb(137,39,46)" : "rgb(1,1,1)";
+      spanEl.style.color = isRed ? "#b00000" : "#111111";
+    }
+
+    // Neutral-Blau für Zwischenkipp
+    function applyNeutralTextColor(spanEl){
+      if(!spanEl) return;
+      spanEl.style.color = "var(--rankBlue)";
     }
 
     const allColors = ["violett","blau","gruen","orange"];
@@ -1402,60 +1376,47 @@
     let playerScore = 0;
     let bankScore   = 0;
 
-    // Stich-Zähler Player & Bank
-    let playerStichCount = 0;
-    let bankStichCount   = 0;
+    // Player-/Bank-Stiche (werden mit WebP-Stichen verknüpft)
+    let playerTricks = 0;
+    let bankTricks   = 0;
 
     function updateScoresUI(){
       const runEl   = document.getElementById("scoreRun");     // Player
       const finalEl = document.getElementById("scoreDisplay"); // Bank
-      if(runEl){
-        runEl.textContent = String(playerScore).padStart(3,"0");
+      if (runEl){
+        runEl.textContent = String(playerScore).padStart(3, "0");
       }
-      if(finalEl){
-        finalEl.textContent = String(bankScore).padStart(3,"0");
-      }
-    }
-
-    function resetStichUI(){
-      playerStichCount = 0;
-      bankStichCount   = 0;
-      if(stichLayerPlayer) stichLayerPlayer.style.display = "none";
-      if(stichLayerBank)   stichLayerBank.style.display   = "none";
-      stichPlImgs.forEach(img => { if(img) img.style.display = "none"; });
-      stichBImgs.forEach(img => { if(img) img.style.display = "none"; });
-    }
-
-    function updateStichForWinner(winner){
-      if(winner === "player"){
-        playerStichCount = Math.min(playerStichCount + 1, 6);
-        if(stichLayerPlayer) stichLayerPlayer.style.display = "block";
-        stichPlImgs.forEach((img, idx) => {
-          if(!img) return;
-          img.style.display = (idx === playerStichCount - 1) ? "block" : "none";
-        });
-      } else if(winner === "bank"){
-        bankStichCount = Math.min(bankStichCount + 1, 6);
-        if(stichLayerBank) stichLayerBank.style.display = "block";
-        stichBImgs.forEach((img, idx) => {
-          if(!img) return;
-          img.style.display = (idx === bankStichCount - 1) ? "block" : "none";
-        });
+      if (finalEl){
+        finalEl.textContent = String(bankScore).padStart(3, "0");
       }
     }
 
-    function markUsedPlayerCard(info){
-      if(info && info.spanEl){
-        info.spanEl.classList.add("usedCard");
+    // Stiche zurücksetzen (alle Stich-WebPs unsichtbar)
+    function resetStichLayers(){
+      playerTricks = 0;
+      bankTricks   = 0;
+      for(let i=1;i<=6;i++){
+        if (stichPLImgs[i]) stichPLImgs[i].style.display = "none";
+        if (stichBImgs[i])  stichBImgs[i].style.display  = "none";
       }
     }
 
-    function markUsedTargetCard(){
-      if(targetRank10D){
-        targetRank10D.classList.add("targetUsed");
-      }
-      if(targetSuitImg){
-        targetSuitImg.classList.add("targetUsed");
+    // Gewinner-Stich anzeigen:
+    // - Player: stichX_pl.webp
+    // - Bank:   stichX_b.webp
+    // Jede neue Stich-Datei enthält die vorherigen, darum werden
+    // ältere für diese Seite ausgeblendet.
+    function updateStichImages(winner){
+      if (winner === "player"){
+        const idx = Math.min(playerTricks, 6);
+        for (let i=1;i<=6;i++){
+          if (stichPLImgs[i]) stichPLImgs[i].style.display = (i === idx) ? "block" : "none";
+        }
+      } else if (winner === "bank"){
+        const idx = Math.min(bankTricks, 6);
+        for (let i=1;i<=6;i++){
+          if (stichBImgs[i]) stichBImgs[i].style.display = (i === idx) ? "block" : "none";
+        }
       }
     }
 
@@ -1468,17 +1429,18 @@
 
     function getTargetHintText(){
       const nextIndex = drawsCount + 1; // 1..MAX_TARGETS
-      if(nextIndex >= MAX_TARGETS) return "LETZTES KIPPZIEL";
+      if (nextIndex >= MAX_TARGETS) return "LETZTES KIPPZIEL";
       return `${ordinals[nextIndex] || (nextIndex + ".")} KIPPZIEL VON ${MAX_TARGETS}`;
     }
 
     function showHint(text, small=false){
-      if(!hintTitle) return;
+      if (!hintTitle) return;
       hintTitle.textContent = text;
       hintTitle.classList.toggle("hintSmall", !!small);
     }
     function hideHint(){
-      if(!hintTitle) return;
+      if (!hintTitle) return;
+      hintTitle.textContent = "";
     }
 
     function hideStartUI(){
@@ -1503,27 +1465,27 @@
 
     const COLOR_BY_ZF_COORD = (() => {
       const m = {};
-      for(const [c, arr] of Object.entries(colorFieldCoords)){
-        for(const coord of arr) m[coord] = c;
+      for (const [c, arr] of Object.entries(colorFieldCoords)){
+        for (const coord of arr) m[coord] = c;
       }
       return m;
     })();
 
     function getAdjacentZFCoordForZS(zsCoord){
       const p = coordToXY(zsCoord);
-      if(p.colLetter === "B") return `${p.row}A`;
-      if(p.colLetter === "G") return `${p.row}H`;
-      if(p.row === 2) return `1${p.colLetter}`;
-      if(p.row === 7) return `8${p.colLetter}`;
+      if (p.colLetter === "B") return `${p.row}A`;
+      if (p.colLetter === "G") return `${p.row}H`;
+      if (p.row === 2) return `1${p.colLetter}`;
+      if (p.row === 7) return `8${p.colLetter}`;
       return null;
     }
 
     function getVisibleSlotInfos(){
       const curr = sets[faceIndex];
-      const rot = rotIndex;
+      const rot  = rotIndex;
       const zsCoords = ZS_COORDS_BY_ROT_ZSINDEX[rot];
       const out = [];
-      for(let i=0;i<4;i++){
+      for (let i = 0; i < 4; i++){
         const zsIndex = DOM_SLOT_TO_ZS_INDEX[i];
         const zsCoord = zsCoords[zsIndex - 1];
         const zfCoord = getAdjacentZFCoordForZS(zsCoord);
@@ -1531,7 +1493,7 @@
         out.push({
           slotEl: slotElsW[i],
           spanEl: slotTargetsW[i],
-          num: curr[i],
+          num:    curr[i],
           zsIndex,
           zsCoord,
           zfCoord,
@@ -1543,16 +1505,16 @@
 
     function applyHitVisual(slotInfo){
       slotInfo.slotEl.classList.add("kippPulse");
-      if(slotInfo.spanEl) slotInfo.spanEl.classList.add("kippPulse");
+      if (slotInfo.spanEl) slotInfo.spanEl.classList.add("kippPulse");
       setTimeout(() => {
         slotInfo.slotEl.classList.remove("kippPulse");
-        if(slotInfo.spanEl) slotInfo.spanEl.classList.remove("kippPulse");
+        if (slotInfo.spanEl) slotInfo.spanEl.classList.remove("kippPulse");
       }, 2600);
     }
 
     // Karten-Visualisierung: 1–12 → 3–A
     function getVisualRank(n){
-      switch(n){
+      switch (n){
         case 12: return "A";
         case 11: return "K";
         case 10: return "Q";
@@ -1577,9 +1539,9 @@
       const rankIndex = order.indexOf(rankStr);
 
       let value;
-      if(rankStr === "A"){
+      if (rankStr === "A"){
         value = 12;
-      } else if(["K","Q","J","10"].includes(rankStr)){
+      } else if (["K","Q","J","10"].includes(rankStr)){
         value = 10;
       } else {
         const parsed = parseInt(rankStr, 10);
@@ -1591,70 +1553,63 @@
 
     // Player-Karte auf Ziel-Farbe finden
     function getPlayerCardOnTargetColor(){
-      if(!currentTarget) return null;
+      if (!currentTarget) return null;
       const infos = getVisibleSlotInfos();
-      for(const info of infos){
-        if(info.num == null) continue;
-        if(info.color === currentTarget.color){
+      for (const info of infos){
+        if (info.num == null) continue;
+        if (info.color === currentTarget.color){
           return info;
         }
       }
       return null;
     }
 
-    // Treffererkennung + Score Player/Bank + Stich + „verbraucht“
+    // Treffererkennung + Score Player/Bank + Stiche
     function checkHitAndAnimate(){
-      if(!currentTarget) return false;
+      if (!currentTarget) return false;
 
       const info = getPlayerCardOnTargetColor();
-      if(!info) return false;
+      if (!info) return false;
 
       const playerCard = getCardInfo(info.num);
       const targetCard = getCardInfo(currentTarget.num);
 
       // Vergleich über Rang-Reihenfolge (A > K > Q > J > 10 > 9 ... 3)
       let winner = "bank";
-      if(playerCard.rankIndex > targetCard.rankIndex){
+      if (playerCard.rankIndex > targetCard.rankIndex){
         winner = "player";
       }
 
       const roundPoints = playerCard.value + targetCard.value;
 
-      if(winner === "player"){
+      if (winner === "player"){
         playerScore += roundPoints;
+        playerTricks++;
       } else {
-        bankScore += roundPoints;
+        bankScore   += roundPoints;
+        bankTricks++;
       }
 
       updateScoresUI();
       applyHitVisual(info);
 
-      // Stich-System aktualisieren
-      updateStichForWinner(winner);
-
-      // Gestochenes Kartenpaar / Zugeben markieren
-      if(winner === "player"){
-        // Karte am Würfel „verbraucht“
-        markUsedPlayerCard(info);
-      } else {
-        // Target-Karte „verbraucht“
-        markUsedTargetCard();
-      }
+      // Stich-WebP für Gewinner-Seite einblenden
+      updateStichImages(winner);
 
       return (winner === "player");
     }
 
-    // Sichtbare Numberset
+    // Hilfsfunktionen usw. – von hier an unverändert
+
     function getVisibleNumbersSet(){
       return new Set(getVisibleSlotInfos().map(s => s.num).filter(n => n != null));
     }
 
-    // Sichtbare Slots (nur Daten) für beliebigen Zustand
     function getVisibleInfosAt(rotIdx, faceIdx){
       const curr = sets[faceIdx];
       const zsCoords = ZS_COORDS_BY_ROT_ZSINDEX[rotIdx];
       const out = [];
-      for(let i=0;i<4;i++){
+      for (let i=0;i<4;i++){
         const zsIndex = DOM_SLOT_TO_ZS_INDEX[i];
         const zsCoord = zsCoords[zsIndex - 1];
         const zfCoord = getAdjacentZFCoordForZS(zsCoord);
@@ -1666,23 +1621,21 @@
 
     function applyHitVisualNoop(){}
 
-    // Treffer-Reichweite (nicht mehr aktiv benutzt, aber da)
     function isPairReachableWithin6(num, color){
       let r = rotIndex;
       let f = faceIndex;
-      for(let step=1; step<=6; step++){
+      for (let step=1; step<=6; step++){
         r = (r + 1) % 4;
         f = (f + 1) % 3;
         const vis = getVisibleInfosAt(r, f);
-        for(const si of vis){
-          if(si.num == null) continue;
-          if(si.num === num && si.color === color) return true;
+        for (const si of vis){
+          if (si.num == null) continue;
+          if (si.num === num && si.color === color) return true;
         }
       }
       return false;
     }
 
-    // Timing / Kippgeschwindigkeit – unverändert
     const TARGET_MIN = 0.55;
     const STEP_MAX   = 0.80;
 
@@ -1693,7 +1646,7 @@
 
     function updateTargetTimeMulByDraws(){
       const idx = clamp(drawsCount, 0, MAX_TARGETS);
-      if(idx <= 0){ targetTimeMul = 1; return; }
+      if (idx <= 0){ targetTimeMul = 1; return; }
       const t = (MAX_TARGETS <= 1) ? 1 : (idx - 1) / (MAX_TARGETS - 1);
       targetTimeMul = lerp(1.0, TARGET_MIN, t);
     }
@@ -1734,17 +1687,17 @@
       setRotationSnap();
     }
 
-    function renderSlot(slotEl, spanEl, n, suitColor, mode){
+    function renderSlot(slotEl, spanEl, n, suitColor){
       renderNumber(spanEl, n);
       applyPersistentFill(slotEl, n);
-      applySlotTextColor(spanEl, suitColor, mode);
+      applySlotTextColor(spanEl, suitColor);
     }
 
     function renderW(){
       setRotationSnap();
       const infos = getVisibleSlotInfos();
-      for(const info of infos){
-        renderSlot(info.slotEl, info.spanEl, info.num, info.color, "final");
+      for (const info of infos){
+        renderSlot(info.slotEl, info.spanEl, info.num, info.color);
       }
     }
 
@@ -1760,16 +1713,16 @@
 
       const { rightSpans, leftSpans, rightEls, leftEls } = getKipSlots(kipId);
 
-      for(let i=0;i<4;i++) renderSlot(rightEls[i], rightSpans[i], curr[i], null, "kip");
+      for (let i=0;i<4;i++) renderSlot(rightEls[i], rightSpans[i], curr[i], null);
 
       const nextPreview = mapHiddenToVisible_CW(next);
-      for(let i=0;i<4;i++) renderSlot(leftEls[i], leftSpans[i], nextPreview[i], null, "kip");
+      for (let i=0;i<4;i++) renderSlot(leftEls[i], leftSpans[i], nextPreview[i], null);
     }
 
     function getUniqueRandomNumbers(count, min, max){
       const pool = [];
-      for(let i=min; i<=max; i++) pool.push(i);
-      for(let i=pool.length-1; i>0; i--){
+      for (let i=min; i<=max; i++) pool.push(i);
+      for (let i=pool.length-1; i>0; i--){
         const j = Math.floor(Math.random() * (i+1));
         [pool[i], pool[j]] = [pool[j], pool[i]];
       }
@@ -1782,10 +1735,10 @@
     }
 
     function renderNumber(span, n){
-      if(!span) return;
+      if (!span) return;
       span.classList.remove("twodigit");
 
-      if(n === null || n === undefined){
+      if (n === null || n === undefined){
         span.textContent = "";
         span.style.letterSpacing = "";
         return;
@@ -1794,14 +1747,14 @@
       const text = getVisualRank(n);
       span.textContent = text;
 
-      if(text.length >= 2){
+      if (text.length >= 2){
         span.classList.add("twodigit");
       } else {
         span.style.letterSpacing = "";
       }
     }
 
-    const HEADER_ROW_OFFSET_CONST = 2; // identisch, nur klarer Name
+    const HEADER_ROW_OFFSET_CONST = 2;
 
     let runningKipp = false;
     let previewToken = 0;
@@ -1814,20 +1767,20 @@
 
     async function waitOrPause(type, myToken, factor = 1){
       const startTime = Date.now();
-      while(myToken === previewToken){
+      while (myToken === previewToken){
         const T = getTiming();
         const base = (type === "kip") ? T.kipMs : T.wMs;
         const targetMs = Math.max(40, Math.round(base * (factor || 1)));
 
         const elapsed = Date.now() - startTime;
-        if(elapsed >= targetMs) break;
+        if (elapsed >= targetMs) break;
         await sleep(50);
       }
       return (myToken === previewToken);
     }
 
     async function runSchauKippSequence(steps, opts = {}){
-      if(runningKipp) return;
+      if (runningKipp) return;
       runningKipp = true;
 
       const kipFactor = (opts && opts.kipFactor) ? opts.kipFactor : 1;
@@ -1835,32 +1788,31 @@
 
       showW();
       renderW();
-      if(!await waitOrPause("w", myToken, 1)){ runningKipp=false; return; }
+      if (!await waitOrPause("w", myToken, 1)){ runningKipp=false; return; }
 
       const totalSteps = Math.max(1, steps);
 
-      for(let i=0;i<steps;i++){
+      for (let i=0;i<steps;i++){
         const tStep = (totalSteps <= 1) ? 0 : (i / (totalSteps - 1));
         const stepMul = lerp(1.0, STEP_MAX, tStep);
 
         showKip();
         renderKip();
-        if(!await waitOrPause("kip", myToken, kipFactor * stepMul)){ runningKipp=false; return; }
+        if (!await waitOrPause("kip", myToken, kipFactor * stepMul)){ runningKipp=false; return; }
 
         advanceFullCW();
         showW();
         renderW();
-        if(!await waitOrPause("w", myToken, stepMul)){ runningKipp=false; return; }
+        if (!await waitOrPause("w", myToken, stepMul)){ runningKipp=false; return; }
       }
 
       runningKipp = false;
     }
 
-    // ---------- NEU: Scrollband für Kippanzahl (statt 1–6 Buttons) ----------
     function buildScrollBand(){
-      if(!scrollBand) return;
+      if (!scrollBand) return;
       scrollBand.innerHTML = "";
-      for(let num = 1; num <= 11; num++){
+      for (let num = 1; num <= 11; num++){
         const item = document.createElement("div");
         item.className = "scrollItem";
         item.dataset.anzahl = num;
@@ -1868,95 +1820,85 @@
         item.addEventListener("click", () => handleAnzahlClick(num, null));
         scrollBand.appendChild(item);
       }
-      // Pendel-Animation aktivieren
       scrollBand.classList.add("wiggle");
     }
 
     function setScrollBandLocked(locked){
-      if(!scrollBand) return;
+      if (!scrollBand) return;
       scrollBand.querySelectorAll(".scrollItem").forEach(item => {
         item.classList.toggle("disabled", !!locked);
       });
-      if(scrollBandWrap){
+      if (scrollBandWrap){
         scrollBandWrap.classList.toggle("locked", !!locked);
       }
     }
 
-    // (alte Kipp-Anzahl-Buttons bleiben als Logik-Leiche, werden aber nicht mehr verwendet)
     function buildKippAnzahlButtons(){
       kippAnzahlBtns.innerHTML = "";
       kippAnzahlBtns.classList.add("compact");
-      // NICHT MEHR AUFGERUFEN
     }
 
     function setAnzahlButtonsLocked(locked){
-      // NICHT MEHR VERWENDET
       kippAnzahlBtns.querySelectorAll("button").forEach(b => b.disabled = locked);
       testTargetBtn.disabled = locked;
     }
 
     function markRunSelected(btn){
       kippAnzahlBtns.querySelectorAll("button").forEach(b => b.classList.remove("runSelected"));
-      if(btn) btn.classList.add("runSelected");
+      if (btn) btn.classList.add("runSelected");
     }
     function clearRunSelected(){
       kippAnzahlBtns.querySelectorAll("button").forEach(b => b.classList.remove("runSelected"));
     }
 
-    // ---------- Random-Zielanzeige (Zahl & Symbol) ----------
     function hideTargetRankAndSuit(){
-      if(targetRank10D){
+      if (targetRank10D){
         targetRank10D.style.display = "none";
         targetRank10D.textContent = "";
-        targetRank10D.classList.remove("targetUsed");
       }
-      if(targetSuitImg){
+      if (targetSuitImg){
         targetSuitImg.style.display = "none";
         targetSuitImg.removeAttribute("src");
-        targetSuitImg.classList.remove("targetUsed");
       }
     }
 
     function showTargetRankAndSuit(target){
-      if(!target) return;
+      if (!target) return;
       const text = getVisualRank(target.num);
-      if(targetRank10D){
+      if (targetRank10D){
         targetRank10D.textContent = text;
         const isRed = (target.color === "gruen" || target.color === "blau");
-        targetRank10D.style.color = isRed ? "rgb(137,39,46)" : "rgb(1,1,1)";
+        targetRank10D.style.color = isRed ? "#b00000" : "#111111";
         targetRank10D.style.display = "block";
-        targetRank10D.classList.remove("targetUsed");
       }
-      if(targetSuitImg){
+      if (targetSuitImg){
         const src = SUIT_IMG_BY_COLOR[target.color] || "";
-        if(src){
+        if (src){
           targetSuitImg.src = src;
           targetSuitImg.style.display = "block";
-          targetSuitImg.classList.remove("targetUsed");
         }
       }
     }
 
-    // ---------- Zielwahl Reset ----------
     function resetToNewTargetChoice(){
       attemptsForTarget = 0;
-      currentTarget = null;
-      targetRevealed = false;
+      currentTarget     = null;
+      targetRevealed    = false;
       clearHitPulse();
       hideTargetRankAndSuit();
       showTargetSelectView();
     }
 
-    // ---------- Reset Game to Start ----------
     function resetGameToStart(){
       endRestartMode = false;
       playerScore = 0;
       bankScore   = 0;
+      playerTricks = 0;
+      bankTricks   = 0;
       updateScoresUI();
       resetTargetDeck();
       resetLockedColors();
-      resetUsedCards();
-      resetStichUI();
+      resetStichLayers();
       rotIndex = 0;
 
       reroll12_keepAssigned();
@@ -1968,15 +1910,13 @@
       showStartView();
     }
 
-    // ---------- End „Ergebnis“: Scores stehen lassen, Neuspielen-Button ----------
     function showEndResultView(){
       uiMode = "END";
 
-      if(scrollBandWrap){
+      if (scrollBandWrap){
         scrollBandWrap.classList.add("hidden");
       }
 
-      // Start-Wrapper sichtbar, aber nur NEU SPIELEN
       startBtnWrap.classList.remove("hidden");
       btnSchauen.classList.add("hidden");
       btnErgebnis.classList.remove("hidden");
@@ -1985,18 +1925,15 @@
       showHint("ENDE – VERGLEICHE DIE SCORES", true);
     }
 
-    // =========================
-    // Nach dem Kipp – 1 Versuch pro Ziel
-    // =========================
     function handleAnzahlClick(anzahl, clickedBtn){
-      if(!currentTarget) return;
-      if(runningKipp) return;
-      if(attemptsForTarget >= MAX_ATTEMPTS_PER_TARGET) return;
+      if (!currentTarget) return;
+      if (runningKipp) return;
+      if (attemptsForTarget >= MAX_ATTEMPTS_PER_TARGET) return;
 
       attemptsForTarget++;
 
       markRunSelected(clickedBtn);
-      setScrollBandLocked(true);   // Band inaktiv während Kipp
+      setScrollBandLocked(true);
       runSchauKippSequence(anzahl, { kipFactor: 1 }).finally(async () => {
         clearHitPulse();
         const hit = checkHitAndAnimate();
@@ -2007,13 +1944,11 @@
 
         await sleep(900);
 
-        if(isLastTarget){
+        if (isLastTarget){
           showEndResultView();
           return;
         }
 
-        // Neues Ziel vorbereiten: Band bleibt vorerst inaktiv,
-        // bis die neue Deckkarte aufgedeckt wird.
         resetToNewTargetChoice();
         renderW();
       });
@@ -2026,7 +1961,6 @@
       targetPadNum.classList.remove("twodigit");
     }
 
-    // ---------- UI-Views ----------
     function showStartView(){
       uiMode = "START";
 
@@ -2034,7 +1968,7 @@
       btnSchauen.classList.remove("hidden");
       btnErgebnis.classList.add("hidden");
 
-      if(scrollBandWrap) scrollBandWrap.classList.add("hidden");
+      if (scrollBandWrap) scrollBandWrap.classList.add("hidden");
 
       btnSchauenPulse.classList.add("pulse");
 
@@ -2042,14 +1976,13 @@
 
       kippAnzahlView.classList.add("hidden");
 
-      // alles andere unsichtbar, solange SCHAUEN & MERKEN sichtbar
-      if(targetLayer) targetLayer.style.display = "none";
+      if (targetLayer) targetLayer.style.display = "none";
       hideTargetRankAndSuit();
 
-      targetRevealed = false;
-      started = false;
-      currentTarget = null;
-      attemptsForTarget = 0;
+      targetRevealed   = false;
+      started          = false;
+      currentTarget    = null;
+      attemptsForTarget= 0;
 
       resetTargetPadUI();
       clearHitPulse();
@@ -2058,7 +1991,7 @@
     }
 
     function showTargetSelectView(){
-      if(drawsCount >= MAX_TARGETS){
+      if (drawsCount >= MAX_TARGETS){
         showEndResultView();
         return;
       }
@@ -2068,11 +2001,9 @@
 
       startBtnWrap.classList.add("hidden");
 
-      // NEU: Scrollband bleibt sichtbar, aber inaktiv,
-      // während die neue Zielkarte eingeblendet/verdeckt ist.
-      if(scrollBandWrap){
+      if (scrollBandWrap){
         scrollBandWrap.classList.remove("hidden");
-        if(!scrollBand.innerHTML.trim()){
+        if (!scrollBand.innerHTML.trim()){
           buildScrollBand();
         }
         setScrollBandLocked(true);
@@ -2082,17 +2013,16 @@
 
       hideTargetRankAndSuit();
 
-      if(targetLayer){
+      if (targetLayer){
         targetLayer.style.display = "block";
       }
 
-      // gewählte Zielkarte je nach nächstem Index
       const imgs = [targetImg1, targetImg2, targetImg3, targetImg4, targetImg5, targetImg6];
-      imgs.forEach(img => { if(img) img.style.display = "none"; });
+      imgs.forEach(img => { if (img) img.style.display = "none"; });
 
-      const nextIdx = drawsCount + 1; // 1..6
+      const nextIdx = drawsCount + 1;
       let activeImg = null;
-      switch(nextIdx){
+      switch (nextIdx){
         case 1: activeImg = targetImg1; break;
         case 2: activeImg = targetImg2; break;
         case 3: activeImg = targetImg3; break;
@@ -2101,16 +2031,16 @@
         case 6: activeImg = targetImg6; break;
         default: activeImg = targetImg6; break;
       }
-      if(activeImg){
+      if (activeImg){
         activeImg.style.display = "block";
       }
 
-      if(targetImgCovered){
+      if (targetImgCovered){
         targetImgCovered.style.display = "block";
         targetImgCovered.classList.add("pulse");
       }
 
-      targetRevealed = false;
+      targetRevealed    = false;
       attemptsForTarget = 0;
 
       positionUI();
@@ -2123,9 +2053,8 @@
       startBtnWrap.classList.add("hidden");
       kippAnzahlView.classList.add("hidden");
 
-      if(scrollBandWrap){
+      if (scrollBandWrap){
         scrollBandWrap.classList.remove("hidden");
-        // Hier wird das Band wieder aktiv, bis der Spieler eine Zahl wählt.
         setScrollBandLocked(false);
       }
 
@@ -2137,7 +2066,6 @@
       positionUI();
     }
 
-    // ---------- Positionierung ----------
     function setScaleToFitWidth(){
       const cols = numVar("--cols") || 8;
       const cell = numVar("--cell") || 142;
@@ -2188,19 +2116,18 @@
         ["3H","c-violett"],["4H","c-gruen"],  ["5H","c-gruen"],  ["6H","c-orange"],
       ];
 
-      // Visuell nicht mehr sichtbar, Logik bleibt
-      for(const [coord, cls] of placements){
-        // optional: nichts tun, da .colors display:none ist
+      // Farbflächen sind aktuell unsichtbar; Logik bleibt trotzdem erhalten
+      for (const [coord, cls] of placements){
         // placeColorSquare(coord, cls, cellPx, sizePx);
       }
     }
 
     function positionScoreRun(cellPx){
       const run = document.getElementById("scoreRun");
-      if(!run) return;
+      if (!run) return;
 
       const row = 8;
-      const colStart = 1; // A–B
+      const colStart = 1;
       const visualRow = row + HEADER_ROW_OFFSET;
 
       const leftCell = (colStart - 1) * cellPx;
@@ -2218,10 +2145,10 @@
 
     function positionScoreDisplay(cellPx){
       const score = document.getElementById("scoreDisplay");
-      if(!score) return;
+      if (!score) return;
 
       const row = 8;
-      const colStart = 7; // G–H
+      const colStart = 7;
       const visualRow = row + HEADER_ROW_OFFSET;
 
       const leftCell = (colStart - 1) * cellPx;
@@ -2240,10 +2167,10 @@
     function positionBackButton(cellPx){
       const headerY = 1.0 * cellPx;
       const left = cellPx / 2;
-      const top = headerY;
+      const top  = headerY;
 
       backBtn.style.left = left + "px";
-      backBtn.style.top = top + "px";
+      backBtn.style.top  = top + "px";
       backBtn.style.transform = "translate(-50%, -50%)";
     }
 
@@ -2257,16 +2184,14 @@
 
       testTargetBtn.style.position = "absolute";
       testTargetBtn.style.left = left + "px";
-      testTargetBtn.style.top = top + "px";
+      testTargetBtn.style.top  = top + "px";
       testTargetBtn.style.transform = "translate(-50%, -50%)";
       testTargetBtn.style.zIndex = "30";
       testTargetBtn.style.pointerEvents = "auto";
     }
 
-    /* Target-Karten exakt mit linkem oberen Eck in 9A verankern,
-       ebenso das Suit-Symbol */
     function positionTargetCards(cellPx){
-      if(!targetLayer) return;
+      if (!targetLayer) return;
       const coord = coordToXY("9A");
       const visualRow = coord.row + HEADER_ROW_OFFSET;
 
@@ -2275,35 +2200,19 @@
 
       const imgs = [targetImg1, targetImg2, targetImg3, targetImg4, targetImg5, targetImg6, targetImgCovered];
       imgs.forEach(img => {
-        if(!img) return;
+        if (!img) return;
         img.style.left = left + "px";
-        img.style.top  = top + "px";
+        img.style.top  = top  + "px";
       });
 
-      if(targetSuitImg){
+      if (targetSuitImg){
         targetSuitImg.style.left = left + "px";
-        targetSuitImg.style.top  = top + "px";
+        targetSuitImg.style.top  = top  + "px";
       }
     }
 
-    // Stich-Bilder ebenfalls an 9A
-    function positionStichImages(cellPx){
-      const coord = coordToXY("9A");
-      const visualRow = coord.row + HEADER_ROW_OFFSET;
-
-      const left = (coord.col - 1) * cellPx;
-      const top  = (visualRow - 1) * cellPx;
-
-      [...stichPlImgs, ...stichBImgs].forEach(img => {
-        if(!img) return;
-        img.style.left = left + "px";
-        img.style.top  = top + "px";
-      });
-    }
-
-    // Random-Zahl in 10D
     function positionTargetRank10D(cellPx){
-      if(!targetRank10D) return;
+      if (!targetRank10D) return;
       const coord = coordToXY("10D");
       const visualRow = coord.row + HEADER_ROW_OFFSET;
 
@@ -2326,7 +2235,7 @@
 
       const title = document.getElementById("titleLeft");
       title.style.left = "50%";
-      title.style.top = headerY + "px";
+      title.style.top  = headerY + "px";
       title.style.transform = "translate(-50%, -50%)";
 
       const row11VisualTop = (((11 + HEADER_ROW_OFFSET) - 1) * cellPx);
@@ -2335,24 +2244,22 @@
 
       const kippBtnsCenterY = between10and11;
 
-      kippAnzahlBtns.style.top = kippBtnsCenterY + "px";
+      kippAnzahlBtns.style.top  = kippBtnsCenterY + "px";
       kippAnzahlBtns.style.left = "50%";
       kippAnzahlBtns.style.transform = "translate(-50%, -50%)";
 
-      // SCHAUEN-&-MERKEN Button: Grundposition Zeile 13, dann ½ Zeilenhöhe nach Norden verschoben
       const row13VisualTop = (((13 + HEADER_ROW_OFFSET) - 1) * cellPx);
       const row13CenterY   = row13VisualTop + (cellPx / 2);
       const startTop = (row13CenterY - (cellPx / 2));
       startBtnWrap.style.top = (startTop + 5) + "px";
 
-      // Scrollband auf exakt dieselbe Höhe wie Startbutton
-      if(scrollBandWrap){
+      if (scrollBandWrap){
         scrollBandWrap.style.top = (startTop - 11) + "px";
       }
 
-      if(uiMode === "TARGET"){
+      if (uiMode === "TARGET"){
         hintTitle.style.top = row11CenterY + "px";
-      } else if(uiMode === "START" || uiMode === "COUNT" || uiMode === "END"){
+      } else if (uiMode === "START" || uiMode === "COUNT" || uiMode === "END"){
         const row9VisualTop  = (((9 + HEADER_ROW_OFFSET) - 1) * cellPx);
         const row10VisualTop = (((10 + HEADER_ROW_OFFSET) - 1) * cellPx);
         const midBetween9and10 = (row9VisualTop + row10VisualTop) / 2;
@@ -2362,7 +2269,6 @@
       }
 
       positionTargetCards(cellPx);
-      positionStichImages(cellPx);
       positionBackButton(cellPx);
       positionTestButton(cellPx);
     }
@@ -2379,7 +2285,7 @@
       positionUI();
       updateShadowVisibility();
 
-      if(!wFaceGroup.classList.contains("hidden")) renderW();
+      if (!wFaceGroup.classList.contains("hidden")) renderW();
       else renderKip();
     }
 
@@ -2413,18 +2319,18 @@
 
     function updateShadowVisibility(){
       const isKipVisible = Object.values(kipGroups).some(g => g && !g.classList.contains("hidden"));
-      const isWVisible = !wFaceGroup.classList.contains("hidden");
+      const isWVisible   = !wFaceGroup.classList.contains("hidden");
 
-      if(isKipVisible){
+      if (isKipVisible){
         allShadows.forEach((s, i) => {
-          if(i === rotIndex) s.classList.add("visible");
+          if (i === rotIndex) s.classList.add("visible");
           else s.classList.remove("visible");
         });
       } else {
         allShadows.forEach(s => s.classList.remove("visible"));
       }
 
-      if(isWVisible) cubeShadowLayer.classList.add("visible");
+      if (isWVisible) cubeShadowLayer.classList.add("visible");
       else cubeShadowLayer.classList.remove("visible");
     }
 
@@ -2439,15 +2345,12 @@
       updateShadowVisibility();
     }
 
-    // =========================
-    // Random-Regeln: 12er Deck, verbotene Paare
-    // =========================
     let usedNumbers = new Set();
-    let drawsCount = 0;
+    let drawsCount  = 0;
 
     function resetTargetDeck(){
       usedNumbers = new Set();
-      drawsCount = 0;
+      drawsCount  = 0;
       targetTimeMul = 1;
     }
 
@@ -2458,30 +2361,29 @@
     function getForbiddenPairsForCurrentState(){
       const forbidden = new Set();
       const visibleSlots = getVisibleSlotInfos();
-      for(const si of visibleSlots){
-        if(si.num == null) continue;
-        if(!si.color) continue;
+      for (const si of visibleSlots){
+        if (si.num == null) continue;
+        if (!si.color) continue;
         forbidden.add(`${si.num}|${si.color}`);
       }
       return forbidden;
     }
 
-    // Neues Target gemäß Regeln
     function generateCardTarget(){
-      if(drawsCount >= MAX_TARGETS) return null;
+      if (drawsCount >= MAX_TARGETS) return null;
 
       const forbidden = getForbiddenPairsForCurrentState();
       const candidates = [];
 
-      for(let n=1; n<=12; n++){
-        if(usedNumbers.has(n)) continue; // Wert schon vergeben
-        for(const c of allColors){
-          if(forbidden.has(`${n}|${c}`)) continue; // bereits aufliegende Kombi
+      for (let n=1; n<=12; n++){
+        if (usedNumbers.has(n)) continue;
+        for (const c of allColors){
+          if (forbidden.has(`${n}|${c}`)) continue;
           candidates.push({ num:n, color:c });
         }
       }
 
-      if(!candidates.length) return null;
+      if (!candidates.length) return null;
 
       const chosen = pickRandom(candidates);
       usedNumbers.add(chosen.num);
@@ -2494,21 +2396,22 @@
       cancelPreview();
 
       resetTargetDeck();
-      currentTarget = null;
-      targetRevealed = false;
-      started = false;
+      currentTarget     = null;
+      targetRevealed    = false;
+      started           = false;
       attemptsForTarget = 0;
 
       resetLockedColors();
-      resetUsedCards();
-      resetStichUI();
+      resetStichLayers();
       playerScore = 0;
       bankScore   = 0;
+      playerTricks= 0;
+      bankTricks  = 0;
       updateScoresUI();
 
       endRestartMode = false;
       const scoreEl = document.getElementById("scoreDisplay");
-      if(scoreEl){
+      if (scoreEl){
         scoreEl.classList.remove("finalVisible", "scorePulse");
         scoreEl.style.removeProperty("opacity");
       }
@@ -2520,12 +2423,11 @@
       showW();
       renderW();
 
-      // Target-Karten-Startzustand: alles weg
-      if(targetLayer) targetLayer.style.display = "none";
+      if (targetLayer) targetLayer.style.display = "none";
       [targetImg1, targetImg2, targetImg3, targetImg4, targetImg5, targetImg6].forEach(img => {
-        if(img) img.style.display = "none";
+        if (img) img.style.display = "none";
       });
-      if(targetImgCovered){
+      if (targetImgCovered){
         targetImgCovered.style.display = "none";
         targetImgCovered.classList.remove("pulse");
       }
@@ -2536,15 +2438,13 @@
       updateShadowVisibility();
     }
 
-    // Events -------------------------------------------------
-
     btnSchauen.addEventListener("click", async () => {
-      if(runningKipp) return;
+      if (runningKipp) return;
 
       started = true;
 
       cancelPreview();
-      rotIndex = 0;
+      rotIndex  = 0;
       faceIndex = 0;
       setRotationSnap();
       showW();
@@ -2553,29 +2453,26 @@
       hideStartUI();
 
       kippAnzahlView.classList.add("hidden");
-      if(scrollBandWrap) scrollBandWrap.classList.add("hidden");
+      if (scrollBandWrap) scrollBandWrap.classList.add("hidden");
 
-      targetRevealed = false;
-      currentTarget = null;
-      attemptsForTarget = 0;
+      targetRevealed     = false;
+      currentTarget      = null;
+      attemptsForTarget  = 0;
 
       resetTargetPadUI();
       clearHitPulse();
 
       await runSchauKippSequence(4, { kipFactor: 2 });
 
-      // Nach 4-Kipp-Zyklus Target zeigen (target_n + verdeckt)
       showTargetSelectView();
     });
 
     btnErgebnis.addEventListener("click", () => {
-      // NEU: NEU SPIELEN
       resetGameToStart();
     });
 
-    // Zurück-Button: Startseite bzw. Reset
     backBtn.addEventListener("click", () => {
-      if (uiMode === "START") {
+      if (uiMode === "START"){
         window.location.href = "index.html";
       } else {
         initPlayState();
@@ -2589,18 +2486,16 @@
 
     window.addEventListener("resize", rebuild);
 
-    // WICHTIG: Scrollband soll scrollbar bleiben – hier erlauben wir Touchmove im Band
     document.addEventListener("touchmove", (e) => {
       const inRange = e.target && e.target.closest && e.target.closest('input[type="range"]');
       const inScrollBand = e.target && e.target.closest && e.target.closest('#scrollBand');
-      if(inRange || inScrollBand) return;
+      if (inRange || inScrollBand) return;
       e.preventDefault();
     }, { passive:false });
 
-    // Intro Overlay Handler
-    const introOverlay = document.getElementById("introOverlay");
+    const introOverlay  = document.getElementById("introOverlay");
     const introStartBtn = document.getElementById("introStartBtn");
-    const introBackBtn = document.getElementById("introBackBtn");
+    const introBackBtn  = document.getElementById("introBackBtn");
 
     introStartBtn.addEventListener("click", () => {
       introOverlay.classList.add("hidden");
@@ -2613,20 +2508,17 @@
       window.location.href = "index.html";
     });
 
-    // Klick-Logik: verdeckte Karte -> Target erzeugen & Zahl/Symbol anzeigen
-    if(targetImgCovered){
+    if (targetImgCovered){
       targetImgCovered.addEventListener("click", () => {
-        if(targetRevealed) return;
+        if (targetRevealed) return;
 
         targetRevealed = true;
 
-        // verdeckte Karte verschwindet
         targetImgCovered.classList.remove("pulse");
         targetImgCovered.style.display = "none";
 
-        // Random-Target nach deinen Regeln
         currentTarget = generateCardTarget();
-        if(!currentTarget) return;
+        if (!currentTarget) return;
 
         attemptsForTarget = 0;
 
@@ -2634,8 +2526,6 @@
         showKippCountView();
       });
     }
-
-    // alter targetPadBtn-Handler wird nicht mehr benutzt
-  </script>
+    </script>
 </body>
 </html>

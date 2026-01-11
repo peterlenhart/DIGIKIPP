@@ -1598,11 +1598,46 @@
       const isRedSymbol = (targetColor === "blau" || targetColor === "gruen");
       
       if (isRedCard !== isRedSymbol) {
-        // Farbe passt nicht! Rot auf Schwarz oder Schwarz auf Rot
+        // *** FALSCHE FARBE: Finde niedrigste verfügbare Karte ***
         console.log("Farbfehler! Karte", info.num, "ist", cardColor, "aber Symbol ist", targetColor);
-        return false; // Kein Treffer möglich
+        
+        // Hole alle 4 sichtbaren Karten
+        const allVisible = getVisibleSlotInfos();
+        const availableCards = allVisible
+          .filter(slot => slot.num != null && !usedCards.has(slot.num))
+          .sort((a, b) => a.num - b.num); // Sortiere aufsteigend (niedrigste zuerst)
+        
+        if (availableCards.length === 0) {
+          console.log("Keine verfügbare Karte mehr!");
+          return false;
+        }
+        
+        // Nimm die niedrigste verfügbare Karte
+        const lowestCard = availableCards[0];
+        console.log("Auto-Abgabe: Niedrigste Karte", lowestCard.num, "wird verbraucht");
+        
+        const targetCard = getCardInfo(currentTarget.num);
+        const roundPoints = getCardInfo(lowestCard.num).value + targetCard.value;
+        
+        // Bank bekommt automatisch den Stich
+        bankScore += roundPoints;
+        bankTricks++;
+        
+        updateScoresUI();
+        
+        // Karte als verbraucht markieren
+        usedCards.add(lowestCard.num);
+        renderW();
+        
+        // Bank-Stich einblenden
+        if (stichBImgs[bankTricks]) {
+          stichBImgs[bankTricks].style.display = "block";
+        }
+        
+        return false; // Bank hat gewonnen
       }
 
+      // *** NORMALE LOGIK: Farbe passt, Rang-Vergleich ***
       const playerCard = getCardInfo(info.num);
       const targetCard = getCardInfo(currentTarget.num);
 

@@ -1973,6 +1973,19 @@
       btnErgebnis.classList.remove("hidden");
       btnErgebnisText.textContent = "NEU SPIELEN";
 
+      // *** FIX: Alle Zielkarten ausblenden ***
+      if (targetLayer) targetLayer.style.display = "none";
+      [targetImg1, targetImg2, targetImg3, targetImg4, targetImg5, targetImg6].forEach(img => {
+        if (img) img.style.display = "none";
+      });
+      if (targetImgCovered){
+        targetImgCovered.style.display = "none";
+        targetImgCovered.classList.remove("pulse");
+      }
+      
+      // *** FIX: Random-Zielwert und Symbol ausblenden ***
+      hideTargetRankAndSuit();
+
       showHint("ENDE – VERGLEICHE DIE SCORES", true);
     }
 

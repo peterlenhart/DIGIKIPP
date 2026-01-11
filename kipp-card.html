@@ -1952,6 +1952,12 @@
       resetStichLayers();
       rotIndex = 0;
 
+      // *** FIX: Verbrauchte Karten zurücksetzen ***
+      usedCards.clear();
+      
+      // *** FIX: Neue zufällige Kartenfarben (Rot/Schwarz) ***
+      initRandomCardColors();
+
       reroll12_keepAssigned();
       renderW();
 

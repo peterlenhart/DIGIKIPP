@@ -2204,6 +2204,27 @@
       }
     }
 
+    function positionStichCards(cellPx){
+      const coord = coordToXY("9A");
+      const visualRow = coord.row + HEADER_ROW_OFFSET;
+
+      const left = (coord.col - 1) * cellPx;
+      const top  = (visualRow - 1) * cellPx;
+
+      for (let i = 1; i <= 6; i++){
+        const plImg = stichPLImgs[i];
+        const bImg  = stichBImgs[i];
+        if (plImg){
+          plImg.style.left = left + "px";
+          plImg.style.top  = top  + "px";
+        }
+        if (bImg){
+          bImg.style.left = left + "px";
+          bImg.style.top  = top  + "px";
+        }
+      }
+    }
+
     function positionTargetRank10D(cellPx){
       if (!targetRank10D) return;
       const coord = coordToXY("10D");
@@ -2262,6 +2283,7 @@
       }
 
       positionTargetCards(cellPx);
+      positionStichCards(cellPx);
       positionBackButton(cellPx);
       positionTestButton(cellPx);
     }

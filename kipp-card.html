@@ -2744,7 +2744,7 @@
       updateShadowVisibility();
     }
 
-    btnSchauen.addEventListener("click", () => {
+    btnSchauen.addEventListener("click", async () => {
       if (runningKipp) return;
 
       started = true;
@@ -2755,6 +2755,9 @@
       setRotationSnap();
 
       hideStartUI();
+
+      kippAnzahlView.classList.add("hidden");
+      if (kippButtonsWrap) kippButtonsWrap.classList.add("hidden");
 
       targetRevealed     = false;
       currentTarget      = null;
@@ -2770,8 +2773,11 @@
       showW();
       renderW();
 
-      // Zeige Kippanzahl-Auswahl (Scrollband)
-      showKippAnzahlView();
+      // 4 Vorkipps mit ALLEN Zahlen sichtbar, LANGSAM (KSP=1)
+      await runSchauKippSequence(4, { forceKSP: 1 });
+
+      // Danach: Target generieren und Auto-Kipp-Phase
+      showTargetSelectView();
     });
 
     btnErgebnis.addEventListener("click", () => {

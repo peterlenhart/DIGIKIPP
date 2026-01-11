@@ -1794,7 +1794,7 @@
         spanEl.classList.remove("cardRed", "cardBlack", "used");
         spanEl.style.color = ""; // Reset inline style
         
-        // Setze Kartenfarbe (rot/schwarz)
+        // Setze Kartenfarbe (rot/schwarz) - IMMER, fix vom Spielstart
         const cardColor = cardColors[n];
         if (cardColor === "red") {
           spanEl.classList.add("cardRed");
@@ -1806,12 +1806,9 @@
         if (usedCards.has(n)) {
           spanEl.classList.add("used");
         }
-        
-        // Nur bei Zwischenkipp (wenn suitColor gegeben) überschreiben
-        if (suitColor) {
-          applySlotTextColor(spanEl, suitColor);
-        }
       }
+      
+      // applySlotTextColor KOMPLETT ENTFERNT - Kartenfarben bleiben fix!
     }
 
     function renderW(){

@@ -659,6 +659,11 @@
       transform: rotate(var(--num-rot, 0deg)); /* kein negatives Zusammenziehen mehr */
     }
 
+    /* Zwischenkipp-Zahlen: spezielle Farbe */
+    .kipGroup .slot .num > span{
+      color: rgba(38, 77, 120, 0.9);
+    }
+
     .read-south { --num-rot: calc(var(--rotSign) * 0deg); }
     .read-west  { --num-rot: calc(var(--rotSign) * 90deg); }
     .read-east  { --num-rot: calc(var(--rotSign) * -90deg); }

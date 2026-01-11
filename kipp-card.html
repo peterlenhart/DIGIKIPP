@@ -1940,6 +1940,13 @@
       showTargetSelectView();
     }
 
+    function clearAllUsedClasses(){
+      // Entferne "used"-Klasse von allen Slots (W-Face und alle Kipp-Gruppen)
+      document.querySelectorAll('.slot .num > span').forEach(span => {
+        span.classList.remove("used");
+      });
+    }
+
     function resetGameToStart(){
       endRestartMode = false;
       playerScore = 0;
@@ -1954,6 +1961,9 @@
 
       // *** FIX: Verbrauchte Karten zurücksetzen ***
       usedCards.clear();
+      
+      // *** FIX: Entferne "used"-Klasse von allen DOM-Elementen ***
+      clearAllUsedClasses();
       
       // *** FIX: Neue zufällige Kartenfarben (Rot/Schwarz) ***
       initRandomCardColors();

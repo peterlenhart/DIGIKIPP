@@ -638,6 +638,21 @@
       font-family: "Noto Serif", serif;
     }
 
+    /* Kartenfarben: Rot und Schwarz */
+    .slot .num > span.cardRed{
+      color: #d32f2f; /* Rot */
+      text-shadow: 0 2px 0 rgba(255,255,255,0.35);
+    }
+    .slot .num > span.cardBlack{
+      color: #212121; /* Schwarz */
+      text-shadow: 0 2px 0 rgba(255,255,255,0.35);
+    }
+
+    /* Verbrauchte Karten transparent */
+    .slot .num > span.used{
+      opacity: 0.25;
+    }
+
     /* NEU: mehr Abstand für 10 am Würfelslot */
     .slot .num > span.twodigit{
       letter-spacing: 0.04em !important;
@@ -1378,6 +1393,19 @@
     let playerTricks = 0;
     let bankTricks   = 0;
 
+    // Random Kartenfarben (rot/schwarz) - fix pro Spiel
+    let cardColors = {}; // { 1: "red", 2: "black", 3: "red", ... }
+
+    // Verbrauchte Karten (transparent, inaktiv)
+    let usedCards = new Set(); // Set mit Kartennummern die bereits gespielt wurden
+
+    function initRandomCardColors(){
+      cardColors = {};
+      for (let num = 1; num <= 12; num++){
+        cardColors[num] = Math.random() < 0.5 ? "red" : "black";
+      }
+    }
+
     function updateScoresUI(){
       const runEl   = document.getElementById("scoreRun");     // Player
       const finalEl = document.getElementById("scoreDisplay"); // Bank
@@ -1554,6 +1582,12 @@
       const info = getPlayerCardOnTargetColor();
       if (!info) return false;
 
+      // Prüfe ob die Karte bereits verbraucht ist
+      if (usedCards.has(info.num)) {
+        console.log("Karte", info.num, "ist bereits verbraucht!");
+        return false;
+      }
+
       const playerCard = getCardInfo(info.num);
       const targetCard = getCardInfo(currentTarget.num);
 
@@ -1575,6 +1609,11 @@
 
       updateScoresUI();
       applyHitVisual(info);
+
+      // *** KARTE ALS VERBRAUCHT MARKIEREN ***
+      usedCards.add(info.num);
+      // Rendering aktualisieren um Transparenz zu zeigen
+      renderW();
 
       // *** STICH-EINBLENDUNG ***
       // Die Nummer in stichX_pl/stichX_b zeigt die ANZAHL der Stiche, die der Spieler hat
@@ -1682,6 +1721,26 @@
     function renderSlot(slotEl, spanEl, n, suitColor){
       renderNumber(spanEl, n);
       applyPersistentFill(slotEl, n);
+      
+      // Kartenfarben und verbrauchte Karten
+      if (spanEl && n != null) {
+        // Entferne alte Klassen
+        spanEl.classList.remove("cardRed", "cardBlack", "used");
+        
+        // Setze Kartenfarbe (rot/schwarz)
+        const cardColor = cardColors[n];
+        if (cardColor === "red") {
+          spanEl.classList.add("cardRed");
+        } else if (cardColor === "black") {
+          spanEl.classList.add("cardBlack");
+        }
+        
+        // Markiere verbrauchte Karten
+        if (usedCards.has(n)) {
+          spanEl.classList.add("used");
+        }
+      }
+      
       applySlotTextColor(spanEl, suitColor);
     }
 
@@ -2417,6 +2476,12 @@
 
       resetLockedColors();
       resetStichLayers();
+      
+      // Random Kartenfarben initialisieren
+      initRandomCardColors();
+      // Verbrauchte Karten zurücksetzen
+      usedCards.clear();
+      
       playerScore = 0;
       bankScore   = 0;
       playerTricks= 0;

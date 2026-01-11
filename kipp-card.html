@@ -143,6 +143,9 @@
     }
     .stichLayer img{
       position:absolute;
+      left:0;
+      top:0;
+      /* natürliche Größe beibehalten, nur positionieren */
       display:none;
     }
 
@@ -536,7 +539,7 @@
       display: none !important;
     }
     .hintSmall{
-      font-size: calc(14px * var(--uiscale)) !important;
+      font-size: calc(14px * var(--uiscale)) !-important;
       opacity: 0.96;
     }
 
@@ -1221,15 +1224,6 @@
       stichBImgs[i]  = document.getElementById(`stich${i}_b`);
     }
 
-    function positionStichImages(left, top){
-      for(let i=1;i<=6;i++){
-        const pl = stichPLImgs[i];
-        const b  = stichBImgs[i];
-        if(pl){ pl.style.left = left + "px"; pl.style.top = top + "px"; }
-        if(b){  b.style.left  = left + "px"; b.style.top  = top + "px"; }
-      }
-    }
-
     function sleep(ms){ return new Promise(res => setTimeout(res, ms)); }
 
     const wFaceGroup = document.getElementById("wFaceGroup");
@@ -1381,7 +1375,7 @@
     let playerScore = 0;
     let bankScore   = 0;
 
-    // Player-/Bank-Stiche (noch ohne Logik)
+    // Player-/Bank-Stiche
     let playerTricks = 0;
     let bankTricks   = 0;
 
@@ -1396,13 +1390,23 @@
       }
     }
 
-    // aktuell nur Werte zurücksetzen – Stiche werden später mit WebP-Stichen verknüpft
+    /* NEU: zeigt passende Stich-WebPs je nach playerTricks/bankTricks */
+    function updateStichGraphics(){
+      for(let i=1;i<=6;i++){
+        const pl = stichPLImgs[i];
+        const b  = stichBImgs[i];
+        if(pl) pl.style.display = (i === playerTricks && playerTricks > 0) ? "block" : "none";
+        if(b)  b.style.display  = (i === bankTricks   && bankTricks   > 0) ? "block" : "none";
+      }
+    }
+
+    // aktuell nur Werte zurücksetzen – Stiche werden mit WebP-Stichen verknüpft
     function resetStichLayers(){
       playerTricks = 0;
       bankTricks   = 0;
       for (let i = 1; i <= 6; i++){
-        const pl = document.getElementById(`stich${i}_pl`);
-        const b  = document.getElementById(`stich${i}_b`);
+        const pl = stichPLImgs[i];
+        const b  = stichBImgs[i];
         if (pl) pl.style.display = "none";
         if (b)  b.style.display  = "none";
       }
@@ -1562,6 +1566,7 @@
       const playerCard = getCardInfo(info.num);
       const targetCard = getCardInfo(currentTarget.num);
 
+      // Vergleich über Rang-Reihenfolge (A > K > Q > J > 10 > 9 ... 3)
       let winner = "bank";
       if (playerCard.rankIndex > targetCard.rankIndex){
         winner = "player";
@@ -1578,10 +1583,14 @@
       }
 
       updateScoresUI();
+      updateStichGraphics();   // NEU: passende Stich-WebP einblenden
       applyHitVisual(info);
 
+      // hier später: stichX_pl / stichX_b sichtbar machen
       return (winner === "player");
     }
+
+    // Hilfsfunktionen usw. – von hier an unverändert
 
     function getVisibleNumbersSet(){
       return new Set(getVisibleSlotInfos().map(s => s.num).filter(n => n != null));
@@ -1984,11 +1993,7 @@
       startBtnWrap.classList.add("hidden");
 
       if (scrollBandWrap){
-        scrollBandWrap.classList.remove("hidden");
-        if (!scrollBand.innerHTML.trim()){
-          buildScrollBand();
-        }
-        setScrollBandLocked(true);
+        scrollBandWrap.classList.add("hidden");
       }
 
       kippAnzahlView.classList.add("hidden");
@@ -2098,7 +2103,7 @@
         ["3H","c-violett"],["4H","c-gruen"],  ["5H","c-gruen"],  ["6H","c-orange"],
       ];
 
-      // Farbflächen aktuell unsichtbar
+      // Farbflächen sind aktuell unsichtbar; Logik bleibt trotzdem erhalten
       for (const [coord, cls] of placements){
         // placeColorSquare(coord, cls, cellPx, sizePx);
       }
@@ -2191,8 +2196,28 @@
         targetSuitImg.style.left = left + "px";
         targetSuitImg.style.top  = top  + "px";
       }
+    }
 
-      positionStichImages(left, top);
+    /* NEU: Stich-Dateien ebenfalls auf 9A verankern */
+    function positionStichCards(cellPx){
+      const coord = coordToXY("9A");
+      const visualRow = coord.row + HEADER_ROW_OFFSET;
+
+      const left = (coord.col - 1) * cellPx;
+      const top  = (visualRow - 1) * cellPx;
+
+      for(let i=1;i<=6;i++){
+        const pl = stichPLImgs[i];
+        const b  = stichBImgs[i];
+        if(pl){
+          pl.style.left = left + "px";
+          pl.style.top  = top  + "px";
+        }
+        if(b){
+          b.style.left = left + "px";
+          b.style.top  = top  + "px";
+        }
+      }
     }
 
     function positionTargetRank10D(cellPx){
@@ -2253,6 +2278,7 @@
       }
 
       positionTargetCards(cellPx);
+      positionStichCards(cellPx);   // NEU: Stichkarten mitpositionieren
       positionBackButton(cellPx);
       positionTestButton(cellPx);
     }
@@ -2510,6 +2536,6 @@
         showKippCountView();
       });
     }
-  </script>
+    </script>
 </body>
 </html>

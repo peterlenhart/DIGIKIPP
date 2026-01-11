@@ -463,7 +463,7 @@
       gap:calc(7px * var(--uiscale));
       overflow-x:auto;
       padding:calc(4px * var(--uiscale)) calc(6px * var(--uiscale));
-      max-width:calc(6 * var(--cell)); /* bewusst enger, damit links/rechts abgeschnitten wird */
+      max-width:calc(4.5 * var(--cell)); /* schmaler - links/rechts nur zur Hälfte sichtbar */
       scrollbar-width:none;
     }
     .scrollBand::-webkit-scrollbar{
@@ -1726,6 +1726,7 @@
       if (spanEl && n != null) {
         // Entferne alte Klassen
         spanEl.classList.remove("cardRed", "cardBlack", "used");
+        spanEl.style.color = ""; // Reset inline style
         
         // Setze Kartenfarbe (rot/schwarz)
         const cardColor = cardColors[n];
@@ -1739,9 +1740,12 @@
         if (usedCards.has(n)) {
           spanEl.classList.add("used");
         }
+        
+        // Nur bei Zwischenkipp (wenn suitColor gegeben) überschreiben
+        if (suitColor) {
+          applySlotTextColor(spanEl, suitColor);
+        }
       }
-      
-      applySlotTextColor(spanEl, suitColor);
     }
 
     function renderW(){
@@ -1872,6 +1876,14 @@
         scrollBand.appendChild(item);
       }
       scrollBand.classList.add("wiggle");
+      
+      // Zentriere auf Item 6 (damit links/rechts Items zur Hälfte sichtbar)
+      setTimeout(() => {
+        const item6 = scrollBand.children[5]; // Index 5 = Item 6
+        if (item6) {
+          item6.scrollIntoView({ inline: "center", block: "nearest", behavior: "auto" });
+        }
+      }, 50);
     }
 
     function setScrollBandLocked(locked){

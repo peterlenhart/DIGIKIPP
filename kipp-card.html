@@ -439,27 +439,48 @@
     }
 
     /* NEU: Scrollband für Kippanzahl (ersetzt 1–6 Buttons) */
-    .kippButtonsWrap{
+    .scrollBandWrap{
       position:absolute;
       left:50%;
       transform:translateX(-50%);
       display:flex;
       align-items:center;
       justify-content:center;
-      gap: calc(8px * var(--uiscale));
       pointer-events:none;
       z-index:50;
-      padding: calc(6px * var(--uiscale)) calc(10px * var(--uiscale));
-      background: rgba(234,215,190,0.55);
+      padding: calc(4px * var(--uiscale)) calc(8px * var(--uiscale));
+      background: rgba(234,215,190,0.55); /* beige Streifen */
       border-radius: calc(18px * var(--uiscale));
       box-shadow: 0 6px 12px rgba(0,0,0,0.25);
     }
-    .kippButtonsWrap.locked{
-      opacity:0.4;
+    .scrollBandWrap.locked{
+      opacity:0.4; /* inaktiv, aber sichtbar */
     }
 
-    .kippBtn{
+    .scrollBand{
       pointer-events:auto;
+      display:flex;
+      gap:calc(7px * var(--uiscale));
+      overflow-x:auto;
+      padding:calc(4px * var(--uiscale)) calc(6px * var(--uiscale));
+      max-width:calc(6 * var(--cell)); /* bewusst enger, damit links/rechts abgeschnitten wird */
+      scrollbar-width:none;
+    }
+    .scrollBand::-webkit-scrollbar{
+      display:none;
+    }
+
+    /* Pendel-Animation West–Ost */
+    @keyframes scrollWiggle{
+      0%   { transform: translateX(-10px); }
+      100% { transform: translateX(10px); }
+    }
+    .scrollBand.wiggle{
+      animation: scrollWiggle 1.1s ease-in-out 0.3s infinite alternate;
+      will-change: transform;
+    }
+
+    .scrollItem{
       min-width: calc(var(--cell) * 0.85);
       height:    calc(var(--cell) * 0.85);
       border-radius: calc(0.20 * var(--cell));
@@ -478,21 +499,15 @@
       user-select:none;
       -webkit-tap-highlight-color:transparent;
       cursor:pointer;
-      font-size: calc(var(--cell) * 0.55);
+      font-size: calc(var(--cell) * 0.55); /* große Zahlen, fast flächendeckend */
     }
-    .kippBtn:active{
+    .scrollItem:active{
       transform:scale(0.98);
       filter:brightness(0.98);
     }
-    .kippBtn.disabled{
+    .scrollItem.disabled{
       opacity:0.5;
       pointer-events:none;
-      cursor:not-allowed;
-    }
-    .kippBtn.selected{
-      background:rgba(255,215,100,0.96);
-      border-color:rgba(180,120,40,0.85);
-    }
     }
 
     @keyframes pulseScale{
@@ -612,7 +627,7 @@
       align-items: center;
       justify-content: center;
       font-weight: 900;
-      color: rgba(38, 77, 120, 0.9); /* Neutrale Farbe: Bank-Kartenrückseite (mehr cyan, weniger magenta) */
+      color: #111;
       font-size: calc(var(--cell) * 0.70);
       letter-spacing: -0.02em;
       text-shadow: 0 2px 0 rgba(255,255,255,0.35);
@@ -623,13 +638,13 @@
       font-family: "Noto Serif", serif;
     }
 
-    /* Kartenfarben: Rot und Schwarz (nur nach Treffer!) */
+    /* Kartenfarben: Rot und Schwarz */
     .slot .num > span.cardRed{
-      color: #d32f2f !important; /* Rot */
+      color: #d32f2f; /* Rot */
       text-shadow: 0 2px 0 rgba(255,255,255,0.35);
     }
     .slot .num > span.cardBlack{
-      color: #212121 !important; /* Schwarz */
+      color: #212121; /* Schwarz */
       text-shadow: 0 2px 0 rgba(255,255,255,0.35);
     }
 
@@ -1143,14 +1158,9 @@
           </button>
         </div>
 
-        <!-- NEU: 6 fixe Buttons für Kippanzahl 1-6 -->
-        <div class="kippButtonsWrap hidden" id="kippButtonsWrap">
-          <button class="kippBtn" data-kipps="1">1</button>
-          <button class="kippBtn" data-kipps="2">2</button>
-          <button class="kippBtn" data-kipps="3">3</button>
-          <button class="kippBtn" data-kipps="4">4</button>
-          <button class="kippBtn" data-kipps="5">5</button>
-          <button class="kippBtn" data-kipps="6">6</button>
+        <!-- NEU: Scrollband für Kippanzahl (Zeile 13, gleiche Position wie Startbutton) -->
+        <div class="scrollBandWrap hidden" id="scrollBandWrap">
+          <div class="scrollBand" id="scrollBand"></div>
         </div>
 
         <button class="targetPadBtn hidden" id="targetPadBtn" type="button" aria-label="Ziel erzeugen">
@@ -1199,9 +1209,8 @@
     const targetRank10D   = document.getElementById("targetRank10D");
     const targetSuitImg   = document.getElementById("targetSuitImg");
 
-    const kippButtonsWrap = document.getElementById("kippButtonsWrap");
-    const kippButtons     = kippButtonsWrap ? Array.from(kippButtonsWrap.querySelectorAll(".kippBtn")) : [];
-
+    const scrollBandWrap  = document.getElementById("scrollBandWrap");
+    const scrollBand      = document.getElementById("scrollBand");
 
     const shadowQ0 = document.getElementById("shadowQ0");
     const shadowQ1 = document.getElementById("shadowQ1");
@@ -1371,11 +1380,6 @@
     let targetRevealed = false;
     let started = false;
 
-    // NEU: Zahlen-Reveal System
-    let numbersRevealed = false;      // Ob Zahlen sichtbar sind
-    let reachableNumbers = new Set(); // Welche Zahlen erreichbar sind
-    let autoKippRunning = false;      // Ob automatische Schau-Phase läuft
-
     let uiMode = "START"; // START | TARGET | COUNT | END
 
     let attemptsForTarget = 0;
@@ -1510,107 +1514,6 @@
       return out;
     }
 
-    // NEU: Berechne erreichbare Zahlen für eine Farbe innerhalb von maxKipps
-    function calculateReachableNumbers(targetColor, maxKipps = 6){
-      const reachable = new Set();
-      
-      // Speichere aktuellen Zustand
-      const savedFaceIndex = faceIndex;
-      const savedRotIndex = rotIndex;
-      
-      // Simuliere maxKipps Schritte voraus
-      for (let kipp = 1; kipp <= maxKipps; kipp++){
-        // Simuliere einen Kipp (ohne UI zu ändern)
-        rotIndex = (rotIndex + 1) % 4;
-        faceIndex = (faceIndex + 1) % 3;
-        
-        // Hole sichtbare Slots nach diesem Kipp
-        const curr = sets[faceIndex];
-        const rot = rotIndex;
-        const zsCoords = ZS_COORDS_BY_ROT_ZSINDEX[rot];
-        
-        for (let i = 0; i < 4; i++){
-          const num = curr[i];
-          if (num == null) continue;
-          
-          const zsIndex = DOM_SLOT_TO_ZS_INDEX[i];
-          const zsCoord = zsCoords[zsIndex - 1];
-          const zfCoord = getAdjacentZFCoordForZS(zsCoord);
-          const color = zfCoord ? COLOR_BY_ZF_COORD[zfCoord] : null;
-          
-          // Wenn Nummer auf Zielfarbe landet → erreichbar!
-          if (color === targetColor){
-            reachable.add(num);
-          }
-        }
-      }
-      
-      // Stelle ursprünglichen Zustand wieder her
-      faceIndex = savedFaceIndex;
-      rotIndex = savedRotIndex;
-      
-      return reachable;
-    }
-
-    // NEU: Zeige Zahlen für aktuelles Target
-    function revealNumbersForTarget(){
-      if (!currentTarget) return;
-      
-      // Zeige ALLE Zahlen (1-12)
-      reachableNumbers = new Set([1,2,3,4,5,6,7,8,9,10,11,12]);
-      numbersRevealed = true;
-      
-      // Rendere Würfel neu
-      renderW();
-    }
-
-    // NEU: Verstecke alle Zahlen
-    function hideAllNumbers(){
-      numbersRevealed = false;
-      reachableNumbers = new Set();
-      renderW();
-    }
-
-    // NEU: Automatische Schau-Phase (4 Kipps)
-    async function runAutoKippPhase(){
-      if (autoKippRunning) return;
-      autoKippRunning = true;
-
-      const myToken = ++previewToken;
-
-      // 4 Kipps
-      for (let i = 0; i < 4; i++){
-        showW();
-        renderW();
-        if (!await waitOrPause("w", myToken, 1)){ autoKippRunning=false; return; }
-
-        showKip();
-        renderKip();
-        if (!await waitOrPause("kip", myToken, 2)){ autoKippRunning=false; return; } // Extra langsam: 2x normal
-
-        advanceFullCW();
-        
-        // Zeige ALLE Zahlen (1-12)
-        reachableNumbers = new Set([1,2,3,4,5,6,7,8,9,10,11,12]);
-      }
-
-      showW();
-      renderW();
-
-      autoKippRunning = false;
-      
-      // Nach 4 Kipps: Zielkarte pulsieren lassen UND Scrollband einblenden
-      if (targetImgCovered){
-        targetImgCovered.classList.add("pulse");
-        targetImgCovered.style.pointerEvents = "auto"; // Jetzt klickbar!
-      }
-      
-      // Scrollband (1-11 Buttons) einblenden
-      kippAnzahlView.classList.remove("hidden");
-      buildKippAnzahlButtons();
-      positionUI();
-    }
-
     function applyHitVisual(slotInfo){
       slotInfo.slotEl.classList.add("kippPulse");
       if (slotInfo.spanEl) slotInfo.spanEl.classList.add("kippPulse");
@@ -1685,10 +1588,6 @@
         return false;
       }
 
-      // *** FARBKOMPATIBILITÄTSPRÜFUNG ENTFERNT ***
-      // Alle Karten passen jetzt auf alle Symbole!
-
-      // *** NORMALE LOGIK: Rang-Vergleich ***
       const playerCard = getCardInfo(info.num);
       const targetCard = getCardInfo(currentTarget.num);
 
@@ -1710,16 +1609,6 @@
 
       updateScoresUI();
       applyHitVisual(info);
-
-      // NEU: Färbe die getroffene Zahl rot/schwarz
-      const cardColor = cardColors[info.num];
-      if (info.spanEl) {
-        if (cardColor === "red") {
-          info.spanEl.classList.add("cardRed");
-        } else if (cardColor === "black") {
-          info.spanEl.classList.add("cardBlack");
-        }
-      }
 
       // *** KARTE ALS VERBRAUCHT MARKIEREN ***
       usedCards.add(info.num);
@@ -1787,9 +1676,10 @@
     function lerp(a,b,t){ return a + (b - a) * t; }
 
     function updateTargetTimeMulByDraws(){
-      // DEAKTIVIERT: Keine Beschleunigung über Ziele hinweg!
-      // Beschleunigung passiert nur innerhalb eines Zyklus (Kipps 1-11)
-      targetTimeMul = 1;
+      const idx = clamp(drawsCount, 0, MAX_TARGETS);
+      if (idx <= 0){ targetTimeMul = 1; return; }
+      const t = (MAX_TARGETS <= 1) ? 1 : (idx - 1) / (MAX_TARGETS - 1);
+      targetTimeMul = lerp(1.0, TARGET_MIN, t);
     }
 
     const FIXED_SPEED = 3;
@@ -1829,44 +1719,29 @@
     }
 
     function renderSlot(slotEl, spanEl, n, suitColor){
+      renderNumber(spanEl, n);
       applyPersistentFill(slotEl, n);
       
-      // NEU: Zeige Zahlen nur wenn revealed UND erreichbar
+      // Kartenfarben und verbrauchte Karten
       if (spanEl && n != null) {
-        // Prüfe ob Zahl sichtbar sein soll
-        const shouldBeVisible = numbersRevealed && reachableNumbers.has(n);
+        // Entferne alte Klassen
+        spanEl.classList.remove("cardRed", "cardBlack", "used");
         
-        if (shouldBeVisible) {
-          // Zeige Zahl (NEUTRAL - keine Farbcodierung!)
-          renderNumber(spanEl, n);
-          spanEl.style.opacity = "";
-          spanEl.style.visibility = "";
-          
-          // Entferne alte Klassen (inkl. cardRed/cardBlack)
-          spanEl.classList.remove("cardRed", "cardBlack", "used");
-          spanEl.style.color = "";
-          
-          // KEINE Farbcodierung mehr hier!
-          // Farben werden nur nach Treffer gesetzt
-          
-          // Markiere verbrauchte Karten
-          if (usedCards.has(n)) {
-            spanEl.classList.add("used");
-          }
-        } else {
-          // Verstecke Zahl
-          if (spanEl.querySelector('span')) {
-            spanEl.querySelector('span').textContent = "";
-          }
-          spanEl.style.opacity = "0";
-          spanEl.style.visibility = "hidden";
+        // Setze Kartenfarbe (rot/schwarz)
+        const cardColor = cardColors[n];
+        if (cardColor === "red") {
+          spanEl.classList.add("cardRed");
+        } else if (cardColor === "black") {
+          spanEl.classList.add("cardBlack");
         }
-      } else if (spanEl) {
-        // Kein n vorhanden
-        if (spanEl.querySelector('span')) {
-          spanEl.querySelector('span').textContent = "";
+        
+        // Markiere verbrauchte Karten
+        if (usedCards.has(n)) {
+          spanEl.classList.add("used");
         }
       }
+      
+      applySlotTextColor(spanEl, suitColor);
     }
 
     function renderW(){
@@ -1959,8 +1834,8 @@
       if (runningKipp) return;
       runningKipp = true;
 
+      const kipFactor = (opts && opts.kipFactor) ? opts.kipFactor : 1;
       const myToken = ++previewToken;
-      const forceKSP = opts.forceKSP || null; // Option: fixe KSP für Vorrunde
 
       showW();
       renderW();
@@ -1969,29 +1844,8 @@
       const totalSteps = Math.max(1, steps);
 
       for (let i=0;i<steps;i++){
-        // stepMul: Leichte Beschleunigung innerhalb des Durchlaufs
         const tStep = (totalSteps <= 1) ? 0 : (i / (totalSteps - 1));
         const stepMul = lerp(1.0, STEP_MAX, tStep);
-
-        // Berechne KSP (Kippgeschwindigkeit)
-        let KSP;
-        if (forceKSP !== null) {
-          // Vorrunde: Fixe KSP (langsam)
-          KSP = forceKSP;
-        } else {
-          // Spielen: Dynamische Beschleunigung
-          if (i < 6) {
-            // Phase 1: Kipps 1-6 (i=0-5), KSP von 1.0 → 4.0
-            const t = (i === 0) ? 0 : Math.min(i / 5, 1);
-            KSP = lerp(1.0, 4.0, t);
-          } else {
-            // Phase 2: Kipps 7-11 (i≥6), KSP von 4.0 → 5.5 (sanfter!)
-            const t = Math.min((i - 6) / 4, 1);
-            KSP = lerp(4.0, 5.5, t); // Nicht mehr bis 8, sondern nur 5.5!
-          }
-        }
-        
-        const kipFactor = 1 / KSP;
 
         showKip();
         renderKip();
@@ -2000,50 +1854,39 @@
         advanceFullCW();
         showW();
         renderW();
-        if (!await waitOrPause("w", myToken, kipFactor * stepMul)){ runningKipp=false; return; }
+        if (!await waitOrPause("w", myToken, stepMul)){ runningKipp=false; return; }
       }
 
       runningKipp = false;
     }
 
-    // NEU: Setup für 6 fixe Kipp-Buttons
-    function setupKippButtons(){
-      if (!kippButtons || kippButtons.length === 0) return;
-      
-      kippButtons.forEach(btn => {
-        const kipps = parseInt(btn.dataset.kipps);
-        btn.addEventListener("click", () => handleAnzahlClick(kipps, btn));
-      });
-    }
-
-    function setKippButtonsLocked(locked){
-      if (!kippButtons) return;
-      kippButtons.forEach(btn => {
-        btn.classList.toggle("disabled", !!locked);
-      });
-      if (kippButtonsWrap){
-        kippButtonsWrap.classList.toggle("locked", !!locked);
+    function buildScrollBand(){
+      if (!scrollBand) return;
+      scrollBand.innerHTML = "";
+      for (let num = 1; num <= 11; num++){
+        const item = document.createElement("div");
+        item.className = "scrollItem";
+        item.dataset.anzahl = num;
+        item.textContent = String(num);
+        item.addEventListener("click", () => handleAnzahlClick(num, null));
+        scrollBand.appendChild(item);
       }
+      scrollBand.classList.add("wiggle");
     }
 
-    function clearKippButtonSelection(){
-      if (!kippButtons) return;
-      kippButtons.forEach(btn => btn.classList.remove("selected"));
+    function setScrollBandLocked(locked){
+      if (!scrollBand) return;
+      scrollBand.querySelectorAll(".scrollItem").forEach(item => {
+        item.classList.toggle("disabled", !!locked);
+      });
+      if (scrollBandWrap){
+        scrollBandWrap.classList.toggle("locked", !!locked);
+      }
     }
 
     function buildKippAnzahlButtons(){
       kippAnzahlBtns.innerHTML = "";
       kippAnzahlBtns.classList.add("compact");
-      
-      // Erstelle Buttons 1-11
-      for (let i = 1; i <= 11; i++){
-        const btn = document.createElement("button");
-        btn.className = "kippBtn";
-        btn.textContent = i;
-        btn.dataset.kipps = i;
-        btn.addEventListener("click", () => handleAnzahlClick(i, btn));
-        kippAnzahlBtns.appendChild(btn);
-      }
     }
 
     function setAnzahlButtonsLocked(locked){
@@ -2094,32 +1937,7 @@
       targetRevealed    = false;
       clearHitPulse();
       hideTargetRankAndSuit();
-      hideAllNumbers(); // Alle Zahlen wieder verstecken
-      
-      // NEU: Zeige "SCHAUEN & MERKEN" Button statt Auto-Target
-      uiMode = "START";
-      
-      // Target-Layer verstecken
-      if (targetLayer) targetLayer.style.display = "none";
-      if (targetImgCovered) {
-        targetImgCovered.style.display = "none";
-        targetImgCovered.classList.remove("pulse");
-        targetImgCovered.style.pointerEvents = "none";
-      }
-      
-      // Buttons verstecken
-      if (kippButtonsWrap) kippButtonsWrap.classList.add("hidden");
-      kippAnzahlView.classList.add("hidden");
-      
-      // START Button zeigen
-      startBtnWrap.classList.remove("hidden");
-      btnSchauen.classList.remove("hidden");
-      btnErgebnis.classList.add("hidden");
-      btnSchauenPulse.classList.add("pulse");
-      
-      showHint("SCHAUKIPP-RUNDE", false);
-      
-      positionUI();
+      showTargetSelectView();
     }
 
     function resetGameToStart(){
@@ -2134,10 +1952,6 @@
       resetStichLayers();
       rotIndex = 0;
 
-      // KRITISCHER FIX: usedCards und cardColors zurücksetzen!
-      usedCards = new Set();
-      initRandomCardColors();
-
       reroll12_keepAssigned();
       renderW();
 
@@ -2150,8 +1964,8 @@
     function showEndResultView(){
       uiMode = "END";
 
-      if (kippButtonsWrap){
-        kippButtonsWrap.classList.add("hidden");
+      if (scrollBandWrap){
+        scrollBandWrap.classList.add("hidden");
       }
 
       startBtnWrap.classList.remove("hidden");
@@ -2160,28 +1974,6 @@
       btnErgebnisText.textContent = "NEU SPIELEN";
 
       showHint("ENDE – VERGLEICHE DIE SCORES", true);
-      
-      // BUG 1 FIX: ALLE Target-Elemente AGGRESSIV ausblenden!
-      if (targetLayer) {
-        targetLayer.style.display = "none";
-        targetLayer.style.opacity = "0";
-      }
-      
-      // Target-Anzeige unten (4♦)
-      if (targetRank10D) {
-        targetRank10D.style.display = "none";
-        targetRank10D.style.opacity = "0";
-        targetRank10D.style.visibility = "hidden";
-        targetRank10D.textContent = "";
-      }
-      if (targetSuitImg) {
-        targetSuitImg.style.display = "none";
-        targetSuitImg.style.opacity = "0";
-        targetSuitImg.style.visibility = "hidden";
-        targetSuitImg.removeAttribute("src");
-      }
-      
-      hideTargetRankAndSuit();
     }
 
     function handleAnzahlClick(anzahl, clickedBtn){
@@ -2191,21 +1983,17 @@
 
       attemptsForTarget++;
 
-      // Markiere geklickten Button
-      clearKippButtonSelection();
-      if (clickedBtn) clickedBtn.classList.add("selected");
-      
-      setKippButtonsLocked(true);
-      runSchauKippSequence(anzahl).finally(async () => {
+      markRunSelected(clickedBtn);
+      setScrollBandLocked(true);
+      runSchauKippSequence(anzahl, { kipFactor: 1 }).finally(async () => {
         clearHitPulse();
         const hit = checkHitAndAnimate();
 
-        clearKippButtonSelection();
+        clearRunSelected();
 
         const isLastTarget = (drawsCount >= MAX_TARGETS);
 
-        // NEU: Längere Pause damit man sieht was passiert ist
-        await sleep(2500);
+        await sleep(900);
 
         if (isLastTarget){
           showEndResultView();
@@ -2231,7 +2019,7 @@
       btnSchauen.classList.remove("hidden");
       btnErgebnis.classList.add("hidden");
 
-      if (kippButtonsWrap) kippButtonsWrap.classList.add("hidden");
+      if (scrollBandWrap) scrollBandWrap.classList.add("hidden");
 
       btnSchauenPulse.classList.add("pulse");
 
@@ -2253,7 +2041,7 @@
       positionUI();
     }
 
-    async function showTargetSelectView(){
+    function showTargetSelectView(){
       if (drawsCount >= MAX_TARGETS){
         showEndResultView();
         return;
@@ -2264,9 +2052,12 @@
 
       startBtnWrap.classList.add("hidden");
 
-      if (kippButtonsWrap){
-        kippButtonsWrap.classList.add("hidden"); // Versteckt während Auto-Kipp
-        setKippButtonsLocked(true);
+      if (scrollBandWrap){
+        scrollBandWrap.classList.remove("hidden");
+        if (!scrollBand.innerHTML.trim()){
+          buildScrollBand();
+        }
+        setScrollBandLocked(true);
       }
 
       kippAnzahlView.classList.add("hidden");
@@ -2297,27 +2088,13 @@
 
       if (targetImgCovered){
         targetImgCovered.style.display = "block";
-        targetImgCovered.classList.remove("pulse"); // NICHT pulsieren (erst später)
-        targetImgCovered.style.pointerEvents = "none"; // NICHT klickbar (erst später)
+        targetImgCovered.classList.add("pulse");
       }
 
       targetRevealed    = false;
       attemptsForTarget = 0;
 
-      // NEU: Target JETZT generieren (verdeckt)
-      currentTarget = generateCardTarget();
-      if (!currentTarget) return;
-
-      // NEU: Zahlen revealen (nur erreichbare)
-      revealNumbersForTarget();
-
       positionUI();
-
-      // NEU: Automatische Schau-Phase starten (4 Kipps)
-      await runAutoKippPhase();
-
-      // Nach Auto-Kipp: Hint ändern
-      showHint("ZIELKARTE AUFDECKEN", false);
     }
 
     function showKippCountView(){
@@ -2327,9 +2104,9 @@
       startBtnWrap.classList.add("hidden");
       kippAnzahlView.classList.add("hidden");
 
-      if (kippButtonsWrap){
-        kippButtonsWrap.classList.remove("hidden");
-        setKippButtonsLocked(false);
+      if (scrollBandWrap){
+        scrollBandWrap.classList.remove("hidden");
+        setScrollBandLocked(false);
       }
 
       testTargetBtn.classList.add("hidden");
@@ -2548,8 +2325,8 @@
       const startTop = (row13CenterY - (cellPx / 2));
       startBtnWrap.style.top = (startTop + 5) + "px";
 
-      if (kippButtonsWrap){
-        kippButtonsWrap.style.top = (startTop - 11) + "px";
+      if (scrollBandWrap){
+        scrollBandWrap.style.top = (startTop - 11) + "px";
       }
 
       if (uiMode === "TARGET"){
@@ -2703,7 +2480,7 @@
       // Random Kartenfarben initialisieren
       initRandomCardColors();
       // Verbrauchte Karten zurücksetzen
-      usedCards = new Set(); // Komplett neu initialisieren
+      usedCards.clear();
       
       playerScore = 0;
       bankScore   = 0;
@@ -2722,7 +2499,6 @@
       hideTargetRankAndSuit();
 
       reroll12_keepAssigned();
-      hideAllNumbers(); // NEU: Zahlen initial verstecken
       showW();
       renderW();
 
@@ -2733,7 +2509,6 @@
       if (targetImgCovered){
         targetImgCovered.style.display = "none";
         targetImgCovered.classList.remove("pulse");
-        targetImgCovered.style.transform = ""; // Reset transform
       }
 
       btnErgebnis.onclick = null;
@@ -2751,11 +2526,13 @@
       rotIndex  = 0;
       faceIndex = 0;
       setRotationSnap();
+      showW();
+      renderW();
 
       hideStartUI();
 
       kippAnzahlView.classList.add("hidden");
-      if (kippButtonsWrap) kippButtonsWrap.classList.add("hidden");
+      if (scrollBandWrap) scrollBandWrap.classList.add("hidden");
 
       targetRevealed     = false;
       currentTarget      = null;
@@ -2764,17 +2541,8 @@
       resetTargetPadUI();
       clearHitPulse();
 
-      // NEU: Zeige ALLE Zahlen für Vorkipps (1-12)
-      numbersRevealed = true;
-      reachableNumbers = new Set([1,2,3,4,5,6,7,8,9,10,11,12]);
-      
-      showW();
-      renderW();
+      await runSchauKippSequence(4, { kipFactor: 2 });
 
-      // 4 Vorkipps mit ALLEN Zahlen sichtbar
-      await runSchauKippSequence(4, { forceKSP: 1 });
-
-      // Danach: Target generieren und Auto-Kipp-Phase
       showTargetSelectView();
     });
 
@@ -2791,7 +2559,6 @@
     });
 
     window.addEventListener("load", () => {
-      setupKippButtons(); // Setup für 6 fixe Buttons
       rebuild();
       initPlayState();
     });
@@ -2800,7 +2567,8 @@
 
     document.addEventListener("touchmove", (e) => {
       const inRange = e.target && e.target.closest && e.target.closest('input[type="range"]');
-      if (inRange) return;
+      const inScrollBand = e.target && e.target.closest && e.target.closest('#scrollBand');
+      if (inRange || inScrollBand) return;
       e.preventDefault();
     }, { passive:false });
 
@@ -2822,21 +2590,18 @@
     if (targetImgCovered){
       targetImgCovered.addEventListener("click", () => {
         if (targetRevealed) return;
-        if (!currentTarget) return; // Target muss schon existieren
 
         targetRevealed = true;
 
         targetImgCovered.classList.remove("pulse");
         targetImgCovered.style.display = "none";
-        targetImgCovered.style.transform = "";
-        targetImgCovered.style.pointerEvents = "none";
+
+        currentTarget = generateCardTarget();
+        if (!currentTarget) return;
 
         attemptsForTarget = 0;
 
-        // Zeige Target-Anzeige unten (Zahl + Symbol)
         showTargetRankAndSuit(currentTarget);
-        
-        // Zeige 6 Buttons
         showKippCountView();
       });
     }

@@ -1703,7 +1703,7 @@
     }
 
     function getVisibleInfosAt(rotIdx, faceIdx){
-      const curr = sets[faceIdx];
+      const curr = sets[faceIndex];
       const zsCoords = ZS_COORDS_BY_ROT_ZSINDEX[rotIdx];
       const out = [];
       for (let i=0;i<4;i++){
@@ -1897,12 +1897,21 @@
       return (myToken === previewToken);
     }
 
+    /* NEU: Schritt-Faktoren für Spieler-Kipps (Beschleunigung) */
+    function getPlayStepFactor(stepIndexOneBased){
+      if (stepIndexOneBased <= 3) return 1.0;   // 1–3: wie bisher
+      if (stepIndexOneBased <= 6) return 0.5;   // 4–6: ca. doppelte Geschwindigkeit
+      if (stepIndexOneBased <= 9) return 0.35;  // 7–9: noch schneller
+      return 0.25;                              // 10–11: sehr schnell
+    }
+
     async function runSchauKippSequence(steps, opts = {}){
       if (runningKipp) return;
       runningKipp = true;
 
       const kipFactor = (opts && opts.kipFactor) ? opts.kipFactor : 1;
-      const myToken = ++previewToken;
+      const mode      = (opts && opts.mode) ? opts.mode : "play"; // "schau" oder "play"
+      const myToken   = ++previewToken;
 
       showW();
       renderW();
@@ -1911,8 +1920,17 @@
       const totalSteps = Math.max(1, steps);
 
       for (let i=0;i<steps;i++){
-        const tStep = (totalSteps <= 1) ? 0 : (i / (totalSteps - 1));
-        const stepMul = lerp(1.0, STEP_MAX, tStep);
+        const stepIndexOneBased = i + 1;
+        let stepMul;
+
+        if (mode === "schau"){
+          // ALTER Modus: sanfte Verlangsamung 1.0 → STEP_MAX (0.80)
+          const tStep = (totalSteps <= 1) ? 0 : (i / (totalSteps - 1));
+          stepMul = lerp(1.0, STEP_MAX, tStep);
+        } else {
+          // SPIELER-KIPPS: beschleunigen pro Schritt
+          stepMul = getPlayStepFactor(stepIndexOneBased);
+        }
 
         showKip();
         renderKip();
@@ -2060,7 +2078,7 @@
 
       markRunSelected(clickedBtn);
       setScrollBandLocked(true);
-      runSchauKippSequence(anzahl, { kipFactor: 1 }).finally(async () => {
+      runSchauKippSequence(anzahl, { kipFactor: 1, mode: "play" }).finally(async () => {
         clearHitPulse();
         const hit = checkHitAndAnimate();
 
@@ -2617,7 +2635,8 @@
       resetTargetPadUI();
       clearHitPulse();
 
-      await runSchauKippSequence(4, { kipFactor: 2 });
+      // ERSTER SCHAUKIPP-ZYKLUS: LANGSAM WIE BISHER (mode: "schau")
+      await runSchauKippSequence(4, { kipFactor: 2, mode: "schau" });
 
       showTargetSelectView();
     });

@@ -612,7 +612,7 @@
       align-items: center;
       justify-content: center;
       font-weight: 900;
-      color: #111;
+      color: rgba(38, 77, 120, 0.9); /* Neutrale Farbe: Bank-Kartenrückseite (mehr cyan, weniger magenta) */
       font-size: calc(var(--cell) * 0.70);
       letter-spacing: -0.02em;
       text-shadow: 0 2px 0 rgba(255,255,255,0.35);
@@ -623,13 +623,13 @@
       font-family: "Noto Serif", serif;
     }
 
-    /* Kartenfarben: Rot und Schwarz */
+    /* Kartenfarben: Rot und Schwarz (nur nach Treffer!) */
     .slot .num > span.cardRed{
-      color: #d32f2f; /* Rot */
+      color: #d32f2f !important; /* Rot */
       text-shadow: 0 2px 0 rgba(255,255,255,0.35);
     }
     .slot .num > span.cardBlack{
-      color: #212121; /* Schwarz */
+      color: #212121 !important; /* Schwarz */
       text-shadow: 0 2px 0 rgba(255,255,255,0.35);
     }
 
@@ -1680,57 +1680,10 @@
         return false;
       }
 
-      // *** FARBKOMPATIBILITÄTSPRÜFUNG ***
-      const cardColor = cardColors[info.num]; // "red" oder "black"
-      const targetColor = currentTarget.color; // "blau", "gruen", "violett", "orange"
-      
-      // Rot passt nur auf Herz (blau) oder Karo (grün)
-      // Schwarz passt nur auf Pik (violett) oder Kreuz (orange)
-      const isRedCard = (cardColor === "red");
-      const isRedSymbol = (targetColor === "blau" || targetColor === "gruen");
-      
-      if (isRedCard !== isRedSymbol) {
-        // *** FALSCHE FARBE: Finde niedrigste verfügbare Karte ***
-        console.log("Farbfehler! Karte", info.num, "ist", cardColor, "aber Symbol ist", targetColor);
-        
-        // Hole alle 4 sichtbaren Karten
-        const allVisible = getVisibleSlotInfos();
-        const availableCards = allVisible
-          .filter(slot => slot.num != null && !usedCards.has(slot.num))
-          .sort((a, b) => a.num - b.num); // Sortiere aufsteigend (niedrigste zuerst)
-        
-        if (availableCards.length === 0) {
-          // Alle sichtbaren Karten verbraucht - keine Karte zum Abgeben
-          console.log("Keine Karte zum Abgeben - Player muss weiter kippen!");
-          return false;
-        }
-        
-        // Nimm die niedrigste verfügbare Karte
-        const lowestCard = availableCards[0];
-        console.log("Auto-Abgabe: Niedrigste Karte", lowestCard.num, "wird verbraucht");
-        
-        const targetCard = getCardInfo(currentTarget.num);
-        const roundPoints = getCardInfo(lowestCard.num).value + targetCard.value;
-        
-        // Bank bekommt automatisch den Stich
-        bankScore += roundPoints;
-        bankTricks++;
-        
-        updateScoresUI();
-        
-        // Karte als verbraucht markieren
-        usedCards.add(lowestCard.num);
-        renderW();
-        
-        // Bank-Stich einblenden
-        if (stichBImgs[bankTricks]) {
-          stichBImgs[bankTricks].style.display = "block";
-        }
-        
-        return false; // Bank hat gewonnen
-      }
+      // *** FARBKOMPATIBILITÄTSPRÜFUNG ENTFERNT ***
+      // Alle Karten passen jetzt auf alle Symbole!
 
-      // *** NORMALE LOGIK: Farbe passt, Rang-Vergleich ***
+      // *** NORMALE LOGIK: Rang-Vergleich ***
       const playerCard = getCardInfo(info.num);
       const targetCard = getCardInfo(currentTarget.num);
 
@@ -1752,6 +1705,16 @@
 
       updateScoresUI();
       applyHitVisual(info);
+
+      // NEU: Färbe die getroffene Zahl rot/schwarz
+      const cardColor = cardColors[info.num];
+      if (info.spanEl) {
+        if (cardColor === "red") {
+          info.spanEl.classList.add("cardRed");
+        } else if (cardColor === "black") {
+          info.spanEl.classList.add("cardBlack");
+        }
+      }
 
       // *** KARTE ALS VERBRAUCHT MARKIEREN ***
       usedCards.add(info.num);
@@ -1869,22 +1832,17 @@
         const shouldBeVisible = numbersRevealed && reachableNumbers.has(n);
         
         if (shouldBeVisible) {
-          // Zeige Zahl
+          // Zeige Zahl (NEUTRAL - keine Farbcodierung!)
           renderNumber(spanEl, n);
           spanEl.style.opacity = "";
           spanEl.style.visibility = "";
           
-          // Entferne alte Klassen
+          // Entferne alte Klassen (inkl. cardRed/cardBlack)
           spanEl.classList.remove("cardRed", "cardBlack", "used");
           spanEl.style.color = "";
           
-          // Setze Kartenfarbe (rot/schwarz)
-          const cardColor = cardColors[n];
-          if (cardColor === "red") {
-            spanEl.classList.add("cardRed");
-          } else if (cardColor === "black") {
-            spanEl.classList.add("cardBlack");
-          }
+          // KEINE Farbcodierung mehr hier!
+          // Farben werden nur nach Treffer gesetzt
           
           // Markiere verbrauchte Karten
           if (usedCards.has(n)) {
@@ -2122,7 +2080,31 @@
       clearHitPulse();
       hideTargetRankAndSuit();
       hideAllNumbers(); // Alle Zahlen wieder verstecken
-      showTargetSelectView();
+      
+      // NEU: Zeige "SCHAUEN & MERKEN" Button statt Auto-Target
+      uiMode = "START";
+      
+      // Target-Layer verstecken
+      if (targetLayer) targetLayer.style.display = "none";
+      if (targetImgCovered) {
+        targetImgCovered.style.display = "none";
+        targetImgCovered.classList.remove("pulse");
+        targetImgCovered.style.pointerEvents = "none";
+      }
+      
+      // Buttons verstecken
+      if (kippButtonsWrap) kippButtonsWrap.classList.add("hidden");
+      kippAnzahlView.classList.add("hidden");
+      
+      // START Button zeigen
+      startBtnWrap.classList.remove("hidden");
+      btnSchauen.classList.remove("hidden");
+      btnErgebnis.classList.add("hidden");
+      btnSchauenPulse.classList.add("pulse");
+      
+      showHint("SCHAUKIPP-RUNDE", false);
+      
+      positionUI();
     }
 
     function resetGameToStart(){
@@ -2754,8 +2736,6 @@
       rotIndex  = 0;
       faceIndex = 0;
       setRotationSnap();
-      showW();
-      renderW();
 
       hideStartUI();
 
@@ -2769,8 +2749,17 @@
       resetTargetPadUI();
       clearHitPulse();
 
+      // NEU: Zeige ALLE Zahlen für Vorkipps (1-12)
+      numbersRevealed = true;
+      reachableNumbers = new Set([1,2,3,4,5,6,7,8,9,10,11,12]);
+      
+      showW();
+      renderW();
+
+      // 4 Vorkipps mit ALLEN Zahlen sichtbar
       await runSchauKippSequence(4, { forceKSP: 1 });
 
+      // Danach: Target generieren und Auto-Kipp-Phase
       showTargetSelectView();
     });
 

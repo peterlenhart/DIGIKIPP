@@ -439,48 +439,27 @@
     }
 
     /* NEU: Scrollband für Kippanzahl (ersetzt 1–6 Buttons) */
-    .scrollBandWrap{
+    .kippButtonsWrap{
       position:absolute;
       left:50%;
       transform:translateX(-50%);
       display:flex;
       align-items:center;
       justify-content:center;
+      gap: calc(8px * var(--uiscale));
       pointer-events:none;
       z-index:50;
-      padding: calc(4px * var(--uiscale)) calc(8px * var(--uiscale));
-      background: rgba(234,215,190,0.55); /* beige Streifen */
+      padding: calc(6px * var(--uiscale)) calc(10px * var(--uiscale));
+      background: rgba(234,215,190,0.55);
       border-radius: calc(18px * var(--uiscale));
       box-shadow: 0 6px 12px rgba(0,0,0,0.25);
     }
-    .scrollBandWrap.locked{
-      opacity:0.4; /* inaktiv, aber sichtbar */
+    .kippButtonsWrap.locked{
+      opacity:0.4;
     }
 
-    .scrollBand{
+    .kippBtn{
       pointer-events:auto;
-      display:flex;
-      gap:calc(7px * var(--uiscale));
-      overflow-x:auto;
-      padding:calc(4px * var(--uiscale)) calc(6px * var(--uiscale));
-      max-width:calc(4.5 * var(--cell)); /* schmaler - links/rechts nur zur Hälfte sichtbar */
-      scrollbar-width:none;
-    }
-    .scrollBand::-webkit-scrollbar{
-      display:none;
-    }
-
-    /* Pendel-Animation West–Ost */
-    @keyframes scrollWiggle{
-      0%   { transform: translateX(-10px); }
-      100% { transform: translateX(10px); }
-    }
-    .scrollBand.wiggle{
-      animation: scrollWiggle 1.1s ease-in-out 0.3s infinite alternate;
-      will-change: transform;
-    }
-
-    .scrollItem{
       min-width: calc(var(--cell) * 0.85);
       height:    calc(var(--cell) * 0.85);
       border-radius: calc(0.20 * var(--cell));
@@ -499,15 +478,21 @@
       user-select:none;
       -webkit-tap-highlight-color:transparent;
       cursor:pointer;
-      font-size: calc(var(--cell) * 0.55); /* große Zahlen, fast flächendeckend */
+      font-size: calc(var(--cell) * 0.55);
     }
-    .scrollItem:active{
+    .kippBtn:active{
       transform:scale(0.98);
       filter:brightness(0.98);
     }
-    .scrollItem.disabled{
+    .kippBtn.disabled{
       opacity:0.5;
       pointer-events:none;
+      cursor:not-allowed;
+    }
+    .kippBtn.selected{
+      background:rgba(255,215,100,0.96);
+      border-color:rgba(180,120,40,0.85);
+    }
     }
 
     @keyframes pulseScale{
@@ -1158,9 +1143,14 @@
           </button>
         </div>
 
-        <!-- NEU: Scrollband für Kippanzahl (Zeile 13, gleiche Position wie Startbutton) -->
-        <div class="scrollBandWrap hidden" id="scrollBandWrap">
-          <div class="scrollBand" id="scrollBand"></div>
+        <!-- NEU: 6 fixe Buttons für Kippanzahl 1-6 -->
+        <div class="kippButtonsWrap hidden" id="kippButtonsWrap">
+          <button class="kippBtn" data-kipps="1">1</button>
+          <button class="kippBtn" data-kipps="2">2</button>
+          <button class="kippBtn" data-kipps="3">3</button>
+          <button class="kippBtn" data-kipps="4">4</button>
+          <button class="kippBtn" data-kipps="5">5</button>
+          <button class="kippBtn" data-kipps="6">6</button>
         </div>
 
         <button class="targetPadBtn hidden" id="targetPadBtn" type="button" aria-label="Ziel erzeugen">
@@ -1209,8 +1199,9 @@
     const targetRank10D   = document.getElementById("targetRank10D");
     const targetSuitImg   = document.getElementById("targetSuitImg");
 
-    const scrollBandWrap  = document.getElementById("scrollBandWrap");
-    const scrollBand      = document.getElementById("scrollBand");
+    const kippButtonsWrap = document.getElementById("kippButtonsWrap");
+    const kippButtons     = kippButtonsWrap ? Array.from(kippButtonsWrap.querySelectorAll(".kippBtn")) : [];
+
 
     const shadowQ0 = document.getElementById("shadowQ0");
     const shadowQ1 = document.getElementById("shadowQ1");
@@ -1512,6 +1503,77 @@
         });
       }
       return out;
+    }
+
+    // NEU: Berechne erreichbare Zahlen für eine Farbe innerhalb von maxKipps
+    function calculateReachableNumbers(targetColor, maxKipps = 6){
+      const reachable = new Set();
+      
+      // Speichere aktuellen Zustand
+      const savedFaceIndex = faceIndex;
+      const savedRotIndex = rotIndex;
+      
+      // Simuliere maxKipps Schritte voraus
+      for (let kipp = 1; kipp <= maxKipps; kipp++){
+        // Simuliere einen Kipp (ohne UI zu ändern)
+        rotIndex = (rotIndex + 1) % 4;
+        faceIndex = (faceIndex + 1) % 3;
+        
+        // Hole sichtbare Slots nach diesem Kipp
+        const curr = sets[faceIndex];
+        const rot = rotIndex;
+        const zsCoords = ZS_COORDS_BY_ROT_ZSINDEX[rot];
+        
+        for (let i = 0; i < 4; i++){
+          const num = curr[i];
+          if (num == null) continue;
+          
+          const zsIndex = DOM_SLOT_TO_ZS_INDEX[i];
+          const zsCoord = zsCoords[zsIndex - 1];
+          const zfCoord = getAdjacentZFCoordForZS(zsCoord);
+          const color = zfCoord ? COLOR_BY_ZF_COORD[zfCoord] : null;
+          
+          // Wenn Nummer auf Zielfarbe landet → erreichbar!
+          if (color === targetColor){
+            reachable.add(num);
+          }
+        }
+      }
+      
+      // Stelle ursprünglichen Zustand wieder her
+      faceIndex = savedFaceIndex;
+      rotIndex = savedRotIndex;
+      
+      return reachable;
+    }
+
+    // NEU: Zeige nur erreichbare Zahlen auf Würfel
+    function updateReachableNumbersDisplay(reachableNumbers){
+      // Alle sichtbaren Zahlen durchgehen
+      const infos = getVisibleSlotInfos();
+      for (const info of infos){
+        if (info.num == null || !info.spanEl) continue;
+        
+        // Wenn Zahl NICHT erreichbar ist → transparent
+        if (!reachableNumbers.has(info.num)){
+          info.spanEl.style.opacity = "0.15";
+          info.spanEl.style.filter = "grayscale(1)";
+        } else {
+          info.spanEl.style.opacity = "";
+          info.spanEl.style.filter = "";
+        }
+      }
+    }
+
+    // NEU: Setze alle Zahlen wieder auf normal
+    function resetReachableNumbersDisplay(){
+      const infos = getVisibleSlotInfos();
+      for (const info of infos){
+        if (info.spanEl){
+          info.spanEl.style.opacity = "";
+          info.spanEl.style.filter = "";
+        }
+      }
     }
 
     function applyHitVisual(slotInfo){
@@ -1932,36 +1994,29 @@
       runningKipp = false;
     }
 
-    function buildScrollBand(){
-      if (!scrollBand) return;
-      scrollBand.innerHTML = "";
-      for (let num = 1; num <= 11; num++){
-        const item = document.createElement("div");
-        item.className = "scrollItem";
-        item.dataset.anzahl = num;
-        item.textContent = String(num);
-        item.addEventListener("click", () => handleAnzahlClick(num, null));
-        scrollBand.appendChild(item);
-      }
-      scrollBand.classList.add("wiggle");
+    // NEU: Setup für 6 fixe Kipp-Buttons
+    function setupKippButtons(){
+      if (!kippButtons || kippButtons.length === 0) return;
       
-      // Zentriere auf Item 6 (damit links/rechts Items zur Hälfte sichtbar)
-      setTimeout(() => {
-        const item6 = scrollBand.children[5]; // Index 5 = Item 6
-        if (item6) {
-          item6.scrollIntoView({ inline: "center", block: "nearest", behavior: "auto" });
-        }
-      }, 50);
+      kippButtons.forEach(btn => {
+        const kipps = parseInt(btn.dataset.kipps);
+        btn.addEventListener("click", () => handleAnzahlClick(kipps, btn));
+      });
     }
 
-    function setScrollBandLocked(locked){
-      if (!scrollBand) return;
-      scrollBand.querySelectorAll(".scrollItem").forEach(item => {
-        item.classList.toggle("disabled", !!locked);
+    function setKippButtonsLocked(locked){
+      if (!kippButtons) return;
+      kippButtons.forEach(btn => {
+        btn.classList.toggle("disabled", !!locked);
       });
-      if (scrollBandWrap){
-        scrollBandWrap.classList.toggle("locked", !!locked);
+      if (kippButtonsWrap){
+        kippButtonsWrap.classList.toggle("locked", !!locked);
       }
+    }
+
+    function clearKippButtonSelection(){
+      if (!kippButtons) return;
+      kippButtons.forEach(btn => btn.classList.remove("selected"));
     }
 
     function buildKippAnzahlButtons(){
@@ -2017,6 +2072,7 @@
       targetRevealed    = false;
       clearHitPulse();
       hideTargetRankAndSuit();
+      resetReachableNumbersDisplay(); // Alle Zahlen wieder normal anzeigen
       showTargetSelectView();
     }
 
@@ -2048,8 +2104,8 @@
     function showEndResultView(){
       uiMode = "END";
 
-      if (scrollBandWrap){
-        scrollBandWrap.classList.add("hidden");
+      if (kippButtonsWrap){
+        kippButtonsWrap.classList.add("hidden");
       }
 
       startBtnWrap.classList.remove("hidden");
@@ -2089,14 +2145,16 @@
 
       attemptsForTarget++;
 
-      // Neue Geschwindigkeit: Dynamisch PRO Kipp berechnet in runSchauKippSequence()
-      markRunSelected(clickedBtn);
-      setScrollBandLocked(true);
+      // Markiere geklickten Button
+      clearKippButtonSelection();
+      if (clickedBtn) clickedBtn.classList.add("selected");
+      
+      setKippButtonsLocked(true);
       runSchauKippSequence(anzahl).finally(async () => {
         clearHitPulse();
         const hit = checkHitAndAnimate();
 
-        clearRunSelected();
+        clearKippButtonSelection();
 
         const isLastTarget = (drawsCount >= MAX_TARGETS);
 
@@ -2126,7 +2184,7 @@
       btnSchauen.classList.remove("hidden");
       btnErgebnis.classList.add("hidden");
 
-      if (scrollBandWrap) scrollBandWrap.classList.add("hidden");
+      if (kippButtonsWrap) kippButtonsWrap.classList.add("hidden");
 
       btnSchauenPulse.classList.add("pulse");
 
@@ -2159,12 +2217,9 @@
 
       startBtnWrap.classList.add("hidden");
 
-      if (scrollBandWrap){
-        scrollBandWrap.classList.remove("hidden");
-        if (!scrollBand.innerHTML.trim()){
-          buildScrollBand();
-        }
-        setScrollBandLocked(true);
+      if (kippButtonsWrap){
+        kippButtonsWrap.classList.remove("hidden");
+        setKippButtonsLocked(true); // Locked während Target-Auswahl
       }
 
       kippAnzahlView.classList.add("hidden");
@@ -2211,15 +2266,21 @@
       startBtnWrap.classList.add("hidden");
       kippAnzahlView.classList.add("hidden");
 
-      if (scrollBandWrap){
-        scrollBandWrap.classList.remove("hidden");
-        setScrollBandLocked(false);
+      if (kippButtonsWrap){
+        kippButtonsWrap.classList.remove("hidden");
+        setKippButtonsLocked(false);
       }
 
       testTargetBtn.classList.add("hidden");
       testTargetBtn.disabled = true;
 
       clearHitPulse();
+
+      // NEU: Berechne erreichbare Zahlen für aktuelles Target
+      if (currentTarget){
+        const reachable = calculateReachableNumbers(currentTarget.color, 6);
+        updateReachableNumbersDisplay(reachable);
+      }
 
       positionUI();
     }
@@ -2432,8 +2493,8 @@
       const startTop = (row13CenterY - (cellPx / 2));
       startBtnWrap.style.top = (startTop + 5) + "px";
 
-      if (scrollBandWrap){
-        scrollBandWrap.style.top = (startTop - 11) + "px";
+      if (kippButtonsWrap){
+        kippButtonsWrap.style.top = (startTop - 11) + "px";
       }
 
       if (uiMode === "TARGET"){
@@ -2640,7 +2701,7 @@
       hideStartUI();
 
       kippAnzahlView.classList.add("hidden");
-      if (scrollBandWrap) scrollBandWrap.classList.add("hidden");
+      if (kippButtonsWrap) kippButtonsWrap.classList.add("hidden");
 
       targetRevealed     = false;
       currentTarget      = null;
@@ -2667,6 +2728,7 @@
     });
 
     window.addEventListener("load", () => {
+      setupKippButtons(); // Setup für 6 fixe Buttons
       rebuild();
       initPlayState();
     });
@@ -2675,8 +2737,7 @@
 
     document.addEventListener("touchmove", (e) => {
       const inRange = e.target && e.target.closest && e.target.closest('input[type="range"]');
-      const inScrollBand = e.target && e.target.closest && e.target.closest('#scrollBand');
-      if (inRange || inScrollBand) return;
+      if (inRange) return;
       e.preventDefault();
     }, { passive:false });
 

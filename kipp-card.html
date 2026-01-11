@@ -1608,7 +1608,23 @@
           .sort((a, b) => a.num - b.num); // Sortiere aufsteigend (niedrigste zuerst)
         
         if (availableCards.length === 0) {
-          console.log("Keine verfügbare Karte mehr!");
+          // *** ALLE KARTEN VERBRAUCHT: Bank bekommt ihre Target-Karte ***
+          console.log("Keine verfügbare Karte mehr! Bank bekommt Target-Karte.");
+          
+          const targetCard = getCardInfo(currentTarget.num);
+          bankScore += targetCard.value;
+          // KEIN bankTricks++ - nur eine einzelne Karte, kein Paar!
+          
+          updateScoresUI();
+          
+          // Zeige target_covered.webp auf Bank-Stapel (3 Spalten rechts, 0.5 Zeilen hoch)
+          if (targetImgCovered) {
+            targetImgCovered.style.display = "block";
+            targetImgCovered.style.transform = "translate(426px, -71px)";
+          }
+          
+          // KEINE normale Stich-Grafik - nur einzelne Karte!
+          
           return false;
         }
         
@@ -2571,6 +2587,7 @@
       if (targetImgCovered){
         targetImgCovered.style.display = "none";
         targetImgCovered.classList.remove("pulse");
+        targetImgCovered.style.transform = ""; // Reset transform
       }
 
       btnErgebnis.onclick = null;
@@ -2657,6 +2674,7 @@
 
         targetImgCovered.classList.remove("pulse");
         targetImgCovered.style.display = "none";
+        targetImgCovered.style.transform = ""; // Reset transform
 
         currentTarget = generateCardTarget();
         if (!currentTarget) return;

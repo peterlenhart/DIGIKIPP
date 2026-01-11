@@ -1891,7 +1891,8 @@
 
       showW();
       renderW();
-      if (!await waitOrPause("w", myToken, 1)){ runningKipp=false; return; }
+      // BUG 2 FIX: W-Pause auch mit kipFactor beschleunigen
+      if (!await waitOrPause("w", myToken, kipFactor * 1)){ runningKipp=false; return; }
 
       const totalSteps = Math.max(1, steps);
 
@@ -1906,7 +1907,8 @@
         advanceFullCW();
         showW();
         renderW();
-        if (!await waitOrPause("w", myToken, stepMul)){ runningKipp=false; return; }
+        // BUG 2 FIX: W-Pause auch mit kipFactor beschleunigen
+        if (!await waitOrPause("w", myToken, kipFactor * stepMul)){ runningKipp=false; return; }
       }
 
       runningKipp = false;
@@ -2034,6 +2036,9 @@
       btnErgebnisText.textContent = "NEU SPIELEN";
 
       showHint("ENDE – VERGLEICHE DIE SCORES", true);
+      
+      // BUG 1 FIX: Target-Karte ausblenden nach 6. Stich
+      if (targetLayer) targetLayer.style.display = "none";
     }
 
     function handleAnzahlClick(anzahl, clickedBtn){

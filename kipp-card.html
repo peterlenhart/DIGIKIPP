@@ -1727,10 +1727,9 @@
     function lerp(a,b,t){ return a + (b - a) * t; }
 
     function updateTargetTimeMulByDraws(){
-      const idx = clamp(drawsCount, 0, MAX_TARGETS);
-      if (idx <= 0){ targetTimeMul = 1; return; }
-      const t = (MAX_TARGETS <= 1) ? 1 : (idx - 1) / (MAX_TARGETS - 1);
-      targetTimeMul = lerp(1.0, TARGET_MIN, t);
+      // DEAKTIVIERT: Keine Beschleunigung über Ziele hinweg!
+      // Beschleunigung passiert nur innerhalb eines Zyklus (Kipps 1-11)
+      targetTimeMul = 1;
     }
 
     const FIXED_SPEED = 3;
@@ -1886,19 +1885,32 @@
       if (runningKipp) return;
       runningKipp = true;
 
-      const kipFactor = (opts && opts.kipFactor) ? opts.kipFactor : 1;
       const myToken = ++previewToken;
 
       showW();
       renderW();
-      // BUG 2 FIX: W-Pause auch mit kipFactor beschleunigen
-      if (!await waitOrPause("w", myToken, kipFactor * 1)){ runningKipp=false; return; }
+      // Erste W-Pause: immer mit KSP=1 (kipFactor=1)
+      if (!await waitOrPause("w", myToken, 1)){ runningKipp=false; return; }
 
       const totalSteps = Math.max(1, steps);
 
       for (let i=0;i<steps;i++){
+        // Alte stepMul bleibt (zusätzliche Beschleunigung innerhalb des Durchlaufs)
         const tStep = (totalSteps <= 1) ? 0 : (i / (totalSteps - 1));
         const stepMul = lerp(1.0, STEP_MAX, tStep);
+
+        // NEUE Logik: Berechne KSP (Kippgeschwindigkeit) für diesen Kipp
+        let KSP;
+        if (i < 6) {
+          // Phase 1: Kipps 1-6 (i=0-5), KSP von 1.0 → 4.0
+          const t = (i === 0) ? 0 : Math.min(i / 5, 1);
+          KSP = lerp(1.0, 4.0, t);
+        } else {
+          // Phase 2: Kipps 7+ (i≥6), KSP von 4.0 → 8.0
+          const t = Math.min((i - 6) / 4, 1); // 4 Schritte: i=6→7→8→9→10
+          KSP = lerp(4.0, 8.0, t);
+        }
+        const kipFactor = 1 / KSP; // Umrechnung: KSP → Zeit-Divisor
 
         showKip();
         renderKip();
@@ -2037,9 +2049,27 @@
 
       showHint("ENDE – VERGLEICHE DIE SCORES", true);
       
-      // BUG 1 FIX: Target-Karte UND Target-Anzeige ausblenden
-      if (targetLayer) targetLayer.style.display = "none";
-      hideTargetRankAndSuit(); // ← Blendet 4♦ unten aus!
+      // BUG 1 FIX: ALLE Target-Elemente AGGRESSIV ausblenden!
+      if (targetLayer) {
+        targetLayer.style.display = "none";
+        targetLayer.style.opacity = "0";
+      }
+      
+      // Target-Anzeige unten (4♦)
+      if (targetRank10D) {
+        targetRank10D.style.display = "none";
+        targetRank10D.style.opacity = "0";
+        targetRank10D.style.visibility = "hidden";
+        targetRank10D.textContent = "";
+      }
+      if (targetSuitImg) {
+        targetSuitImg.style.display = "none";
+        targetSuitImg.style.opacity = "0";
+        targetSuitImg.style.visibility = "hidden";
+        targetSuitImg.removeAttribute("src");
+      }
+      
+      hideTargetRankAndSuit();
     }
 
     function handleAnzahlClick(anzahl, clickedBtn){
@@ -2049,21 +2079,10 @@
 
       attemptsForTarget++;
 
-      // Dynamische Beschleunigung basierend auf Kippanzahl
-      let kipFactor = 1;
-      if (anzahl <= 3) {
-        kipFactor = 1;      // Normal
-      } else if (anzahl <= 6) {
-        kipFactor = 0.5;    // 2x schneller
-      } else if (anzahl <= 9) {
-        kipFactor = 0.25;   // 4x schneller
-      } else {
-        kipFactor = 0.125;  // 8x schneller (10-12)
-      }
-
+      // Neue Geschwindigkeit: Dynamisch PRO Kipp berechnet in runSchauKippSequence()
       markRunSelected(clickedBtn);
       setScrollBandLocked(true);
-      runSchauKippSequence(anzahl, { kipFactor }).finally(async () => {
+      runSchauKippSequence(anzahl).finally(async () => {
         clearHitPulse();
         const hit = checkHitAndAnimate();
 
@@ -2620,7 +2639,7 @@
       resetTargetPadUI();
       clearHitPulse();
 
-      await runSchauKippSequence(4, { kipFactor: 2 });
+      await runSchauKippSequence(4);
 
       showTargetSelectView();
     });

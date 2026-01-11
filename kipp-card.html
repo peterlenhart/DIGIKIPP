@@ -1187,6 +1187,9 @@
 
     const kippAnzahlView  = document.getElementById("kippAnzahlView");
     const kippAnzahlBtns  = document.getElementById("kippAnzahlBtns");
+    const btnKippStart    = document.getElementById("btnKippStart");
+    const kippAnzahlRange = document.getElementById("kippAnzahl");
+    const kippAnzahlWert  = document.getElementById("kippAnzahlWert");
 
     const backBtn  = document.getElementById("backBtn");
 
@@ -1556,8 +1559,8 @@
     function revealNumbersForTarget(){
       if (!currentTarget) return;
       
-      // Berechne erreichbare Zahlen
-      reachableNumbers = calculateReachableNumbers(currentTarget.color, 6);
+      // Zeige ALLE Zahlen (1-12), nicht nur erreichbare mit 6
+      reachableNumbers = new Set([1,2,3,4,5,6,7,8,9,10,11,12]);
       numbersRevealed = true;
       
       // Rendere Würfel neu
@@ -1590,8 +1593,8 @@
 
         advanceFullCW();
         
-        // WICHTIG: Nach jedem Kipp neu berechnen welche Zahlen erreichbar sind!
-        reachableNumbers = calculateReachableNumbers(currentTarget.color, 6);
+        // Zeige weiterhin ALLE Zahlen (1-12)
+        reachableNumbers = new Set([1,2,3,4,5,6,7,8,9,10,11,12]);
       }
 
       showW();
@@ -2305,6 +2308,20 @@
       showHint("ZIELKARTE AUFDECKEN", false);
     }
 
+    function showKippAnzahlView(){
+      uiMode = "KIPPANZAHL";
+      showHint("KIPP-ANZAHL WÄHLEN", false);
+
+      startBtnWrap.classList.add("hidden");
+      kippAnzahlView.classList.remove("hidden");
+
+      if (kippButtonsWrap){
+        kippButtonsWrap.classList.add("hidden");
+      }
+
+      positionUI();
+    }
+
     function showKippCountView(){
       uiMode = "COUNT";
       showHint("KIPP-ANZAHL", false);
@@ -2727,7 +2744,7 @@
       updateShadowVisibility();
     }
 
-    btnSchauen.addEventListener("click", async () => {
+    btnSchauen.addEventListener("click", () => {
       if (runningKipp) return;
 
       started = true;
@@ -2739,9 +2756,6 @@
 
       hideStartUI();
 
-      kippAnzahlView.classList.add("hidden");
-      if (kippButtonsWrap) kippButtonsWrap.classList.add("hidden");
-
       targetRevealed     = false;
       currentTarget      = null;
       attemptsForTarget  = 0;
@@ -2749,23 +2763,45 @@
       resetTargetPadUI();
       clearHitPulse();
 
-      // NEU: Zeige ALLE Zahlen für Vorkipps (1-12)
+      // Zeige ALLE Zahlen (1-12)
       numbersRevealed = true;
       reachableNumbers = new Set([1,2,3,4,5,6,7,8,9,10,11,12]);
       
       showW();
       renderW();
 
-      // 4 Vorkipps mit ALLEN Zahlen sichtbar
-      await runSchauKippSequence(4, { forceKSP: 1 });
-
-      // Danach: Target generieren und Auto-Kipp-Phase
-      showTargetSelectView();
+      // Zeige Kippanzahl-Auswahl (Scrollband)
+      showKippAnzahlView();
     });
 
     btnErgebnis.addEventListener("click", () => {
       resetGameToStart();
     });
+
+    // Range-Input für Kippanzahl: Live-Update der Anzeige
+    if (kippAnzahlRange && kippAnzahlWert){
+      kippAnzahlRange.addEventListener("input", () => {
+        kippAnzahlWert.textContent = kippAnzahlRange.value;
+      });
+    }
+
+    // START-Button für Kippanzahl-Auswahl
+    if (btnKippStart){
+      btnKippStart.addEventListener("click", async () => {
+        if (runningKipp) return;
+
+        const anzahl = parseInt(kippAnzahlRange.value, 10);
+
+        kippAnzahlView.classList.add("hidden");
+        if (kippButtonsWrap) kippButtonsWrap.classList.add("hidden");
+
+        // Führe gewählte Anzahl Vorkipps aus (mit ALLEN Zahlen 1-12 sichtbar)
+        await runSchauKippSequence(anzahl, { forceKSP: 1 });
+
+        // Danach: Target generieren und Auto-Kipp-Phase
+        showTargetSelectView();
+      });
+    }
 
     backBtn.addEventListener("click", () => {
       if (uiMode === "START"){

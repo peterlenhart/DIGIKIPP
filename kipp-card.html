@@ -795,6 +795,100 @@
     }
     .kippAnzahlBtns.compact{ gap: calc(10px * var(--uiscale)); }
 
+    /* Scrollband Container */
+    #kippAnzahlView{
+      position: absolute;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: calc(20px * var(--uiscale));
+      pointer-events: auto;
+      z-index: 85;
+    }
+    #kippAnzahlView.hidden{ display: none; }
+    
+    /* Pendel-Animation für Scrollband */
+    @keyframes sway{
+      0%, 100%{ transform: translateX(0); }
+      50%{ transform: translateX(calc(8px * var(--uiscale))); }
+    }
+    #kippAnzahlView:not(.hidden) .kippAnzahlContent{
+      animation: sway 1.2s ease-in-out infinite;
+    }
+
+    .kippAnzahlContent{
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: calc(16px * var(--uiscale));
+      background: var(--ui-panel-bg);
+      padding: calc(20px * var(--uiscale));
+      border-radius: calc(12px * var(--uiscale));
+      box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+    }
+
+    .rangeWrapper{
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: calc(12px * var(--uiscale));
+    }
+
+    #kippAnzahl{
+      width: calc(280px * var(--uiscale));
+      height: calc(40px * var(--uiscale));
+      cursor: pointer;
+      -webkit-appearance: none;
+      appearance: none;
+      background: transparent;
+    }
+    #kippAnzahl::-webkit-slider-track{
+      width: 100%;
+      height: calc(12px * var(--uiscale));
+      background: var(--btn-bg);
+      border-radius: calc(6px * var(--uiscale));
+      box-shadow: inset 0 2px 4px rgba(0,0,0,0.3);
+    }
+    #kippAnzahl::-webkit-slider-thumb{
+      -webkit-appearance: none;
+      appearance: none;
+      width: calc(32px * var(--uiscale));
+      height: calc(32px * var(--uiscale));
+      background: var(--orange);
+      border-radius: 50%;
+      cursor: pointer;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+      border: calc(3px * var(--uiscale)) solid var(--btn-bg);
+    }
+    #kippAnzahl::-moz-range-track{
+      width: 100%;
+      height: calc(12px * var(--uiscale));
+      background: var(--btn-bg);
+      border-radius: calc(6px * var(--uiscale));
+      box-shadow: inset 0 2px 4px rgba(0,0,0,0.3);
+    }
+    #kippAnzahl::-moz-range-thumb{
+      width: calc(32px * var(--uiscale));
+      height: calc(32px * var(--uiscale));
+      background: var(--orange);
+      border-radius: 50%;
+      cursor: pointer;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+      border: calc(3px * var(--uiscale)) solid var(--btn-bg);
+    }
+
+    .rangeValue{
+      font-size: calc(48px * var(--uiscale));
+      font-weight: 900;
+      color: var(--ui-text);
+      text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+      font-family: 'Noto Serif', serif;
+    }
+
+    .kippStartBtn{
+      min-width: calc(180px * var(--uiscale));
+    }
+
     .navBtn{
       position: absolute;
       width: calc(56px * var(--uiscale));
@@ -1159,6 +1253,16 @@
         </button>
 
         <div id="kippAnzahlView" class="hidden">
+          <div class="kippAnzahlContent">
+            <div class="rangeWrapper">
+              <input type="range" id="kippAnzahl" min="1" max="11" value="5" step="1">
+              <div class="rangeValue" id="kippAnzahlWert">5</div>
+            </div>
+            <button class="squareBtn kippStartBtn" id="btnKippStart" type="button">
+              <span class="anzahlText">START</span>
+            </button>
+          </div>
+
           <div class="kippAnzahlBtns" id="kippAnzahlBtns"></div>
 
           <button class="squareBtn hidden" id="testTargetBtn" type="button" aria-label="Test Target">
@@ -1602,11 +1706,55 @@
 
       autoKippRunning = false;
       
-      // Nach 4 Kipps: Zielkarte pulsieren lassen
+      // Nach 4 Kipps: Zielkarte pulsieren lassen UND Scrollband einblenden
       if (targetImgCovered){
         targetImgCovered.classList.add("pulse");
         targetImgCovered.style.pointerEvents = "auto"; // Jetzt klickbar!
       }
+      
+      // Scrollband einblenden
+      kippAnzahlView.classList.remove("hidden");
+      positionUI();
+    }
+
+    // NEU: Spieler-Kipp-Sequenz mit variabler Geschwindigkeit
+    async function runPlayerKippSequence(steps){
+      if (runningKipp) return;
+      runningKipp = true;
+
+      const myToken = ++previewToken;
+
+      for (let i = 0; i < steps; i++){
+        // Geschwindigkeit:
+        // Kipps 1-6 (i=0-5): KSP = 3
+        // Kipps 7-11 (i=6-10): KSP = 6 (doppelt so schnell)
+        let KSP;
+        if (i < 6){
+          KSP = 3;
+        } else {
+          KSP = 6;
+        }
+        
+        const kipFactor = 1 / KSP;
+
+        showW();
+        renderW();
+        if (!await waitOrPause("w", myToken, kipFactor)){ runningKipp=false; return; }
+
+        showKip();
+        renderKip();
+        if (!await waitOrPause("kip", myToken, kipFactor)){ runningKipp=false; return; }
+
+        advanceFullCW();
+        
+        // Zeige weiterhin ALLE Zahlen (1-12)
+        reachableNumbers = new Set([1,2,3,4,5,6,7,8,9,10,11,12]);
+      }
+
+      showW();
+      renderW();
+
+      runningKipp = false;
     }
 
     function applyHitVisual(slotInfo){
@@ -2554,6 +2702,15 @@
         kippButtonsWrap.style.top = (startTop - 11) + "px";
       }
 
+      // Positionierung für kippAnzahlView (Scrollband)
+      if (kippAnzahlView){
+        const row6VisualTop = (((6 + HEADER_ROW_OFFSET) - 1) * cellPx);
+        const scrollbandCenterY = row6VisualTop + (cellPx / 2);
+        kippAnzahlView.style.top = scrollbandCenterY + "px";
+        kippAnzahlView.style.left = "50%";
+        kippAnzahlView.style.transform = "translate(-50%, -50%)";
+      }
+
       if (uiMode === "TARGET"){
         hintTitle.style.top = row11CenterY + "px";
       } else if (uiMode === "START" || uiMode === "COUNT" || uiMode === "END"){
@@ -2798,11 +2955,17 @@
         kippAnzahlView.classList.add("hidden");
         if (kippButtonsWrap) kippButtonsWrap.classList.add("hidden");
 
-        // Führe gewählte Anzahl Vorkipps aus (mit ALLEN Zahlen 1-12 sichtbar)
-        await runSchauKippSequence(anzahl, { forceKSP: 1 });
+        // Führe gewählte Anzahl Spieler-Kipps aus (mit KSP-Geschwindigkeit)
+        await runPlayerKippSequence(anzahl);
 
-        // Danach: Target generieren und Auto-Kipp-Phase
-        showTargetSelectView();
+        // Danach: Zielkarte aufdeckbar machen (falls noch nicht)
+        // Target ist bereits generiert, Scrollband hat Kipps gemacht
+        // Jetzt kann Spieler Target aufdecken
+        if (targetImgCovered && !targetRevealed){
+          // Falls Target noch nicht aufgedeckt, verstärke Pulsieren
+          targetImgCovered.classList.add("pulse");
+          targetImgCovered.style.pointerEvents = "auto";
+        }
       });
     }
 

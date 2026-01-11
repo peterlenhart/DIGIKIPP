@@ -141,13 +141,8 @@
       pointer-events:none;
       z-index:1;
     }
-  
     .stichLayer img{
       position:absolute;
-      left:0;
-      top:0;
-      /* width:100%;  <- raus */
-      /* height:auto; <- raus */
       display:none;
     }
 
@@ -1226,6 +1221,15 @@
       stichBImgs[i]  = document.getElementById(`stich${i}_b`);
     }
 
+    function positionStichImages(left, top){
+      for(let i=1;i<=6;i++){
+        const pl = stichPLImgs[i];
+        const b  = stichBImgs[i];
+        if(pl){ pl.style.left = left + "px"; pl.style.top = top + "px"; }
+        if(b){  b.style.left  = left + "px"; b.style.top  = top + "px"; }
+      }
+    }
+
     function sleep(ms){ return new Promise(res => setTimeout(res, ms)); }
 
     const wFaceGroup = document.getElementById("wFaceGroup");
@@ -1377,7 +1381,7 @@
     let playerScore = 0;
     let bankScore   = 0;
 
-    // Player-/Bank-Stiche (werden mit WebP-Stichen verknüpft)
+    // Player-/Bank-Stiche (noch ohne Logik)
     let playerTricks = 0;
     let bankTricks   = 0;
 
@@ -1392,32 +1396,15 @@
       }
     }
 
-    // Stiche zurücksetzen (alle Stich-WebPs unsichtbar)
+    // aktuell nur Werte zurücksetzen – Stiche werden später mit WebP-Stichen verknüpft
     function resetStichLayers(){
       playerTricks = 0;
       bankTricks   = 0;
-      for(let i=1;i<=6;i++){
-        if (stichPLImgs[i]) stichPLImgs[i].style.display = "none";
-        if (stichBImgs[i])  stichBImgs[i].style.display  = "none";
-      }
-    }
-
-    // Gewinner-Stich anzeigen:
-    // - Player: stichX_pl.webp
-    // - Bank:   stichX_b.webp
-    // Jede neue Stich-Datei enthält die vorherigen, darum werden
-    // ältere für diese Seite ausgeblendet.
-    function updateStichImages(winner){
-      if (winner === "player"){
-        const idx = Math.min(playerTricks, 6);
-        for (let i=1;i<=6;i++){
-          if (stichPLImgs[i]) stichPLImgs[i].style.display = (i === idx) ? "block" : "none";
-        }
-      } else if (winner === "bank"){
-        const idx = Math.min(bankTricks, 6);
-        for (let i=1;i<=6;i++){
-          if (stichBImgs[i]) stichBImgs[i].style.display = (i === idx) ? "block" : "none";
-        }
+      for (let i = 1; i <= 6; i++){
+        const pl = document.getElementById(`stich${i}_pl`);
+        const b  = document.getElementById(`stich${i}_b`);
+        if (pl) pl.style.display = "none";
+        if (b)  b.style.display  = "none";
       }
     }
 
@@ -1565,7 +1552,7 @@
       return null;
     }
 
-    // Treffererkennung + Score Player/Bank + Stiche
+    // Treffererkennung + Score Player/Bank
     function checkHitAndAnimate(){
       if (!currentTarget) return false;
 
@@ -1575,7 +1562,6 @@
       const playerCard = getCardInfo(info.num);
       const targetCard = getCardInfo(currentTarget.num);
 
-      // Vergleich über Rang-Reihenfolge (A > K > Q > J > 10 > 9 ... 3)
       let winner = "bank";
       if (playerCard.rankIndex > targetCard.rankIndex){
         winner = "player";
@@ -1594,13 +1580,8 @@
       updateScoresUI();
       applyHitVisual(info);
 
-      // Stich-WebP für Gewinner-Seite einblenden
-      updateStichImages(winner);
-
       return (winner === "player");
     }
-
-    // Hilfsfunktionen usw. – von hier an unverändert
 
     function getVisibleNumbersSet(){
       return new Set(getVisibleSlotInfos().map(s => s.num).filter(n => n != null));
@@ -2117,7 +2098,7 @@
         ["3H","c-violett"],["4H","c-gruen"],  ["5H","c-gruen"],  ["6H","c-orange"],
       ];
 
-      // Farbflächen sind aktuell unsichtbar; Logik bleibt trotzdem erhalten
+      // Farbflächen aktuell unsichtbar
       for (const [coord, cls] of placements){
         // placeColorSquare(coord, cls, cellPx, sizePx);
       }
@@ -2210,6 +2191,8 @@
         targetSuitImg.style.left = left + "px";
         targetSuitImg.style.top  = top  + "px";
       }
+
+      positionStichImages(left, top);
     }
 
     function positionTargetRank10D(cellPx){
@@ -2527,6 +2510,6 @@
         showKippCountView();
       });
     }
-    </script>
+  </script>
 </body>
 </html>

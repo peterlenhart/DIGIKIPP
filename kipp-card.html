@@ -1608,18 +1608,8 @@
           .sort((a, b) => a.num - b.num); // Sortiere aufsteigend (niedrigste zuerst)
         
         if (availableCards.length === 0) {
-          // *** ALLE KARTEN VERBRAUCHT: Bank bekommt Punkte für Target-Karte ***
-          console.log("Keine verfügbare Karte mehr! Bank bekommt Target-Kartenwert.");
-          
-          const targetCard = getCardInfo(currentTarget.num);
-          bankScore += targetCard.value;
-          // KEIN bankTricks++ - nur Punkte, kein Stich!
-          
-          updateScoresUI();
-          
-          // Target-Karte wird einfach ausgeblendet (keine Anzeige nötig)
-          // Stichanzahl stimmt bereits
-          
+          // Alle sichtbaren Karten verbraucht - keine Karte zum Abgeben
+          console.log("Keine Karte zum Abgeben - Player muss weiter kippen!");
           return false;
         }
         

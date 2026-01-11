@@ -1371,6 +1371,11 @@
     let targetRevealed = false;
     let started = false;
 
+    // NEU: Zahlen-Reveal System
+    let numbersRevealed = false;      // Ob Zahlen sichtbar sind
+    let reachableNumbers = new Set(); // Welche Zahlen erreichbar sind
+    let autoKippRunning = false;      // Ob automatische Schau-Phase läuft
+
     let uiMode = "START"; // START | TARGET | COUNT | END
 
     let attemptsForTarget = 0;
@@ -1547,32 +1552,57 @@
       return reachable;
     }
 
-    // NEU: Zeige nur erreichbare Zahlen auf Würfel
-    function updateReachableNumbersDisplay(reachableNumbers){
-      // Alle sichtbaren Zahlen durchgehen
-      const infos = getVisibleSlotInfos();
-      for (const info of infos){
-        if (info.num == null || !info.spanEl) continue;
-        
-        // Wenn Zahl NICHT erreichbar ist → transparent
-        if (!reachableNumbers.has(info.num)){
-          info.spanEl.style.opacity = "0.15";
-          info.spanEl.style.filter = "grayscale(1)";
-        } else {
-          info.spanEl.style.opacity = "";
-          info.spanEl.style.filter = "";
-        }
-      }
+    // NEU: Zeige Zahlen für aktuelles Target
+    function revealNumbersForTarget(){
+      if (!currentTarget) return;
+      
+      // Berechne erreichbare Zahlen
+      reachableNumbers = calculateReachableNumbers(currentTarget.color, 6);
+      numbersRevealed = true;
+      
+      // Rendere Würfel neu
+      renderW();
     }
 
-    // NEU: Setze alle Zahlen wieder auf normal
-    function resetReachableNumbersDisplay(){
-      const infos = getVisibleSlotInfos();
-      for (const info of infos){
-        if (info.spanEl){
-          info.spanEl.style.opacity = "";
-          info.spanEl.style.filter = "";
-        }
+    // NEU: Verstecke alle Zahlen
+    function hideAllNumbers(){
+      numbersRevealed = false;
+      reachableNumbers = new Set();
+      renderW();
+    }
+
+    // NEU: Automatische Schau-Phase (4 Kipps)
+    async function runAutoKippPhase(){
+      if (autoKippRunning) return;
+      autoKippRunning = true;
+
+      const myToken = ++previewToken;
+
+      // 4 Kipps
+      for (let i = 0; i < 4; i++){
+        showW();
+        renderW();
+        if (!await waitOrPause("w", myToken, 1)){ autoKippRunning=false; return; }
+
+        showKip();
+        renderKip();
+        if (!await waitOrPause("kip", myToken, 2)){ autoKippRunning=false; return; } // Extra langsam: 2x normal
+
+        advanceFullCW();
+        
+        // WICHTIG: Nach jedem Kipp neu berechnen welche Zahlen erreichbar sind!
+        reachableNumbers = calculateReachableNumbers(currentTarget.color, 6);
+      }
+
+      showW();
+      renderW();
+
+      autoKippRunning = false;
+      
+      // Nach 4 Kipps: Zielkarte pulsieren lassen
+      if (targetImgCovered){
+        targetImgCovered.classList.add("pulse");
+        targetImgCovered.style.pointerEvents = "auto"; // Jetzt klickbar!
       }
     }
 
@@ -1831,30 +1861,49 @@
     }
 
     function renderSlot(slotEl, spanEl, n, suitColor){
-      renderNumber(spanEl, n);
       applyPersistentFill(slotEl, n);
       
-      // Kartenfarben und verbrauchte Karten
+      // NEU: Zeige Zahlen nur wenn revealed UND erreichbar
       if (spanEl && n != null) {
-        // Entferne alte Klassen
-        spanEl.classList.remove("cardRed", "cardBlack", "used");
-        spanEl.style.color = ""; // Reset inline style
+        // Prüfe ob Zahl sichtbar sein soll
+        const shouldBeVisible = numbersRevealed && reachableNumbers.has(n);
         
-        // Setze Kartenfarbe (rot/schwarz) - IMMER, fix vom Spielstart
-        const cardColor = cardColors[n];
-        if (cardColor === "red") {
-          spanEl.classList.add("cardRed");
-        } else if (cardColor === "black") {
-          spanEl.classList.add("cardBlack");
+        if (shouldBeVisible) {
+          // Zeige Zahl
+          renderNumber(spanEl, n);
+          spanEl.style.opacity = "";
+          spanEl.style.visibility = "";
+          
+          // Entferne alte Klassen
+          spanEl.classList.remove("cardRed", "cardBlack", "used");
+          spanEl.style.color = "";
+          
+          // Setze Kartenfarbe (rot/schwarz)
+          const cardColor = cardColors[n];
+          if (cardColor === "red") {
+            spanEl.classList.add("cardRed");
+          } else if (cardColor === "black") {
+            spanEl.classList.add("cardBlack");
+          }
+          
+          // Markiere verbrauchte Karten
+          if (usedCards.has(n)) {
+            spanEl.classList.add("used");
+          }
+        } else {
+          // Verstecke Zahl
+          if (spanEl.querySelector('span')) {
+            spanEl.querySelector('span').textContent = "";
+          }
+          spanEl.style.opacity = "0";
+          spanEl.style.visibility = "hidden";
         }
-        
-        // Markiere verbrauchte Karten
-        if (usedCards.has(n)) {
-          spanEl.classList.add("used");
+      } else if (spanEl) {
+        // Kein n vorhanden
+        if (spanEl.querySelector('span')) {
+          spanEl.querySelector('span').textContent = "";
         }
       }
-      
-      // applySlotTextColor KOMPLETT ENTFERNT - Kartenfarben bleiben fix!
     }
 
     function renderW(){
@@ -2072,7 +2121,7 @@
       targetRevealed    = false;
       clearHitPulse();
       hideTargetRankAndSuit();
-      resetReachableNumbersDisplay(); // Alle Zahlen wieder normal anzeigen
+      hideAllNumbers(); // Alle Zahlen wieder verstecken
       showTargetSelectView();
     }
 
@@ -2158,7 +2207,8 @@
 
         const isLastTarget = (drawsCount >= MAX_TARGETS);
 
-        await sleep(900);
+        // NEU: Längere Pause damit man sieht was passiert ist
+        await sleep(2500);
 
         if (isLastTarget){
           showEndResultView();
@@ -2206,7 +2256,7 @@
       positionUI();
     }
 
-    function showTargetSelectView(){
+    async function showTargetSelectView(){
       if (drawsCount >= MAX_TARGETS){
         showEndResultView();
         return;
@@ -2218,8 +2268,8 @@
       startBtnWrap.classList.add("hidden");
 
       if (kippButtonsWrap){
-        kippButtonsWrap.classList.remove("hidden");
-        setKippButtonsLocked(true); // Locked während Target-Auswahl
+        kippButtonsWrap.classList.add("hidden"); // Versteckt während Auto-Kipp
+        setKippButtonsLocked(true);
       }
 
       kippAnzahlView.classList.add("hidden");
@@ -2250,13 +2300,27 @@
 
       if (targetImgCovered){
         targetImgCovered.style.display = "block";
-        targetImgCovered.classList.add("pulse");
+        targetImgCovered.classList.remove("pulse"); // NICHT pulsieren (erst später)
+        targetImgCovered.style.pointerEvents = "none"; // NICHT klickbar (erst später)
       }
 
       targetRevealed    = false;
       attemptsForTarget = 0;
 
+      // NEU: Target JETZT generieren (verdeckt)
+      currentTarget = generateCardTarget();
+      if (!currentTarget) return;
+
+      // NEU: Zahlen revealen (nur erreichbare)
+      revealNumbersForTarget();
+
       positionUI();
+
+      // NEU: Automatische Schau-Phase starten (4 Kipps)
+      await runAutoKippPhase();
+
+      // Nach Auto-Kipp: Hint ändern
+      showHint("ZIELKARTE AUFDECKEN", false);
     }
 
     function showKippCountView(){
@@ -2275,12 +2339,6 @@
       testTargetBtn.disabled = true;
 
       clearHitPulse();
-
-      // NEU: Berechne erreichbare Zahlen für aktuelles Target
-      if (currentTarget){
-        const reachable = calculateReachableNumbers(currentTarget.color, 6);
-        updateReachableNumbersDisplay(reachable);
-      }
 
       positionUI();
     }
@@ -2667,6 +2725,7 @@
       hideTargetRankAndSuit();
 
       reroll12_keepAssigned();
+      hideAllNumbers(); // NEU: Zahlen initial verstecken
       showW();
       renderW();
 
@@ -2759,19 +2818,21 @@
     if (targetImgCovered){
       targetImgCovered.addEventListener("click", () => {
         if (targetRevealed) return;
+        if (!currentTarget) return; // Target muss schon existieren
 
         targetRevealed = true;
 
         targetImgCovered.classList.remove("pulse");
         targetImgCovered.style.display = "none";
-        targetImgCovered.style.transform = ""; // Reset transform
-
-        currentTarget = generateCardTarget();
-        if (!currentTarget) return;
+        targetImgCovered.style.transform = "";
+        targetImgCovered.style.pointerEvents = "none";
 
         attemptsForTarget = 0;
 
+        // Zeige Target-Anzeige unten (Zahl + Symbol)
         showTargetRankAndSuit(currentTarget);
+        
+        // Zeige 6 Buttons
         showKippCountView();
       });
     }

@@ -145,7 +145,8 @@
       position:absolute;
       left:0;
       top:0;
-      /* natürliche Größe beibehalten, nur positionieren */
+      width:100%;
+      height:auto;
       display:none;
     }
 
@@ -539,7 +540,7 @@
       display: none !important;
     }
     .hintSmall{
-      font-size: calc(14px * var(--uiscale)) !-important;
+      font-size: calc(14px * var(--uiscale)) !important;
       opacity: 0.96;
     }
 
@@ -1375,7 +1376,7 @@
     let playerScore = 0;
     let bankScore   = 0;
 
-    // Player-/Bank-Stiche
+    // Player-/Bank-Stiche (noch ohne Logik)
     let playerTricks = 0;
     let bankTricks   = 0;
 
@@ -1390,23 +1391,15 @@
       }
     }
 
-    /* NEU: zeigt passende Stich-WebPs je nach playerTricks/bankTricks */
-    function updateStichGraphics(){
-      for(let i=1;i<=6;i++){
-        const pl = stichPLImgs[i];
-        const b  = stichBImgs[i];
-        if(pl) pl.style.display = (i === playerTricks && playerTricks > 0) ? "block" : "none";
-        if(b)  b.style.display  = (i === bankTricks   && bankTricks   > 0) ? "block" : "none";
-      }
-    }
-
-    // aktuell nur Werte zurücksetzen – Stiche werden mit WebP-Stichen verknüpft
+    // aktuell nur Werte zurücksetzen – Stiche werden später mit WebP-Stichen verknüpft
     function resetStichLayers(){
       playerTricks = 0;
       bankTricks   = 0;
+      // Platzhalter: wenn du stich1_pl.webp etc. als <img> eingebunden hast,
+      // kannst du sie hier schon alle unsichtbar schalten.
       for (let i = 1; i <= 6; i++){
-        const pl = stichPLImgs[i];
-        const b  = stichBImgs[i];
+        const pl = document.getElementById(`stich${i}_pl`);
+        const b  = document.getElementById(`stich${i}_b`);
         if (pl) pl.style.display = "none";
         if (b)  b.style.display  = "none";
       }
@@ -1583,10 +1576,19 @@
       }
 
       updateScoresUI();
-      updateStichGraphics();   // NEU: passende Stich-WebP einblenden
       applyHitVisual(info);
 
-      // hier später: stichX_pl / stichX_b sichtbar machen
+      // *** STICH-EINBLENDUNG ***
+      if (winner === "player"){
+        if (stichPLImgs[drawsCount]){
+          stichPLImgs[drawsCount].style.display = "block";
+        }
+      } else {
+        if (stichBImgs[drawsCount]){
+          stichBImgs[drawsCount].style.display = "block";
+        }
+      }
+
       return (winner === "player");
     }
 
@@ -1993,7 +1995,11 @@
       startBtnWrap.classList.add("hidden");
 
       if (scrollBandWrap){
-        scrollBandWrap.classList.add("hidden");
+        scrollBandWrap.classList.remove("hidden");
+        if (!scrollBand.innerHTML.trim()){
+          buildScrollBand();
+        }
+        setScrollBandLocked(true);
       }
 
       kippAnzahlView.classList.add("hidden");
@@ -2198,28 +2204,6 @@
       }
     }
 
-    /* NEU: Stich-Dateien ebenfalls auf 9A verankern */
-    function positionStichCards(cellPx){
-      const coord = coordToXY("9A");
-      const visualRow = coord.row + HEADER_ROW_OFFSET;
-
-      const left = (coord.col - 1) * cellPx;
-      const top  = (visualRow - 1) * cellPx;
-
-      for(let i=1;i<=6;i++){
-        const pl = stichPLImgs[i];
-        const b  = stichBImgs[i];
-        if(pl){
-          pl.style.left = left + "px";
-          pl.style.top  = top  + "px";
-        }
-        if(b){
-          b.style.left = left + "px";
-          b.style.top  = top  + "px";
-        }
-      }
-    }
-
     function positionTargetRank10D(cellPx){
       if (!targetRank10D) return;
       const coord = coordToXY("10D");
@@ -2278,7 +2262,6 @@
       }
 
       positionTargetCards(cellPx);
-      positionStichCards(cellPx);   // NEU: Stichkarten mitpositionieren
       positionBackButton(cellPx);
       positionTestButton(cellPx);
     }

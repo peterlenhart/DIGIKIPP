@@ -1577,13 +1577,14 @@
       applyHitVisual(info);
 
       // *** STICH-EINBLENDUNG ***
+      // Die Nummer in stichX_pl/stichX_b zeigt die ANZAHL der Stiche, die der Spieler hat
       if (winner === "player"){
-        if (stichPLImgs[drawsCount]){
-          stichPLImgs[drawsCount].style.display = "block";
+        if (stichPLImgs[playerTricks]){  // playerTricks wurde gerade hochgezählt!
+          stichPLImgs[playerTricks].style.display = "block";
         }
       } else {
-        if (stichBImgs[drawsCount]){
-          stichBImgs[drawsCount].style.display = "block";
+        if (stichBImgs[bankTricks]){  // bankTricks wurde gerade hochgezählt!
+          stichBImgs[bankTricks].style.display = "block";
         }
       }
 

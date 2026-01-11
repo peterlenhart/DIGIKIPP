@@ -1608,22 +1608,17 @@
           .sort((a, b) => a.num - b.num); // Sortiere aufsteigend (niedrigste zuerst)
         
         if (availableCards.length === 0) {
-          // *** ALLE KARTEN VERBRAUCHT: Bank bekommt ihre Target-Karte ***
-          console.log("Keine verfügbare Karte mehr! Bank bekommt Target-Karte.");
+          // *** ALLE KARTEN VERBRAUCHT: Bank bekommt Punkte für Target-Karte ***
+          console.log("Keine verfügbare Karte mehr! Bank bekommt Target-Kartenwert.");
           
           const targetCard = getCardInfo(currentTarget.num);
           bankScore += targetCard.value;
-          // KEIN bankTricks++ - nur eine einzelne Karte, kein Paar!
+          // KEIN bankTricks++ - nur Punkte, kein Stich!
           
           updateScoresUI();
           
-          // Zeige target_covered.webp auf Bank-Stapel (3 Spalten rechts, 0.5 Zeilen hoch)
-          if (targetImgCovered) {
-            targetImgCovered.style.display = "block";
-            targetImgCovered.style.transform = "translate(426px, -71px)";
-          }
-          
-          // KEINE normale Stich-Grafik - nur einzelne Karte!
+          // Target-Karte wird einfach ausgeblendet (keine Anzeige nötig)
+          // Stichanzahl stimmt bereits
           
           return false;
         }
@@ -2058,9 +2053,21 @@
 
       attemptsForTarget++;
 
+      // Dynamische Beschleunigung basierend auf Kippanzahl
+      let kipFactor = 1;
+      if (anzahl <= 3) {
+        kipFactor = 1;      // Normal
+      } else if (anzahl <= 6) {
+        kipFactor = 0.5;    // 2x schneller
+      } else if (anzahl <= 9) {
+        kipFactor = 0.25;   // 4x schneller
+      } else {
+        kipFactor = 0.125;  // 8x schneller (10-12)
+      }
+
       markRunSelected(clickedBtn);
       setScrollBandLocked(true);
-      runSchauKippSequence(anzahl, { kipFactor: 1 }).finally(async () => {
+      runSchauKippSequence(anzahl, { kipFactor }).finally(async () => {
         clearHitPulse();
         const hit = checkHitAndAnimate();
 

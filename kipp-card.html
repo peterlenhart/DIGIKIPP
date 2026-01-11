@@ -1889,28 +1889,17 @@
 
       showW();
       renderW();
-      // Erste W-Pause: immer mit KSP=1 (kipFactor=1)
       if (!await waitOrPause("w", myToken, 1)){ runningKipp=false; return; }
 
       const totalSteps = Math.max(1, steps);
 
       for (let i=0;i<steps;i++){
-        // Alte stepMul bleibt (zusätzliche Beschleunigung innerhalb des Durchlaufs)
+        // Alte stepMul bleibt (leichte Beschleunigung innerhalb des Durchlaufs)
         const tStep = (totalSteps <= 1) ? 0 : (i / (totalSteps - 1));
         const stepMul = lerp(1.0, STEP_MAX, tStep);
 
-        // NEUE Logik: Berechne KSP (Kippgeschwindigkeit) für diesen Kipp
-        let KSP;
-        if (i < 6) {
-          // Phase 1: Kipps 1-6 (i=0-5), KSP von 1.0 → 4.0
-          const t = (i === 0) ? 0 : Math.min(i / 5, 1);
-          KSP = lerp(1.0, 4.0, t);
-        } else {
-          // Phase 2: Kipps 7+ (i≥6), KSP von 4.0 → 8.0
-          const t = Math.min((i - 6) / 4, 1); // 4 Schritte: i=6→7→8→9→10
-          KSP = lerp(4.0, 8.0, t);
-        }
-        const kipFactor = 1 / KSP; // Umrechnung: KSP → Zeit-Divisor
+        // EINFACH: Keine KSP-Änderung, alles konstant
+        const kipFactor = 1; // KSP=3 ist schon fix in FIXED_SPEED
 
         showKip();
         renderKip();
@@ -1919,7 +1908,6 @@
         advanceFullCW();
         showW();
         renderW();
-        // BUG 2 FIX: W-Pause auch mit kipFactor beschleunigen
         if (!await waitOrPause("w", myToken, kipFactor * stepMul)){ runningKipp=false; return; }
       }
 
@@ -2025,6 +2013,10 @@
       resetLockedColors();
       resetStichLayers();
       rotIndex = 0;
+
+      // KRITISCHER FIX: usedCards und cardColors zurücksetzen!
+      usedCards = new Set();
+      initRandomCardColors();
 
       reroll12_keepAssigned();
       renderW();

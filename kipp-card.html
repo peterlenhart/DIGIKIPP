@@ -2773,10 +2773,7 @@
       showW();
       renderW();
 
-      // 4 Vorkipps mit ALLEN Zahlen sichtbar, LANGSAM (KSP=1)
-      await runSchauKippSequence(4, { forceKSP: 1 });
-
-      // Danach: Target generieren und Auto-Kipp-Phase
+      // Direkt zur Target-Phase (die 4 Auto-Kipps passieren dann dort)
       showTargetSelectView();
     });
 

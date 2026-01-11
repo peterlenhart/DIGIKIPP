@@ -689,7 +689,7 @@
 
     .hidden{ display:none !important; }
 
-    /* Laufende Score-Anzeige im Spiel (oben im Kopfbereich) */
+    /* Laufende Score-Anzeige Player (Zeile 8 A–B) */
     .scoreRun{
       position: absolute;
       left: 0;
@@ -697,7 +697,7 @@
       transform: translate(-50%, -50%);
       font-weight: 1000;
       letter-spacing: 0.10em;
-      color: rgba(234,215,190,0.96);
+      color: rgb(214, 207, 3);
       text-shadow:
         0 2px 0 rgba(0,0,0,0.75),
         0 8px 18px rgba(0,0,0,0.60);
@@ -708,22 +708,24 @@
       pointer-events: none;
     }
 
-    /* Score-Endanzeige */
+    /* Laufende Score-Anzeige Bank (Zeile 8 G–H) */
     .scoreDisplay{
       position: absolute;
       left: 0;
       top: 0;
       transform: translate(-50%, -50%) scale(1);
       font-weight: 1000;
-      letter-spacing: 0.02em;
-      color: rgba(234,215,190,0.96);
-      text-shadow: 0 -32px 22px rgba(0,0,0,0.26);
+      letter-spacing: 0.10em;
+      color: rgb(214, 207, 3);
+      text-shadow:
+        0 2px 0 rgba(0,0,0,0.75),
+        0 8px 18px rgba(0,0,0,0.60);
       user-select: none;
       white-space: nowrap;
       line-height: 1;
       z-index: 120;
       pointer-events: none;
-      opacity: 0;
+      opacity: 1;
       transition: opacity 0.4s ease;
     }
     .scoreDisplay.finalVisible{
@@ -742,12 +744,6 @@
     .scoreDisplay.scorePulse{
       animation: scorePulse 1.1s ease-in-out 0s infinite alternate;
       will-change: transform, filter;
-    }
-
-    /* CARD: Score-Anzeigen generell unsichtbar */
-    .scoreRun,
-    .scoreDisplay{
-      display: none !important;
     }
 
     .titleLeft{
@@ -1083,10 +1079,10 @@
       </div>
 
       <div class="uiLayer" id="uiLayer" aria-hidden="true">
-        <!-- Laufende Score im Spiel -->
-        <div class="scoreRun" id="scoreRun">00</div>
-        <!-- End-Score -->
-        <div class="scoreDisplay" id="scoreDisplay">00</div>
+        <!-- Player-Score (Zeile 8 A–B) -->
+        <div class="scoreRun" id="scoreRun">000</div>
+        <!-- Bank-Score (Zeile 8 G–H) -->
+        <div class="scoreDisplay" id="scoreDisplay">000</div>
 
         <!-- NEU: Random-Zielanzeige -->
         <div id="targetRank10D" class="targetRank10D"></div>
@@ -1103,7 +1099,7 @@
           </button>
 
           <button id="btnErgebnis" class="squareBtn startBtn hidden" type="button">
-            <span class="anzahlText" id="btnErgebnisText">ERGEBNIS</span>
+            <span class="anzahlText" id="btnErgebnisText">NEU SPIELEN</span>
           </button>
         </div>
 
@@ -1321,13 +1317,19 @@
     let attemptsForTarget = 0;
     const MAX_ATTEMPTS_PER_TARGET = 1;
 
-    let hitsCount = 0;
-    function updateScore(){
-      const s = String(hitsCount).padStart(2,"0");
-      const runEl   = document.getElementById("scoreRun");
-      const finalEl = document.getElementById("scoreDisplay");
-      if(runEl)   runEl.textContent   = s;
-      if(finalEl) finalEl.textContent = s;
+    // Player-/Bank-Score
+    let playerScore = 0;
+    let bankScore   = 0;
+
+    function updateScoresUI(){
+      const runEl   = document.getElementById("scoreRun");     // Player
+      const finalEl = document.getElementById("scoreDisplay"); // Bank
+      if(runEl){
+        runEl.textContent = String(playerScore).padStart(3,"0");
+      }
+      if(finalEl){
+        finalEl.textContent = String(bankScore).padStart(3,"0");
+      }
     }
 
     const ordinals = {
@@ -1397,12 +1399,16 @@
       for(let i=0;i<4;i++){
         const zsIndex = DOM_SLOT_TO_ZS_INDEX[i];
         const zsCoord = zsCoords[zsIndex - 1];
+        const zfCoord = getAdjacentZFCoordForZS(zsCoord);
+        const color   = zfCoord ? COLOR_BY_ZF_COORD[zfCoord] : null;
         out.push({
           slotEl: slotElsW[i],
           spanEl: slotTargetsW[i],
           num: curr[i],
           zsIndex,
-          zsCoord
+          zsCoord,
+          zfCoord,
+          color
         });
       }
       return out;
@@ -1417,95 +1423,92 @@
       }, 2600);
     }
 
-    // Treffererkennung + Score++
+    // Karten-Visualisierung: 1–12 → 3–A
+    function getVisualRank(n){
+      switch(n){
+        case 12: return "A";
+        case 11: return "K";
+        case 10: return "Q";
+        case 9:  return "J";
+        case 8:  return "10";
+        case 7:  return "9";
+        case 6:  return "8";
+        case 5:  return "7";
+        case 4:  return "6";
+        case 3:  return "5";
+        case 2:  return "4";
+        case 1:  return "3";
+        default:
+          return (n === null || n === undefined) ? "" : String(n);
+      }
+    }
+
+    // Wert & Rang-Index für Vergleich und Punkte
+    function getCardInfo(n){
+      const rankStr = getVisualRank(n);
+      const order = ["3","4","5","6","7","8","9","10","J","Q","K","A"];
+      const rankIndex = order.indexOf(rankStr);
+
+      let value;
+      if(rankStr === "A"){
+        value = 12;
+      } else if(["K","Q","J","10"].includes(rankStr)){
+        value = 10;
+      } else {
+        const parsed = parseInt(rankStr, 10);
+        value = isNaN(parsed) ? 0 : parsed;
+      }
+
+      return { rank: rankStr, value, rankIndex };
+    }
+
+    // Player-Karte auf Ziel-Farbe finden
+    function getPlayerCardOnTargetColor(){
+      if(!currentTarget) return null;
+      const infos = getVisibleSlotInfos();
+      for(const info of infos){
+        if(info.num == null) continue;
+        if(info.color === currentTarget.color){
+          return info;
+        }
+      }
+      return null;
+    }
+
+    // Treffererkennung + Score Player/Bank
     function checkHitAndAnimate(){
       if(!currentTarget) return false;
 
-      const visibleSlots = getVisibleSlotInfos();
+      const info = getPlayerCardOnTargetColor();
+      if(!info) return false;
 
-      for(const si of visibleSlots){
-        if(si.num == null) continue;
-        if(si.num !== currentTarget.num) continue;
+      const playerCard = getCardInfo(info.num);
+      const targetCard = getCardInfo(currentTarget.num);
 
-        const zfCoord = getAdjacentZFCoordForZS(si.zsCoord);
-        if(!zfCoord) continue;
-
-        const borderColor = COLOR_BY_ZF_COORD[zfCoord];
-        if(borderColor !== currentTarget.color) continue;
-
-        const wasAlreadyLocked = lockedColorsByNumber.has(currentTarget.num);
-        lockedColorsByNumber.set(currentTarget.num, currentTarget.color);
-        applyPersistentFill(si.slotEl, si.num);
-
-        if(!wasAlreadyLocked){
-          hitsCount++;
-          updateScore();
-        }
-
-        applyHitVisual(si);
-        return true;
+      // Vergleich über Rang-Reihenfolge (A > K > Q > J > 10 > 9 ... 3)
+      let winner = "bank";
+      if(playerCard.rankIndex > targetCard.rankIndex){
+        winner = "player";
       }
 
-      return false;
-    }
+      const roundPoints = playerCard.value + targetCard.value;
 
-    // =========================
-    // Random-Regeln neu:
-    // - 12er Deck (1..12), jeder Wert max 1x
-    // - Verbot: aktuell am Würfel anliegende (Nummer | Farbe)
-    // - 6 Ziele insgesamt
-    // =========================
-    function getForbiddenPairsForCurrentState(){
-      const forbidden = new Set();
-      const visibleSlots = getVisibleSlotInfos();
-      for(const si of visibleSlots){
-        if(si.num == null) continue;
-        const zfCoord = getAdjacentZFCoordForZS(si.zsCoord);
-        if(!zfCoord) continue;
-        const col = COLOR_BY_ZF_COORD[zfCoord];
-        if(!col) continue;
-        forbidden.add(`${si.num}|${col}`);
-      }
-      return forbidden;
-    }
-
-    let usedNumbers = new Set();
-    let drawsCount = 0;
-
-    function resetTargetDeck(){
-      usedNumbers = new Set();
-      drawsCount = 0;
-      targetTimeMul = 1;
-    }
-
-    function pickRandom(arr){
-      return arr[Math.floor(Math.random() * arr.length)];
-    }
-
-    // Neues Target gemäß 1.a & 1.b
-    function generateCardTarget(){
-      if(drawsCount >= MAX_TARGETS) return null;
-
-      const forbidden = getForbiddenPairsForCurrentState();
-      const candidates = [];
-
-      for(let n=1; n<=12; n++){
-        if(usedNumbers.has(n)) continue; // Wert schon vergeben
-        for(const c of allColors){
-          if(forbidden.has(`${n}|${c}`)) continue; // bereits aufliegende Kombi
-          candidates.push({ num:n, color:c });
-        }
+      if(winner === "player"){
+        playerScore += roundPoints;
+        // Slot farblich merken (Ziel-Farbe)
+        lockedColorsByNumber.set(info.num, currentTarget.color);
+        applyPersistentFill(info.slotEl, info.num);
+      } else {
+        bankScore += roundPoints;
       }
 
-      if(!candidates.length) return null;
+      updateScoresUI();
+      applyHitVisual(info);
 
-      const chosen = pickRandom(candidates);
-      usedNumbers.add(chosen.num);
-      drawsCount++;
-      updateTargetTimeMulByDraws();
-      return chosen;
+      return (winner === "player");
     }
 
+    // Sichtbare Numberset
     function getVisibleNumbersSet(){
       return new Set(getVisibleSlotInfos().map(s => s.num).filter(n => n != null));
     }
@@ -1518,16 +1521,17 @@
       for(let i=0;i<4;i++){
         const zsIndex = DOM_SLOT_TO_ZS_INDEX[i];
         const zsCoord = zsCoords[zsIndex - 1];
-        const num = curr[i];
         const zfCoord = getAdjacentZFCoordForZS(zsCoord);
         const col = zfCoord ? COLOR_BY_ZF_COORD[zfCoord] : null;
-        out.push({ num, zsCoord, color: col });
+        out.push({ num: curr[i], zsCoord, color: col });
       }
       return out;
     }
 
+    function applyHitVisualNoop(){}
+
+    // Treffer-Reichweite (nicht mehr aktiv benutzt, aber da)
     function isPairReachableWithin6(num, color){
-      // aktuell nicht mehr verwendet, bleibt für später verfügbar
       let r = rotIndex;
       let f = faceIndex;
       for(let step=1; step<=6; step++){
@@ -1636,26 +1640,6 @@
     function mapHiddenToVisible_CW(face){
       const [f1,f2,f3,f4] = face;
       return [f4, f3, f2, f1];
-    }
-
-    // Karten-Visualisierung: 1–12 → 3–A
-    function getVisualRank(n){
-      switch(n){
-        case 12: return "A";
-        case 11: return "K";
-        case 10: return "Q";
-        case 9:  return "J";
-        case 8:  return "10";
-        case 7:  return "9";
-        case 6:  return "8";
-        case 5:  return "7";
-        case 4:  return "6";
-        case 3:  return "5";
-        case 2:  return "4";
-        case 1:  return "3";
-        default:
-          return (n === null || n === undefined) ? "" : String(n);
-      }
     }
 
     function renderNumber(span, n){
@@ -1821,8 +1805,9 @@
     // ---------- Reset Game to Start ----------
     function resetGameToStart(){
       endRestartMode = false;
-      hitsCount = 0;
-      updateScore();
+      playerScore = 0;
+      bankScore   = 0;
+      updateScoresUI();
       resetTargetDeck();
       resetLockedColors();
       rotIndex = 0;
@@ -1836,15 +1821,21 @@
       showStartView();
     }
 
-    // ---------- End „Ergebnis“ (Schlusskipprunde entfällt) ----------
+    // ---------- End „Ergebnis“: Scores stehen lassen, Neuspielen-Button ----------
     function showEndResultView(){
-      // Kein Ergebnis-Button / Schlusskipprunde mehr – direkt zurück zum Start
-      resetGameToStart();
-    }
+      uiMode = "END";
 
-    async function runErgebnisPresentation(){
-      // Ergebnis-Logik entfällt, direkt neues Spiel
-      resetGameToStart();
+      if(scrollBandWrap){
+        scrollBandWrap.classList.add("hidden");
+      }
+
+      // Start-Wrapper sichtbar, aber nur NEU SPIELEN
+      startBtnWrap.classList.remove("hidden");
+      btnSchauen.classList.add("hidden");
+      btnErgebnis.classList.remove("hidden");
+      btnErgebnisText.textContent = "NEU SPIELEN";
+
+      showHint("ENDE – VERGLEICHE DIE SCORES", true);
     }
 
     // =========================
@@ -2062,17 +2053,20 @@
       const run = document.getElementById("scoreRun");
       if(!run) return;
 
-      const col = 8;
-      const leftCell = (col - 1) * cellPx;
-      const centerX = leftCell + (cellPx / 2);
+      const row = 8;
+      const colStart = 1; // A–B
+      const visualRow = row + HEADER_ROW_OFFSET;
 
-      const headerY = 1.0 * cellPx;
-      const centerY = headerY;
+      const leftCell = (colStart - 1) * cellPx;
+      const topCell  = (visualRow - 1) * cellPx;
+
+      const centerX = leftCell + (2 * cellPx) / 2;
+      const centerY = topCell  + (cellPx / 2);
 
       run.style.left = centerX + "px";
       run.style.top  = centerY + "px";
 
-      const fontSize = cellPx * 0.56;
+      const fontSize = cellPx * 0.70;
       run.style.fontSize = fontSize + "px";
     }
 
@@ -2080,20 +2074,20 @@
       const score = document.getElementById("scoreDisplay");
       if(!score) return;
 
-      const row = 6;
-      const col = 4;
+      const row = 8;
+      const colStart = 7; // G–H
       const visualRow = row + HEADER_ROW_OFFSET;
 
-      const leftCell = (col - 1) * cellPx;
+      const leftCell = (colStart - 1) * cellPx;
       const topCell  = (visualRow - 1) * cellPx;
 
       const centerX = leftCell + (2 * cellPx) / 2;
-      const centerY = topCell  + (cellPx) / 2;
+      const centerY = topCell  + (cellPx / 2);
 
       score.style.left = centerX + "px";
       score.style.top  = centerY + "px";
 
-      const fontSize = cellPx * 0.96;
+      const fontSize = cellPx * 0.70;
       score.style.fontSize = fontSize + "px";
     }
 
@@ -2283,6 +2277,57 @@
       updateShadowVisibility();
     }
 
+    // =========================
+    // Random-Regeln: 12er Deck, verbotene Paare
+    // =========================
+    let usedNumbers = new Set();
+    let drawsCount = 0;
+
+    function resetTargetDeck(){
+      usedNumbers = new Set();
+      drawsCount = 0;
+      targetTimeMul = 1;
+    }
+
+    function pickRandom(arr){
+      return arr[Math.floor(Math.random() * arr.length)];
+    }
+
+    function getForbiddenPairsForCurrentState(){
+      const forbidden = new Set();
+      const visibleSlots = getVisibleSlotInfos();
+      for(const si of visibleSlots){
+        if(si.num == null) continue;
+        if(!si.color) continue;
+        forbidden.add(`${si.num}|${si.color}`);
+      }
+      return forbidden;
+    }
+
+    // Neues Target gemäß Regeln
+    function generateCardTarget(){
+      if(drawsCount >= MAX_TARGETS) return null;
+
+      const forbidden = getForbiddenPairsForCurrentState();
+      const candidates = [];
+
+      for(let n=1; n<=12; n++){
+        if(usedNumbers.has(n)) continue; // Wert schon vergeben
+        for(const c of allColors){
+          if(forbidden.has(`${n}|${c}`)) continue; // bereits aufliegende Kombi
+          candidates.push({ num:n, color:c });
+        }
+      }
+
+      if(!candidates.length) return null;
+
+      const chosen = pickRandom(candidates);
+      usedNumbers.add(chosen.num);
+      drawsCount++;
+      updateTargetTimeMulByDraws();
+      return chosen;
+    }
+
     function initPlayState(){
       cancelPreview();
 
@@ -2293,8 +2338,9 @@
       attemptsForTarget = 0;
 
       resetLockedColors();
-      hitsCount = 0;
-      updateScore();
+      playerScore = 0;
+      bankScore   = 0;
+      updateScoresUI();
 
       endRestartMode = false;
       const scoreEl = document.getElementById("scoreDisplay");
@@ -2359,7 +2405,8 @@
     });
 
     btnErgebnis.addEventListener("click", () => {
-      runErgebnisPresentation();
+      // NEU: NEU SPIELEN
+      resetGameToStart();
     });
 
     // Zurück-Button: Startseite bzw. Reset

@@ -2051,6 +2051,7 @@
       });
       if (targetImgCovered){
         targetImgCovered.style.display = "none";
+        targetImgCovered.style.pointerEvents = "auto";
         targetImgCovered.classList.remove("pulse");
       }
       hideTargetRankAndSuit();
@@ -2176,6 +2177,7 @@
 
       if (targetImgCovered){
         targetImgCovered.style.display = "block";
+        targetImgCovered.style.pointerEvents = "auto";
         targetImgCovered.classList.add("pulse");
       }
 
@@ -2596,6 +2598,7 @@
       });
       if (targetImgCovered){
         targetImgCovered.style.display = "none";
+        targetImgCovered.style.pointerEvents = "auto";
         targetImgCovered.classList.remove("pulse");
       }
 
@@ -2635,7 +2638,7 @@
     });
 
     btnErgebnis.addEventListener("click", () => {
-      resetGameToStart();
+      initPlayState();
     });
 
     backBtn.addEventListener("click", () => {
@@ -2679,7 +2682,9 @@
       targetImgCovered.addEventListener("click", () => {
         if (targetRevealed) return;
 
+        // SOFORT blockieren, bevor irgendwas anderes passiert
         targetRevealed = true;
+        targetImgCovered.style.pointerEvents = "none";
 
         targetImgCovered.classList.remove("pulse");
         targetImgCovered.style.display = "none";

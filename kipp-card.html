@@ -509,6 +509,12 @@
       opacity:0.5;
       pointer-events:none;
     }
+    /* NEU: Markierung der gewählten Kippzahl im Scrollband */
+    .scrollItem.runSelected{
+      background: var(--ui-panel-bg) !important;
+      color: var(--ui-text) !important;
+      text-shadow: 0 1px 0 rgba(0,0,0,0.40);
+    }
 
     @keyframes pulseScale{
       0%   { transform: scale(1);   filter: drop-shadow(0 0 0 rgba(255,255,255,0)); }
@@ -1576,46 +1582,57 @@
       return { rank: rankStr, value, rankIndex };
     }
 
-    // Player-Karte auf Ziel-Farbe finden (mit Rot/Schwarz-Regel)
-    function getPlayerCardOnTargetColor(){
+    // Hilfsfunktion: Slot auf Zielsymbol-Farbe finden
+    function getSlotOnTargetColor(){
       if (!currentTarget) return null;
-      const infos = getVisibleSlotInfos();
       const targetColor = currentTarget.color;
-
-      for (const info of infos){
-        if (info.num == null) continue;
-        if (info.color !== targetColor) continue;
-
-        const cardColor = getCardColor(info.num);
-
-        // Stichregel:
-        // Rot darf nur Herz/Karo stechen, Schwarz nur Pik/Kreuz
-        if (isRedSuitColor(targetColor) && cardColor !== "red") continue;
-        if (isBlackSuitColor(targetColor) && cardColor !== "black") continue;
-
-        return info;
-      }
-      return null;
+      const infos = getVisibleSlotInfos();
+      return infos.find(info => info.color === targetColor) || null;
     }
 
-    // Treffererkennung + Score Player/Bank
-    function checkHitAndAnimate(){
-      if (!currentTarget) return false;
+    // Einmalige Auswertung am aktuellen Würfelface:
+    // - bereits verbrauchte Karte am Zielsymbol → "autoKip"
+    // - sonst Stich für Player oder Bank nach Farb-/Wertlogik
+    function evaluateTrickAtCurrentFaceOnce(){
+      if (!currentTarget) return { result: "none" };
 
-      const info = getPlayerCardOnTargetColor();
-      if (!info) return false;
+      const info = getSlotOnTargetColor();
+      if (!info || info.num == null){
+        return { result: "none" };
+      }
 
-      if (usedCards.has(info.num)) {
-        console.log("Karte", info.num, "ist bereits verbraucht!");
-        return false;
+      // Fall: bereits verbrauchte Karte am Zielsymbol → Auto-Kipp
+      if (usedCards.has(info.num)){
+        // verbrauchtes Symbol pulsiert deutlich
+        applyHitVisual(info);
+        return { result: "autoKip", slotInfo: info };
       }
 
       const playerCard = getCardInfo(info.num);
       const targetCard = getCardInfo(currentTarget.num);
 
+      const cardColor  = getCardColor(info.num);
+      const targetIsRed   = isRedSuitColor(currentTarget.color);
+      const targetIsBlack = isBlackSuitColor(currentTarget.color);
+
+      const colorMatches =
+        (targetIsRed   && cardColor === "red") ||
+        (targetIsBlack && cardColor === "black");
+
       let winner = "bank";
-      if (playerCard.rankIndex > targetCard.rankIndex){
-        winner = "player";
+
+      // Falsche Farbe: immer BANZ
+      if (!colorMatches){
+        winner = "bank";
+      } else {
+        // Richtige Farbe:
+        // höhere Karte → Player
+        // gleiche/niedrigere Karte → BANZ
+        if (playerCard.rankIndex > targetCard.rankIndex){
+          winner = "player";
+        } else {
+          winner = "bank";
+        }
       }
 
       const roundPoints = playerCard.value + targetCard.value;
@@ -1645,7 +1662,31 @@
         }
       }
 
-      return (winner === "player");
+      return { result: winner };
+    }
+
+    // Automatischer Ablauf:
+    // tote Karte am Zielsymbol → Puls + Auto-Kipp,
+    // bis eine unverbrauchte Karte zu einem Stich führt
+    async function resolveTrickWithDeadBounce(maxAutoSteps = 12){
+      let steps = 0;
+      while (steps < maxAutoSteps){
+        const res = evaluateTrickAtCurrentFaceOnce();
+
+        if (res.result === "autoKip"){
+          steps++;
+          // kurze Zeit für Puls-Animation lassen
+          await sleep(700);
+          // automatischer Einzel-Kipp
+          await runSchauKippSequence(1, { kipFactor: 1 });
+          continue;
+        }
+
+        // "player", "bank" oder "none"
+        return res;
+      }
+      // Sicherheitsnetz: keine Endlosschleife
+      return { result: "none" };
     }
 
     function getVisibleNumbersSet(){
@@ -1875,12 +1916,13 @@
     function buildScrollBand(){
       if (!scrollBand) return;
       scrollBand.innerHTML = "";
-      for (let num = 1; num <= 11; num++){
+      // NEU: 0–11, 0 = sofortiger Stichversuch ohne extra Kipp
+      for (let num = 0; num <= 11; num++){
         const item = document.createElement("div");
         item.className = "scrollItem";
         item.dataset.anzahl = num;
         item.textContent = String(num);
-        item.addEventListener("click", () => handleAnzahlClick(num, null));
+        item.addEventListener("click", () => handleAnzahlClick(num, item));
         scrollBand.appendChild(item);
       }
       scrollBand.classList.add("wiggle");
@@ -1907,10 +1949,16 @@
     }
 
     function markRunSelected(btn){
+      if (scrollBand){
+        scrollBand.querySelectorAll(".scrollItem").forEach(el => el.classList.remove("runSelected"));
+      }
       kippAnzahlBtns.querySelectorAll("button").forEach(b => b.classList.remove("runSelected"));
       if (btn) btn.classList.add("runSelected");
     }
     function clearRunSelected(){
+      if (scrollBand){
+        scrollBand.querySelectorAll(".scrollItem").forEach(el => el.classList.remove("runSelected"));
+      }
       kippAnzahlBtns.querySelectorAll("button").forEach(b => b.classList.remove("runSelected"));
     }
 
@@ -2010,7 +2058,7 @@
       showHint("ENDE – VERGLEICHE DIE SCORES", true);
     }
 
-    function handleAnzahlClick(anzahl, clickedBtn){
+    async function handleAnzahlClick(anzahl, clickedBtn){
       if (!currentTarget) return;
       if (runningKipp) return;
       if (attemptsForTarget >= MAX_ATTEMPTS_PER_TARGET) return;
@@ -2019,24 +2067,30 @@
 
       markRunSelected(clickedBtn);
       setScrollBandLocked(true);
-      runSchauKippSequence(anzahl, { kipFactor: 1 }).finally(async () => {
-        clearHitPulse();
-        const hit = checkHitAndAnimate();
 
-        clearRunSelected();
+      // 0 = kein zusätzlicher Kipp, nur aktuelle Lage auswerten
+      if (anzahl > 0){
+        await runSchauKippSequence(anzahl, { kipFactor: 1 });
+      }
 
-        const isLastTarget = (drawsCount >= MAX_TARGETS);
+      clearHitPulse();
 
-        await sleep(900);
+      // Tote Karte am Zielsymbol → Puls + Auto-Kipp, bis echte Karte zum Stich führt
+      await resolveTrickWithDeadBounce();
 
-        if (isLastTarget){
-          showEndResultView();
-          return;
-        }
+      clearRunSelected();
 
-        resetToNewTargetChoice();
-        renderW();
-      });
+      const isLastTarget = (drawsCount >= MAX_TARGETS);
+
+      await sleep(900);
+
+      if (isLastTarget){
+        showEndResultView();
+        return;
+      }
+
+      resetToNewTargetChoice();
+      renderW();
     }
 
     function resetTargetPadUI(){

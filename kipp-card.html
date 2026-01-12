@@ -2508,29 +2508,38 @@
       updateShadowVisibility();
     }
 
-    // === ULTRA-SIMPLE TARGET SYSTEM - NUR 3 VARIABLEN ===
-    var GAME_TARGETS = [];
-    var NEXT_TARGET_INDEX = 0;
-    let drawsCount = 0;
+    // ========== TARGETS: ABSOLUT SICHERE VERSION ==========
+    var TARGET_1, TARGET_2, TARGET_3, TARGET_4, TARGET_5, TARGET_6;
+    var CURRENT_TARGET_NUMBER = 0;
+    var drawsCount = 0;
 
     function resetTargetDeck(){
-      console.log("🔴 resetTargetDeck AUFGERUFEN - neues Spiel startet");
+      console.log("🔴 RESET: Erstelle 6 neue Targets");
       
-      // Mische 6 Ränge
-      var ranks = ["8", "9", "10", "J", "Q", "K"];
-      for (var i = ranks.length - 1; i > 0; i--) {
+      // Array mit 6 VERSCHIEDENEN Werten - GARANTIERT
+      var allRanks = ["8", "9", "10", "J", "Q", "K"];
+      
+      // Fisher-Yates Shuffle - bewährt
+      for (var i = 5; i > 0; i--) {
         var j = Math.floor(Math.random() * (i + 1));
-        var temp = ranks[i];
-        ranks[i] = ranks[j];
-        ranks[j] = temp;
+        var temp = allRanks[i];
+        allRanks[i] = allRanks[j];
+        allRanks[j] = temp;
       }
       
-      GAME_TARGETS = ranks;
-      NEXT_TARGET_INDEX = 0;
+      // Weise jeden Rang FEST einer Variable zu
+      TARGET_1 = allRanks[0];
+      TARGET_2 = allRanks[1];
+      TARGET_3 = allRanks[2];
+      TARGET_4 = allRanks[3];
+      TARGET_5 = allRanks[4];
+      TARGET_6 = allRanks[5];
+      
+      CURRENT_TARGET_NUMBER = 0;
       drawsCount = 0;
       targetTimeMul = 1;
       
-      console.log("   Reihenfolge: " + GAME_TARGETS.join(", "));
+      console.log("   1:" + TARGET_1 + " 2:" + TARGET_2 + " 3:" + TARGET_3 + " 4:" + TARGET_4 + " 5:" + TARGET_5 + " 6:" + TARGET_6);
     }
 
     function pickRandom(arr){
@@ -2551,16 +2560,20 @@
     }
 
     function generateCardTarget(){
-      console.log("🟢 generateCardTarget aufgerufen - Index: " + NEXT_TARGET_INDEX);
+      CURRENT_TARGET_NUMBER++;
+      console.log("🟢 Generiere Target #" + CURRENT_TARGET_NUMBER);
       
-      if (NEXT_TARGET_INDEX >= 6) {
-        console.log("   ❌ Keine Targets mehr");
+      var rank;
+      if (CURRENT_TARGET_NUMBER === 1) rank = TARGET_1;
+      else if (CURRENT_TARGET_NUMBER === 2) rank = TARGET_2;
+      else if (CURRENT_TARGET_NUMBER === 3) rank = TARGET_3;
+      else if (CURRENT_TARGET_NUMBER === 4) rank = TARGET_4;
+      else if (CURRENT_TARGET_NUMBER === 5) rank = TARGET_5;
+      else if (CURRENT_TARGET_NUMBER === 6) rank = TARGET_6;
+      else {
+        console.log("   ❌ Keine Targets mehr!");
         return null;
       }
-
-      // Hole nächsten Rang
-      var rank = GAME_TARGETS[NEXT_TARGET_INDEX];
-      NEXT_TARGET_INDEX++;
       
       // Zufällige Farbe
       var colors = ["violett", "blau", "gruen", "orange"];
@@ -2571,7 +2584,7 @@
         color: randomColor
       };
       
-      console.log("   ✅ Target " + NEXT_TARGET_INDEX + "/6: " + rank + " (" + randomColor + ")");
+      console.log("   ✅ Target " + CURRENT_TARGET_NUMBER + "/6: " + rank + " (" + randomColor + ")");
       
       drawsCount++;
       updateTargetTimeMulByDraws();

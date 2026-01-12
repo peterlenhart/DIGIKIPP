@@ -1974,11 +1974,8 @@
     }
 
     function showTargetRankAndSuit(target){
-      logOnScreen(`<b style="color:yellow">ANZEIGE:</b> ${target ? target.num + " " + target.color : "null"}`);
       if (!target) return;
       const text = getVisualRank(target.num);
-      logOnScreen(`Zeige: "${text}"`);
-      
       if (targetRank10D){
         targetRank10D.textContent = text;
 
@@ -1995,7 +1992,6 @@
           targetSuitImg.style.display = "block";
         }
       }
-      logOnScreen(`---`);
     }
 
     function resetToNewTargetChoice(){
@@ -2513,53 +2509,20 @@
     let shuffledRanks = [];
     let rankIndex = 0;
     let drawsCount  = 0;
-    let generateCallCounter = 0;
-    
-    // On-screen logging
-    let logDiv = null;
-    function logOnScreen(msg) {
-      if (!logDiv) {
-        logDiv = document.createElement("div");
-        logDiv.id = "onscreenLog";
-        logDiv.style.position = "fixed";
-        logDiv.style.bottom = "0px";
-        logDiv.style.left = "0px";
-        logDiv.style.width = "100%";
-        logDiv.style.height = "200px";
-        logDiv.style.background = "rgba(0,0,0,0.9)";
-        logDiv.style.color = "lime";
-        logDiv.style.padding = "10px";
-        logDiv.style.fontSize = "14px";
-        logDiv.style.zIndex = "999999";
-        logDiv.style.overflowY = "scroll";
-        logDiv.style.fontFamily = "monospace";
-        document.body.appendChild(logDiv);
-      }
-      logDiv.innerHTML += msg + "<br>";
-      logDiv.scrollTop = logDiv.scrollHeight;
-    }
 
     function resetTargetDeck(){
-      logOnScreen(`<b>>>> RESET: Neues Spiel</b>`);
-      
       shuffledRanks = ["8", "9", "10", "J", "Q", "K"];
-      
-      // Klassischer Fisher-Yates mit temp-Variable
       for (let i = 5; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
         const temp = shuffledRanks[i];
         shuffledRanks[i] = shuffledRanks[j];
         shuffledRanks[j] = temp;
       }
-      
-      logOnScreen(`Array: ${shuffledRanks.join(", ")}`);
-      
       rankIndex = 0;
       drawsCount  = 0;
       targetTimeMul = 1;
-      generateCallCounter = 0;
       
-      // Zeige das gemischte Array auf dem Bildschirm
+      // Debug-Anzeige
       let debugDiv = document.getElementById("shuffleDebug");
       if (!debugDiv) {
         debugDiv = document.createElement("div");
@@ -2596,14 +2559,10 @@
     }
 
     function generateCardTarget(){
-      generateCallCounter++;
-      logOnScreen(`<b style="color:cyan">>>> CALL #${generateCallCounter}</b>`);
-      logOnScreen(`rankIndex=${rankIndex}`);
-      
       if (rankIndex >= 6) return null;
 
       const rankStr = shuffledRanks[rankIndex];
-      logOnScreen(`Nehme [${rankIndex}] = "${rankStr}"`);
+      console.log("Target #" + (rankIndex + 1) + ": " + rankStr);
       rankIndex++;
 
       const forbidden = getForbiddenPairsForCurrentState();
@@ -2614,14 +2573,9 @@
         candidates.push({ num: rankStr, color: c });
       }
 
-      if (!candidates.length) {
-        logOnScreen(`<span style="color:red">KEINE Farbe!</span>`);
-        return null;
-      }
+      if (!candidates.length) return null;
 
       const chosen = pickRandom(candidates);
-      logOnScreen(`GEWÄHLT: ${chosen.num} ${chosen.color}`);
-      
       drawsCount++;
       updateTargetTimeMulByDraws();
       return chosen;
@@ -2748,18 +2702,43 @@
     if (targetImgCovered){
       targetImgCovered.addEventListener("click", () => {
         if (targetRevealed) return;
+        if (rankIndex >= 6) return; // Alle Targets verwendet
 
         targetRevealed = true;
 
         targetImgCovered.classList.remove("pulse");
         targetImgCovered.style.display = "none";
 
-        currentTarget = generateCardTarget();
-        if (!currentTarget) return;
+        // DIREKT das nächste Element nehmen
+        const rankStr = shuffledRanks[rankIndex];
+        rankIndex++;
 
+        // Zufällige Farbe wählen
+        const colors = ["violett", "blau", "gruen", "orange"];
+        const randomColor = colors[Math.floor(Math.random() * 4)];
+
+        // DIREKT in UI schreiben - KEIN getVisualRank, KEINE Zwischenfunktionen!
+        if (targetRank10D) {
+          targetRank10D.textContent = rankStr; // DIREKT!
+          targetRank10D.style.color = (randomColor === "violett" || randomColor === "orange") ? "#d32f2f" : "#212121";
+          targetRank10D.style.display = "block";
+        }
+
+        // Farb-Icon setzen
+        if (targetSuitImg) {
+          const src = SUIT_IMG_BY_COLOR[randomColor] || "";
+          if (src) {
+            targetSuitImg.src = src;
+            targetSuitImg.style.display = "block";
+          }
+        }
+
+        // currentTarget setzen für andere Logik
+        currentTarget = { num: rankStr, color: randomColor };
         attemptsForTarget = 0;
-
-        showTargetRankAndSuit(currentTarget);
+        drawsCount++;
+        updateTargetTimeMulByDraws();
+        
         showKippCountView();
       });
     }

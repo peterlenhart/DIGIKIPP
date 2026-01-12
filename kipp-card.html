@@ -1008,8 +1008,9 @@
        ======================================== */
     .kspRegler{
       position: absolute;
-      left: 50%;
-      transform: translateX(-50%);
+      left: 0;
+      width: var(--gridW);
+      transform: translateX(0);
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -1019,15 +1020,18 @@
     }
 
     .kspMainRow{
-      display: flex;
-      align-items: center;
-      gap: calc(82px * var(--uiscale)); /* 12px + 70px = 82px für weiteren Abstand */
+      position: relative;
+      width: 100%;
+      height: calc(40px * var(--uiscale));
       pointer-events: none;
     }
 
     .kspIcon{
+      position: absolute;
+      top: 50%;
       width: calc(36px * var(--uiscale));
       height: calc(36px * var(--uiscale));
+      transform: translate(-50%, -50%);
       pointer-events: none;
       /* Score-Gelb für Icon-Konturen */
       filter: 
@@ -1036,8 +1040,21 @@
         drop-shadow(0 2px 4px rgba(0,0,0,0.35));
     }
 
+    /* Snail zwischen Spalte A-B = Position 1.5 */
+    .kspIcon#kspSnail{
+      left: calc(1.5 * var(--cell));
+    }
+
+    /* Hase zwischen Spalte G-H = Position 7.5 */
+    .kspIcon#kspHase{
+      left: calc(7.5 * var(--cell));
+    }
+
     .kspSchlitzWrap{
-      position: relative;
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
       pointer-events: auto;
       cursor: pointer;
       /* Größere Touch-Area */
@@ -1046,7 +1063,7 @@
     }
 
     .kspSchlitz{
-      width: calc(320px * var(--uiscale)); /* 180px + 140px = 320px */
+      width: calc(280px * var(--uiscale)); /* Angepasst für Platz zwischen Icons */
       height: calc(8px * var(--uiscale));
       background: 
         linear-gradient(180deg, rgba(0,0,0,0.35), rgba(0,0,0,0.15)),
@@ -1079,7 +1096,7 @@
 
     .kspLevels{
       display: flex;
-      gap: calc(92px * var(--uiscale)); /* Angepasst an 320px Schlitz: (320-32)/3 ≈ 96px, minus etwas für optische Balance */
+      gap: calc(80px * var(--uiscale)); /* Angepasst an 280px Schlitz */
       pointer-events: none;
       padding: 0 calc(4px * var(--uiscale));
     }
@@ -1290,12 +1307,12 @@
       <div class="kspRegler" id="kspRegler">
         <div class="kspMainRow">
           <img src="kippspeed_snail_tight.png" alt="Schnecke" class="kspIcon" id="kspSnail">
+          <img src="kippspeed_hase_tight.png" alt="Hase" class="kspIcon" id="kspHase">
           <div class="kspSchlitzWrap" id="kspSchlitzWrap">
             <div class="kspSchlitz">
               <div class="kspKnopf" id="kspKnopf"></div>
             </div>
           </div>
-          <img src="kippspeed_hase_tight.png" alt="Hase" class="kspIcon" id="kspHase">
         </div>
         <div class="kspLevels">
           <div class="kspLevel" data-level="1">1</div>

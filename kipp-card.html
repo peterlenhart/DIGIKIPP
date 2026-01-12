@@ -2508,42 +2508,29 @@
       updateShadowVisibility();
     }
 
-    // ALLE 6 TARGETS KOMPLETT beim Spielstart generieren!
-    let allReadyTargets = [];
-    let currentTargetIndex = 0;
-    let generateCallCount = 0; // DEBUG COUNTER
+    // === ULTRA-SIMPLE TARGET SYSTEM - NUR 3 VARIABLEN ===
+    var GAME_TARGETS = [];
+    var NEXT_TARGET_INDEX = 0;
+    let drawsCount = 0;
 
     function resetTargetDeck(){
-      // 1. Ränge mischen
-      const ranks = ["8", "9", "10", "J", "Q", "K"];
-      for (let i = ranks.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [ranks[i], ranks[j]] = [ranks[j], ranks[i]];
+      console.log("🔴 resetTargetDeck AUFGERUFEN - neues Spiel startet");
+      
+      // Mische 6 Ränge
+      var ranks = ["8", "9", "10", "J", "Q", "K"];
+      for (var i = ranks.length - 1; i > 0; i--) {
+        var j = Math.floor(Math.random() * (i + 1));
+        var temp = ranks[i];
+        ranks[i] = ranks[j];
+        ranks[j] = temp;
       }
       
-      // 2. ALLE 6 Targets sofort komplett erstellen
-      allReadyTargets = [];
-      for (let i = 0; i < 6; i++) {
-        const rankStr = ranks[i];
-        // Zufällige Farbe aus den 4 Farben
-        const colors = ["violett", "blau", "gruen", "orange"];
-        const randomColor = colors[Math.floor(Math.random() * colors.length)];
-        
-        allReadyTargets.push({
-          num: rankStr,
-          color: randomColor
-        });
-      }
-      
-      currentTargetIndex = 0;
+      GAME_TARGETS = ranks;
+      NEXT_TARGET_INDEX = 0;
       drawsCount = 0;
       targetTimeMul = 1;
-      generateCallCount = 0; // RESET COUNTER
       
-      console.log("🎲 ALLE 6 TARGETS fertig generiert:");
-      allReadyTargets.forEach((t, idx) => {
-        console.log(`   ${idx + 1}. ${t.num} ${t.color}`);
-      });
+      console.log("   Reihenfolge: " + GAME_TARGETS.join(", "));
     }
 
     function pickRandom(arr){
@@ -2564,53 +2551,27 @@
     }
 
     function generateCardTarget(){
-      generateCallCount++; // ZÄHLE JEDEN AUFRUF
+      console.log("🟢 generateCardTarget aufgerufen - Index: " + NEXT_TARGET_INDEX);
       
-      // GROSSES ROTES WARNFENSTER
-      let debugDiv = document.getElementById("extremeDebug");
-      if (!debugDiv) {
-        debugDiv = document.createElement("div");
-        debugDiv.id = "extremeDebug";
-        debugDiv.style.position = "fixed";
-        debugDiv.style.top = "50%";
-        debugDiv.style.left = "50%";
-        debugDiv.style.transform = "translate(-50%, -50%)";
-        debugDiv.style.background = "red";
-        debugDiv.style.color = "white";
-        debugDiv.style.padding = "30px";
-        debugDiv.style.fontSize = "40px";
-        debugDiv.style.zIndex = "999999";
-        debugDiv.style.border = "10px solid yellow";
-        debugDiv.style.fontWeight = "bold";
-        document.body.appendChild(debugDiv);
-      }
-      
-      console.log(`🚨 generateCardTarget Aufruf #${generateCallCount}`);
-      console.log(`   currentTargetIndex: ${currentTargetIndex}`);
-      
-      if (currentTargetIndex >= 6) {
-        console.log("❌ Alle 6 Targets bereits verwendet");
-        debugDiv.innerHTML = `FEHLER!<br>Alle 6 Targets schon weg!<br>Aufrufe: ${generateCallCount}`;
+      if (NEXT_TARGET_INDEX >= 6) {
+        console.log("   ❌ Keine Targets mehr");
         return null;
       }
 
-      // Einfach das nächste fertige Target nehmen
-      const target = allReadyTargets[currentTargetIndex];
-      currentTargetIndex++;
+      // Hole nächsten Rang
+      var rank = GAME_TARGETS[NEXT_TARGET_INDEX];
+      NEXT_TARGET_INDEX++;
       
-      console.log(`🎯 TARGET ${currentTargetIndex}/6: ${target.num} ${target.color}`);
+      // Zufällige Farbe
+      var colors = ["violett", "blau", "gruen", "orange"];
+      var randomColor = colors[Math.floor(Math.random() * 4)];
       
-      debugDiv.innerHTML = `
-        AUFRUF #${generateCallCount}<br>
-        TARGET ${currentTargetIndex}/6<br>
-        ${target.num} ${target.color}<br>
-        <small>Liste: ${allReadyTargets.map(t => t.num).join(", ")}</small>
-      `;
+      var target = {
+        num: rank,
+        color: randomColor
+      };
       
-      // Nach 3 Sekunden ausblenden
-      setTimeout(() => {
-        debugDiv.style.opacity = "0.3";
-      }, 3000);
+      console.log("   ✅ Target " + NEXT_TARGET_INDEX + "/6: " + rank + " (" + randomColor + ")");
       
       drawsCount++;
       updateTargetTimeMulByDraws();
@@ -2738,21 +2699,13 @@
 
     if (targetImgCovered){
       targetImgCovered.addEventListener("click", () => {
-        console.log("🖱️ KLICK auf verdeckte Karte!");
-        console.log("   targetRevealed:", targetRevealed);
-        console.log("   currentTargetIndex:", currentTargetIndex);
-        
-        if (targetRevealed) {
-          console.log("   ⚠️ Bereits revealed - RETURN");
-          return;
-        }
+        if (targetRevealed) return;
 
-        console.log("   ✅ Generiere jetzt neues Target...");
+        console.log("🖱️ Klick - generiere Target " + (NEXT_TARGET_INDEX + 1) + "/6");
 
-        // SOFORT blockieren
+        // Sofort blockieren
         targetRevealed = true;
         targetImgCovered.style.pointerEvents = "none";
-
         targetImgCovered.classList.remove("pulse");
         targetImgCovered.style.display = "none";
 

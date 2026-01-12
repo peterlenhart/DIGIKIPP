@@ -1014,7 +1014,7 @@
         <div class="introTitle">STICH DIE BANK!</div>
         <div class="introText">
           Jedes Target lässt sich überstechen.<br>
-          Highscore: 118
+          Highscore: 121
         </div>
         <button class="introBackBtn" id="introBackBtn">← Zur Auswahl</button>
         <button class="introBtn" id="introStartBtn">LOS GEHT'S</button>
@@ -2506,11 +2506,11 @@
       updateShadowVisibility();
     }
 
-    let usedNumbers = new Set();
+    let usedRanks = new Set();
     let drawsCount  = 0;
 
     function resetTargetDeck(){
-      usedNumbers = new Set();
+      usedRanks = new Set();
       drawsCount  = 0;
       targetTimeMul = 1;
     }
@@ -2525,7 +2525,9 @@
       for (const si of visibleSlots){
         if (si.num == null) continue;
         if (!si.color) continue;
-        forbidden.add(`${si.num}|${si.color}`);
+        const rankStr = getVisualRank(si.num);
+        if (!rankStr) continue;
+        forbidden.add(`${rankStr}|${si.color}`);
       }
       return forbidden;
     }
@@ -2536,22 +2538,20 @@
       const forbidden = getForbiddenPairsForCurrentState();
       const candidates = [];
 
-      for (let n=1; n<=12; n++){
-        if (usedNumbers.has(n)) continue;
-
-        const rankStr = getVisualRank(n);
-        if (!ALLOWED_TARGET_RANKS.has(rankStr)) continue; // nur 8,9,10,J,Q,K
+      // Bank-Deck: 8, 9, 10, J, Q, K – jede Rangstufe nur 1×
+      for (const rankStr of ALLOWED_TARGET_RANKS){
+        if (usedRanks.has(rankStr)) continue;
 
         for (const c of allColors){
-          if (forbidden.has(`${n}|${c}`)) continue;
-          candidates.push({ num:n, color:c });
+          if (forbidden.has(`${rankStr}|${c}`)) continue;
+          candidates.push({ num: rankStr, color: c });
         }
       }
 
       if (!candidates.length) return null;
 
       const chosen = pickRandom(candidates);
-      usedNumbers.add(chosen.num);
+      usedRanks.add(chosen.num);
       drawsCount++;
       updateTargetTimeMulByDraws();
       return chosen;

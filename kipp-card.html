@@ -2051,7 +2051,6 @@
       });
       if (targetImgCovered){
         targetImgCovered.style.display = "none";
-        targetImgCovered.style.pointerEvents = "auto";
         targetImgCovered.classList.remove("pulse");
       }
       hideTargetRankAndSuit();
@@ -2177,7 +2176,6 @@
 
       if (targetImgCovered){
         targetImgCovered.style.display = "block";
-        targetImgCovered.style.pointerEvents = "auto";
         targetImgCovered.classList.add("pulse");
       }
 
@@ -2508,38 +2506,19 @@
       updateShadowVisibility();
     }
 
-    // ========== TARGETS: ABSOLUT SICHERE VERSION ==========
-    var TARGET_1, TARGET_2, TARGET_3, TARGET_4, TARGET_5, TARGET_6;
-    var CURRENT_TARGET_NUMBER = 0;
-    var drawsCount = 0;
+    let shuffledRanks = [];
+    let rankIndex = 0;
+    let drawsCount  = 0;
 
     function resetTargetDeck(){
-      console.log("🔴 RESET: Erstelle 6 neue Targets");
-      
-      // Array mit 6 VERSCHIEDENEN Werten - GARANTIERT
-      var allRanks = ["8", "9", "10", "J", "Q", "K"];
-      
-      // Fisher-Yates Shuffle - bewährt
-      for (var i = 5; i > 0; i--) {
-        var j = Math.floor(Math.random() * (i + 1));
-        var temp = allRanks[i];
-        allRanks[i] = allRanks[j];
-        allRanks[j] = temp;
+      shuffledRanks = ["8", "9", "10", "J", "Q", "K"];
+      for (let i = 5; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [shuffledRanks[i], shuffledRanks[j]] = [shuffledRanks[j], shuffledRanks[i]];
       }
-      
-      // Weise jeden Rang FEST einer Variable zu
-      TARGET_1 = allRanks[0];
-      TARGET_2 = allRanks[1];
-      TARGET_3 = allRanks[2];
-      TARGET_4 = allRanks[3];
-      TARGET_5 = allRanks[4];
-      TARGET_6 = allRanks[5];
-      
-      CURRENT_TARGET_NUMBER = 0;
-      drawsCount = 0;
+      rankIndex = 0;
+      drawsCount  = 0;
       targetTimeMul = 1;
-      
-      console.log("   1:" + TARGET_1 + " 2:" + TARGET_2 + " 3:" + TARGET_3 + " 4:" + TARGET_4 + " 5:" + TARGET_5 + " 6:" + TARGET_6);
     }
 
     function pickRandom(arr){
@@ -2560,35 +2539,25 @@
     }
 
     function generateCardTarget(){
-      CURRENT_TARGET_NUMBER++;
-      console.log("🟢 Generiere Target #" + CURRENT_TARGET_NUMBER);
-      
-      var rank;
-      if (CURRENT_TARGET_NUMBER === 1) rank = TARGET_1;
-      else if (CURRENT_TARGET_NUMBER === 2) rank = TARGET_2;
-      else if (CURRENT_TARGET_NUMBER === 3) rank = TARGET_3;
-      else if (CURRENT_TARGET_NUMBER === 4) rank = TARGET_4;
-      else if (CURRENT_TARGET_NUMBER === 5) rank = TARGET_5;
-      else if (CURRENT_TARGET_NUMBER === 6) rank = TARGET_6;
-      else {
-        console.log("   ❌ Keine Targets mehr!");
-        return null;
+      if (rankIndex >= 6) return null;
+
+      const rankStr = shuffledRanks[rankIndex];
+      rankIndex++;
+
+      const forbidden = getForbiddenPairsForCurrentState();
+      const candidates = [];
+
+      for (const c of allColors){
+        if (forbidden.has(`${rankStr}|${c}`)) continue;
+        candidates.push({ num: rankStr, color: c });
       }
-      
-      // Zufällige Farbe
-      var colors = ["violett", "blau", "gruen", "orange"];
-      var randomColor = colors[Math.floor(Math.random() * 4)];
-      
-      var target = {
-        num: rank,
-        color: randomColor
-      };
-      
-      console.log("   ✅ Target " + CURRENT_TARGET_NUMBER + "/6: " + rank + " (" + randomColor + ")");
-      
+
+      if (!candidates.length) return null;
+
+      const chosen = pickRandom(candidates);
       drawsCount++;
       updateTargetTimeMulByDraws();
-      return target;
+      return chosen;
     }
 
     function initPlayState(){
@@ -2630,7 +2599,6 @@
       });
       if (targetImgCovered){
         targetImgCovered.style.display = "none";
-        targetImgCovered.style.pointerEvents = "auto";
         targetImgCovered.classList.remove("pulse");
       }
 
@@ -2670,7 +2638,7 @@
     });
 
     btnErgebnis.addEventListener("click", () => {
-      initPlayState();
+      resetGameToStart();
     });
 
     backBtn.addEventListener("click", () => {
@@ -2714,11 +2682,8 @@
       targetImgCovered.addEventListener("click", () => {
         if (targetRevealed) return;
 
-        console.log("🖱️ Klick - generiere Target " + (NEXT_TARGET_INDEX + 1) + "/6");
-
-        // Sofort blockieren
         targetRevealed = true;
-        targetImgCovered.style.pointerEvents = "none";
+
         targetImgCovered.classList.remove("pulse");
         targetImgCovered.style.display = "none";
 

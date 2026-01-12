@@ -2512,18 +2512,36 @@
 
     function resetTargetDeck(){
       shuffledRanks = ["8", "9", "10", "J", "Q", "K"];
-      console.log("VOR Shuffle:", JSON.stringify(shuffledRanks));
       
+      // Klassischer Fisher-Yates mit temp-Variable
       for (let i = 5; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
-        console.log(`  Swap: [${i}]=${shuffledRanks[i]} <-> [${j}]=${shuffledRanks[j]}`);
-        [shuffledRanks[i], shuffledRanks[j]] = [shuffledRanks[j], shuffledRanks[i]];
+        const temp = shuffledRanks[i];
+        shuffledRanks[i] = shuffledRanks[j];
+        shuffledRanks[j] = temp;
       }
       
-      console.log("NACH Shuffle:", JSON.stringify(shuffledRanks));
       rankIndex = 0;
       drawsCount  = 0;
       targetTimeMul = 1;
+      
+      // Zeige das gemischte Array auf dem Bildschirm
+      let debugDiv = document.getElementById("shuffleDebug");
+      if (!debugDiv) {
+        debugDiv = document.createElement("div");
+        debugDiv.id = "shuffleDebug";
+        debugDiv.style.position = "fixed";
+        debugDiv.style.top = "10px";
+        debugDiv.style.left = "10px";
+        debugDiv.style.background = "yellow";
+        debugDiv.style.padding = "10px";
+        debugDiv.style.fontSize = "20px";
+        debugDiv.style.zIndex = "99999";
+        debugDiv.style.border = "3px solid red";
+        debugDiv.style.fontWeight = "bold";
+        document.body.appendChild(debugDiv);
+      }
+      debugDiv.textContent = "Reihenfolge: " + shuffledRanks.join(", ");
     }
 
     function pickRandom(arr){
@@ -2544,12 +2562,10 @@
     }
 
     function generateCardTarget(){
-      console.log(`generateCardTarget: rankIndex=${rankIndex}, Array:`, JSON.stringify(shuffledRanks));
-      
       if (rankIndex >= 6) return null;
 
       const rankStr = shuffledRanks[rankIndex];
-      console.log(`  -> Nehme [${rankIndex}] = "${rankStr}"`);
+      console.log("Target #" + (rankIndex + 1) + ": " + rankStr);
       rankIndex++;
 
       const forbidden = getForbiddenPairsForCurrentState();

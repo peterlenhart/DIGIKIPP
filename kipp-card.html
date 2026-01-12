@@ -2508,48 +2508,40 @@
       updateShadowVisibility();
     }
 
-    // ULTRA-SIMPLE: Alle 6 Targets in einem Array, beim Start gemischt
-    let allTargets = ["8", "9", "10", "J", "Q", "K"];
-    let targetIndex = 0;
-    let drawsCount  = 0;
-
-    // DEBUG DISPLAY auf dem Screen
-    function updateDebugDisplay() {
-      let debugDiv = document.getElementById("debugDisplay");
-      if (!debugDiv) {
-        debugDiv = document.createElement("div");
-        debugDiv.id = "debugDisplay";
-        debugDiv.style.position = "fixed";
-        debugDiv.style.top = "10px";
-        debugDiv.style.right = "10px";
-        debugDiv.style.background = "yellow";
-        debugDiv.style.padding = "10px";
-        debugDiv.style.fontSize = "20px";
-        debugDiv.style.zIndex = "99999";
-        debugDiv.style.border = "3px solid red";
-        document.body.appendChild(debugDiv);
-      }
-      debugDiv.innerHTML = `
-        <b>DEBUG:</b><br>
-        Array: [${allTargets.join(", ")}]<br>
-        Index: ${targetIndex}<br>
-        Nächstes: ${allTargets[targetIndex] || "ENDE"}
-      `;
-    }
+    // ALLE 6 TARGETS KOMPLETT beim Spielstart generieren!
+    let allReadyTargets = [];
+    let currentTargetIndex = 0;
 
     function resetTargetDeck(){
-      // Array mischen
-      allTargets = ["8", "9", "10", "J", "Q", "K"];
-      for (let i = allTargets.length - 1; i > 0; i--) {
+      // 1. Ränge mischen
+      const ranks = ["8", "9", "10", "J", "Q", "K"];
+      for (let i = ranks.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
-        [allTargets[i], allTargets[j]] = [allTargets[j], allTargets[i]];
+        [ranks[i], ranks[j]] = [ranks[j], ranks[i]];
       }
-      targetIndex = 0;
-      drawsCount  = 0;
+      
+      // 2. ALLE 6 Targets sofort komplett erstellen
+      allReadyTargets = [];
+      for (let i = 0; i < 6; i++) {
+        const rankStr = ranks[i];
+        // Zufällige Farbe aus den 4 Farben
+        const colors = ["violett", "blau", "gruen", "orange"];
+        const randomColor = colors[Math.floor(Math.random() * colors.length)];
+        
+        allReadyTargets.push({
+          num: rankStr,
+          color: randomColor
+        });
+      }
+      
+      currentTargetIndex = 0;
+      drawsCount = 0;
       targetTimeMul = 1;
       
-      console.log("🎲 SPIEL START - Target-Reihenfolge:", allTargets);
-      updateDebugDisplay();
+      console.log("🎲 ALLE 6 TARGETS fertig generiert:");
+      allReadyTargets.forEach((t, idx) => {
+        console.log(`   ${idx + 1}. ${t.num} ${t.color}`);
+      });
     }
 
     function pickRandom(arr){
@@ -2570,43 +2562,20 @@
     }
 
     function generateCardTarget(){
-      console.log(`>>> generateCardTarget aufgerufen - targetIndex VOR Zugriff: ${targetIndex}`);
-      
-      if (targetIndex >= 6) {
-        console.log("❌ Keine Targets mehr (targetIndex >= 6)");
+      if (currentTargetIndex >= 6) {
+        console.log("❌ Alle 6 Targets bereits verwendet");
         return null;
       }
 
-      // Einfach das nächste Element nehmen
-      const rankStr = allTargets[targetIndex];
-      console.log(`>>> Nehme allTargets[${targetIndex}] = ${rankStr}`);
-      targetIndex++;
-      console.log(`>>> targetIndex NACH Increment: ${targetIndex}`);
+      // Einfach das nächste fertige Target nehmen
+      const target = allReadyTargets[currentTargetIndex];
+      currentTargetIndex++;
       
-      updateDebugDisplay();
-      
-      console.log(`🎯 TARGET ${targetIndex}/6 wird generiert: Rang = ${rankStr}`);
-      
-      const forbidden = getForbiddenPairsForCurrentState();
-      const candidates = [];
-
-      // Farbe auswählen
-      for (const c of allColors){
-        if (forbidden.has(`${rankStr}|${c}`)) continue;
-        candidates.push({ num: rankStr, color: c });
-      }
-
-      if (!candidates.length) {
-        console.log(`   ⚠️ Keine Farbe verfügbar für ${rankStr}`);
-        return null;
-      }
-
-      const chosen = pickRandom(candidates);
-      console.log(`   ✅ Gewählt: ${chosen.num} ${chosen.color}`);
+      console.log(`🎯 TARGET ${currentTargetIndex}/6: ${target.num} ${target.color}`);
       
       drawsCount++;
       updateTargetTimeMulByDraws();
-      return chosen;
+      return target;
     }
 
     function initPlayState(){
@@ -2730,15 +2699,7 @@
 
     if (targetImgCovered){
       targetImgCovered.addEventListener("click", () => {
-        console.log(">>> KLICK auf verdeckte Karte - targetRevealed:", targetRevealed);
-        
         if (targetRevealed) return;
-
-        // POPUP zur Bestätigung
-        const nextRank = allTargets[targetIndex];
-        if (!confirm(`NEUES TARGET wird generiert:\nIndex: ${targetIndex}\nErwarteter Rang: ${nextRank}\n\nOK zum Fortfahren`)) {
-          return;
-        }
 
         // SOFORT blockieren
         targetRevealed = true;

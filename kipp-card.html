@@ -1021,7 +1021,7 @@
     .kspMainRow{
       display: flex;
       align-items: center;
-      gap: calc(12px * var(--uiscale));
+      gap: calc(82px * var(--uiscale)); /* 12px + 70px = 82px für weiteren Abstand */
       pointer-events: none;
     }
 
@@ -1029,17 +1029,24 @@
       width: calc(36px * var(--uiscale));
       height: calc(36px * var(--uiscale));
       pointer-events: none;
-      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.35));
+      /* Score-Gelb für Icon-Konturen */
+      filter: 
+        brightness(0) saturate(100%) 
+        invert(85%) sepia(95%) saturate(1800%) hue-rotate(5deg) brightness(95%) contrast(98%)
+        drop-shadow(0 2px 4px rgba(0,0,0,0.35));
     }
 
     .kspSchlitzWrap{
       position: relative;
       pointer-events: auto;
       cursor: pointer;
+      /* Größere Touch-Area */
+      padding: calc(20px * var(--uiscale)) 0;
+      margin: calc(-20px * var(--uiscale)) 0;
     }
 
     .kspSchlitz{
-      width: calc(180px * var(--uiscale));
+      width: calc(320px * var(--uiscale)); /* 180px + 140px = 320px */
       height: calc(8px * var(--uiscale));
       background: 
         linear-gradient(180deg, rgba(0,0,0,0.35), rgba(0,0,0,0.15)),
@@ -1072,7 +1079,7 @@
 
     .kspLevels{
       display: flex;
-      gap: calc(44px * var(--uiscale));
+      gap: calc(92px * var(--uiscale)); /* Angepasst an 320px Schlitz: (320-32)/3 ≈ 96px, minus etwas für optische Balance */
       pointer-events: none;
       padding: 0 calc(4px * var(--uiscale));
     }
@@ -1626,9 +1633,11 @@
 
     // KSP-Event-Listener
     if(kspSchlitzWrap){
-      kspSchlitzWrap.addEventListener("click", (e) => {
+      let isDragging = false;
+
+      function updateKSPFromPosition(clientX){
         const rect = kspSchlitzWrap.getBoundingClientRect();
-        const x = e.clientX - rect.left;
+        const x = clientX - rect.left;
         const percentage = Math.max(0, Math.min(1, x / rect.width));
         
         // 4 Stufen: 0-0.25 = Level 1, 0.25-0.5 = Level 2, 0.5-0.75 = Level 3, 0.75-1.0 = Level 4
@@ -1636,6 +1645,44 @@
         if(level > 4) level = 4;
         
         setKSPLevel(level);
+      }
+
+      // Mouse Events
+      kspSchlitzWrap.addEventListener("mousedown", (e) => {
+        isDragging = true;
+        updateKSPFromPosition(e.clientX);
+      });
+
+      document.addEventListener("mousemove", (e) => {
+        if(!isDragging) return;
+        updateKSPFromPosition(e.clientX);
+      });
+
+      document.addEventListener("mouseup", () => {
+        isDragging = false;
+      });
+
+      // Touch Events (wichtig für mobile!)
+      kspSchlitzWrap.addEventListener("touchstart", (e) => {
+        isDragging = true;
+        const touch = e.touches[0];
+        updateKSPFromPosition(touch.clientX);
+        e.preventDefault(); // Verhindert Scroll während Drag
+      }, { passive: false });
+
+      document.addEventListener("touchmove", (e) => {
+        if(!isDragging) return;
+        const touch = e.touches[0];
+        updateKSPFromPosition(touch.clientX);
+      }, { passive: true });
+
+      document.addEventListener("touchend", () => {
+        isDragging = false;
+      });
+
+      // Fallback: einfacher Click
+      kspSchlitzWrap.addEventListener("click", (e) => {
+        updateKSPFromPosition(e.clientX);
       });
     }
 

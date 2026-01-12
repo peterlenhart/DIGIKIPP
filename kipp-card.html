@@ -2513,6 +2513,30 @@
     let targetIndex = 0;
     let drawsCount  = 0;
 
+    // DEBUG DISPLAY auf dem Screen
+    function updateDebugDisplay() {
+      let debugDiv = document.getElementById("debugDisplay");
+      if (!debugDiv) {
+        debugDiv = document.createElement("div");
+        debugDiv.id = "debugDisplay";
+        debugDiv.style.position = "fixed";
+        debugDiv.style.top = "10px";
+        debugDiv.style.right = "10px";
+        debugDiv.style.background = "yellow";
+        debugDiv.style.padding = "10px";
+        debugDiv.style.fontSize = "20px";
+        debugDiv.style.zIndex = "99999";
+        debugDiv.style.border = "3px solid red";
+        document.body.appendChild(debugDiv);
+      }
+      debugDiv.innerHTML = `
+        <b>DEBUG:</b><br>
+        Array: [${allTargets.join(", ")}]<br>
+        Index: ${targetIndex}<br>
+        Nächstes: ${allTargets[targetIndex] || "ENDE"}
+      `;
+    }
+
     function resetTargetDeck(){
       // Array mischen
       allTargets = ["8", "9", "10", "J", "Q", "K"];
@@ -2525,6 +2549,7 @@
       targetTimeMul = 1;
       
       console.log("🎲 SPIEL START - Target-Reihenfolge:", allTargets);
+      updateDebugDisplay();
     }
 
     function pickRandom(arr){
@@ -2545,6 +2570,8 @@
     }
 
     function generateCardTarget(){
+      console.log(`>>> generateCardTarget aufgerufen - targetIndex VOR Zugriff: ${targetIndex}`);
+      
       if (targetIndex >= 6) {
         console.log("❌ Keine Targets mehr (targetIndex >= 6)");
         return null;
@@ -2552,7 +2579,11 @@
 
       // Einfach das nächste Element nehmen
       const rankStr = allTargets[targetIndex];
+      console.log(`>>> Nehme allTargets[${targetIndex}] = ${rankStr}`);
       targetIndex++;
+      console.log(`>>> targetIndex NACH Increment: ${targetIndex}`);
+      
+      updateDebugDisplay();
       
       console.log(`🎯 TARGET ${targetIndex}/6 wird generiert: Rang = ${rankStr}`);
       
@@ -2699,9 +2730,17 @@
 
     if (targetImgCovered){
       targetImgCovered.addEventListener("click", () => {
+        console.log(">>> KLICK auf verdeckte Karte - targetRevealed:", targetRevealed);
+        
         if (targetRevealed) return;
 
-        // SOFORT blockieren, bevor irgendwas anderes passiert
+        // POPUP zur Bestätigung
+        const nextRank = allTargets[targetIndex];
+        if (!confirm(`NEUES TARGET wird generiert:\nIndex: ${targetIndex}\nErwarteter Rang: ${nextRank}\n\nOK zum Fortfahren`)) {
+          return;
+        }
+
+        // SOFORT blockieren
         targetRevealed = true;
         targetImgCovered.style.pointerEvents = "none";
 

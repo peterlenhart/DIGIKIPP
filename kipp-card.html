@@ -1003,121 +1003,6 @@
       pointer-events:none;
     }
 
-    /* ========================================
-       KSP: Kipp-Speed-Regler (zwischen Zeile 14-15)
-       ======================================== */
-    .kspRegler{
-      position: absolute;
-      left: 0;
-      width: var(--gridW);
-      transform: translateX(0);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: calc(8px * var(--uiscale));
-      z-index: 110;
-      pointer-events: none;
-    }
-
-    .kspMainRow{
-      position: relative;
-      width: 100%;
-      height: calc(40px * var(--uiscale));
-      pointer-events: none;
-    }
-
-    .kspIcon{
-      position: absolute;
-      top: 50%;
-      width: calc(36px * var(--uiscale));
-      height: calc(36px * var(--uiscale));
-      transform: translate(-50%, -50%);
-      pointer-events: none;
-      /* Score-Gelb für Icon-Konturen */
-      filter: 
-        brightness(0) saturate(100%) 
-        invert(85%) sepia(95%) saturate(1800%) hue-rotate(5deg) brightness(95%) contrast(98%)
-        drop-shadow(0 2px 4px rgba(0,0,0,0.35));
-    }
-
-    /* Snail zwischen Spalte A-B = Position 1.5 */
-    .kspIcon#kspSnail{
-      left: calc(1.5 * var(--cell));
-    }
-
-    /* Hase zwischen Spalte G-H = Position 7.5 */
-    .kspIcon#kspHase{
-      left: calc(7.5 * var(--cell));
-    }
-
-    .kspSchlitzWrap{
-      position: absolute;
-      left: 50%;
-      top: 50%;
-      transform: translate(-50%, -50%);
-      pointer-events: auto;
-      cursor: pointer;
-      /* Größere Touch-Area */
-      padding: calc(20px * var(--uiscale)) 0;
-      margin: calc(-20px * var(--uiscale)) 0;
-    }
-
-    .kspSchlitz{
-      width: calc(280px * var(--uiscale)); /* Angepasst für Platz zwischen Icons */
-      height: calc(8px * var(--uiscale));
-      background: 
-        linear-gradient(180deg, rgba(0,0,0,0.35), rgba(0,0,0,0.15)),
-        var(--slot-fill);
-      border-radius: calc(4px * var(--uiscale));
-      box-shadow:
-        inset 0 2px 4px rgba(0,0,0,0.40),
-        0 1px 0 rgba(255,255,255,0.15);
-      position: relative;
-    }
-
-    .kspKnopf{
-      position: absolute;
-      left: 0;
-      top: 50%;
-      width: calc(32px * var(--uiscale));
-      height: calc(32px * var(--uiscale));
-      background:
-        linear-gradient(135deg, rgba(255,255,255,0.16), rgba(0,0,0,0.08)),
-        var(--slot-fill);
-      border: calc(2px * var(--uiscale)) solid rgba(0,0,0,0.55);
-      border-radius: calc(6px * var(--uiscale));
-      box-shadow:
-        0 4px 8px rgba(0,0,0,0.30),
-        0 0 0 1px rgba(255,255,255,0.15) inset;
-      transform: translate(-50%, -50%);
-      transition: left 0.15s ease;
-      pointer-events: none;
-    }
-
-    .kspLevels{
-      display: flex;
-      gap: calc(80px * var(--uiscale)); /* Angepasst an 280px Schlitz */
-      pointer-events: none;
-      padding: 0 calc(4px * var(--uiscale));
-    }
-
-    .kspLevel{
-      font-weight: 900;
-      font-size: calc(16px * var(--uiscale));
-      color: rgb(214, 207, 3);
-      text-shadow:
-        0 2px 0 rgba(0,0,0,0.75),
-        0 4px 8px rgba(0,0,0,0.50);
-      user-select: none;
-      opacity: 0.45;
-      transition: opacity 0.2s ease, transform 0.1s ease;
-    }
-
-    .kspLevel.active{
-      opacity: 1;
-      transform: scale(1.15);
-    }
-
   </style>
 </head>
 <body>
@@ -1302,25 +1187,6 @@
       </div>
 
       <div class="grid" id="grid" aria-hidden="true"></div>
-
-      <!-- KSP: Kipp-Speed-Regler (zwischen Zeile 14-15) -->
-      <div class="kspRegler" id="kspRegler">
-        <div class="kspMainRow">
-          <img src="kippspeed_snail_tight.png" alt="Schnecke" class="kspIcon" id="kspSnail">
-          <img src="kippspeed_hase_tight.png" alt="Hase" class="kspIcon" id="kspHase">
-          <div class="kspSchlitzWrap" id="kspSchlitzWrap">
-            <div class="kspSchlitz">
-              <div class="kspKnopf" id="kspKnopf"></div>
-            </div>
-          </div>
-        </div>
-        <div class="kspLevels">
-          <div class="kspLevel" data-level="1">1</div>
-          <div class="kspLevel" data-level="2">2</div>
-          <div class="kspLevel active" data-level="3">3</div>
-          <div class="kspLevel" data-level="4">4</div>
-        </div>
-      </div>
     </div>
   </div>
 
@@ -1358,13 +1224,6 @@
     const allShadows = [shadowQ0, shadowQ1, shadowQ2, shadowQ3];
 
     const cubeShadowLayer = document.getElementById("cubeShadowLayer");
-
-    /* KSP: Kipp-Speed-Regler */
-    const kspRegler = document.getElementById("kspRegler");
-    const kspSchlitzWrap = document.getElementById("kspSchlitzWrap");
-    const kspKnopf = document.getElementById("kspKnopf");
-    const kspLevels = document.querySelectorAll(".kspLevel");
-    let currentKSPLevel = 3; // Standard: Stufe 3
 
     /* Target-Karten WebP-Elemente */
     const targetLayer      = document.getElementById("targetLayer");
@@ -1621,86 +1480,6 @@
     function hideHint(){
       if (!hintTitle) return;
       hintTitle.textContent = "";
-    }
-
-    // =========================================================
-    // KSP: Kipp-Speed-Regler Funktionen
-    // =========================================================
-    function setKSPLevel(level){
-      if(level < 1 || level > 4) return;
-      currentKSPLevel = level;
-      
-      // Knopf-Position aktualisieren (1 = ganz links, 4 = ganz rechts)
-      const percentage = (level - 1) / 3; // 0, 0.333, 0.666, 1.0
-      kspKnopf.style.left = `${percentage * 100}%`;
-      
-      // Level-Ziffern aktualisieren
-      kspLevels.forEach(el => {
-        const lv = parseInt(el.getAttribute("data-level"));
-        if(lv === level) el.classList.add("active");
-        else el.classList.remove("active");
-      });
-    }
-
-    function getKippSpeedMultiplier(){
-      // Level 1 = langsam (1.5x), Level 2 = normal (1x), Level 3 = schnell (0.7x), Level 4 = sehr schnell (0.5x)
-      const multipliers = [1.5, 1.0, 0.7, 0.5];
-      return multipliers[currentKSPLevel - 1] || 1.0;
-    }
-
-    // KSP-Event-Listener
-    if(kspSchlitzWrap){
-      let isDragging = false;
-
-      function updateKSPFromPosition(clientX){
-        const rect = kspSchlitzWrap.getBoundingClientRect();
-        const x = clientX - rect.left;
-        const percentage = Math.max(0, Math.min(1, x / rect.width));
-        
-        // 4 Stufen: 0-0.25 = Level 1, 0.25-0.5 = Level 2, 0.5-0.75 = Level 3, 0.75-1.0 = Level 4
-        let level = Math.floor(percentage * 4) + 1;
-        if(level > 4) level = 4;
-        
-        setKSPLevel(level);
-      }
-
-      // Mouse Events
-      kspSchlitzWrap.addEventListener("mousedown", (e) => {
-        isDragging = true;
-        updateKSPFromPosition(e.clientX);
-      });
-
-      document.addEventListener("mousemove", (e) => {
-        if(!isDragging) return;
-        updateKSPFromPosition(e.clientX);
-      });
-
-      document.addEventListener("mouseup", () => {
-        isDragging = false;
-      });
-
-      // Touch Events (wichtig für mobile!)
-      kspSchlitzWrap.addEventListener("touchstart", (e) => {
-        isDragging = true;
-        const touch = e.touches[0];
-        updateKSPFromPosition(touch.clientX);
-        e.preventDefault(); // Verhindert Scroll während Drag
-      }, { passive: false });
-
-      document.addEventListener("touchmove", (e) => {
-        if(!isDragging) return;
-        const touch = e.touches[0];
-        updateKSPFromPosition(touch.clientX);
-      }, { passive: true });
-
-      document.addEventListener("touchend", () => {
-        isDragging = false;
-      });
-
-      // Fallback: einfacher Click
-      kspSchlitzWrap.addEventListener("click", (e) => {
-        updateKSPFromPosition(e.clientX);
-      });
     }
 
     function hideStartUI(){
@@ -2113,8 +1892,7 @@
       while (myToken === previewToken){
         const T = getTiming();
         const base = (type === "kip") ? T.kipMs : T.wMs;
-        const kspSpeed = getKippSpeedMultiplier(); // KSP-Geschwindigkeits-Multiplikator
-        const targetMs = Math.max(40, Math.round(base * (factor || 1) * kspSpeed));
+        const targetMs = Math.max(40, Math.round(base * (factor || 1)));
 
         const elapsed = Date.now() - startTime;
         if (elapsed >= targetMs) break;
@@ -2672,14 +2450,6 @@
       positionStichCards(cellPx);
       positionBackButton(cellPx);
       positionTestButton(cellPx);
-
-      // KSP: Zwischen Zeile 14 und 15 positionieren
-      if(kspRegler){
-        const row14Visual = ((14 + HEADER_ROW_OFFSET) - 1) * cellPx;
-        const row15Visual = ((15 + HEADER_ROW_OFFSET) - 1) * cellPx;
-        const betweenY = (row14Visual + row15Visual) / 2;
-        kspRegler.style.top = betweenY + "px";
-      }
     }
 
     function rebuild(){
@@ -2856,7 +2626,6 @@
       btnErgebnis.onclick = null;
 
       showStartView();
-      setKSPLevel(3); // KSP Standard: Stufe 3
       updateShadowVisibility();
     }
 

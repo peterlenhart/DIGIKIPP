@@ -1582,6 +1582,24 @@
       return { rank: rankStr, value, rankIndex };
     }
 
+    // Für Target-Karten (String-Werte wie "10", "J", "Q")
+    function getTargetCardInfo(rankStr){
+      const order = ["8","9","10","J","Q","K","A"];
+      const rankIndex = order.indexOf(rankStr);
+
+      let value;
+      if (rankStr === "A"){
+        value = 12;
+      } else if (["K","Q","J","10"].includes(rankStr)){
+        value = 10;
+      } else {
+        const parsed = parseInt(rankStr, 10);
+        value = isNaN(parsed) ? 0 : parsed;
+      }
+
+      return { rank: rankStr, value, rankIndex };
+    }
+
     // Hilfsfunktion: Slot auf Zielsymbol-Farbe finden
     function getSlotOnTargetColor(){
       if (!currentTarget) return null;
@@ -1609,7 +1627,7 @@
       }
 
       const playerCard = getCardInfo(info.num);
-      const targetCard = getCardInfo(currentTarget.num);
+      const targetCard = getTargetCardInfo(currentTarget.num); // NEUE FUNKTION für String-Werte!
 
       const cardColor  = getCardColor(info.num);
       const targetIsRed   = isRedSuitColor(currentTarget.color);

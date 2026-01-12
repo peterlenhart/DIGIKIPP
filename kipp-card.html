@@ -2519,6 +2519,7 @@
       rankIndex = 0;
       drawsCount  = 0;
       targetTimeMul = 1;
+      console.log("TARGETS:", shuffledRanks.join(", "));
     }
 
     function pickRandom(arr){
@@ -2542,6 +2543,7 @@
       if (rankIndex >= 6) return null;
 
       const rankStr = shuffledRanks[rankIndex];
+      console.log("Target #" + (rankIndex + 1) + ": " + rankStr);
       rankIndex++;
 
       const forbidden = getForbiddenPairsForCurrentState();

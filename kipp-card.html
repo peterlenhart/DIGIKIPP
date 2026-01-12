@@ -1977,7 +1977,8 @@
       if (!target) return;
       const text = getVisualRank(target.num);
       if (targetRank10D){
-        targetRank10D.textContent = text;
+        // DEBUG: Show rank AND index to see what's happening
+        targetRank10D.textContent = text + " (" + rankIndex + ")";
 
         let rankColor = "#212121";
         if (isRedSuitColor(target.color)) rankColor = "#d32f2f";

@@ -2508,20 +2508,23 @@
       updateShadowVisibility();
     }
 
-    let shuffledRanks = [];
+    // ULTRA-SIMPLE: Alle 6 Targets in einem Array, beim Start gemischt
+    let allTargets = ["8", "9", "10", "J", "Q", "K"];
+    let targetIndex = 0;
     let drawsCount  = 0;
 
     function resetTargetDeck(){
-      // Einfach die 6 Werte mischen und fertig!
-      const allRanks = ["8","9","10","J","Q","K"];
-      shuffledRanks = [];
-      for (let i = allRanks.length - 1; i > 0; i--) {
+      // Array mischen
+      allTargets = ["8", "9", "10", "J", "Q", "K"];
+      for (let i = allTargets.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
-        [allRanks[i], allRanks[j]] = [allRanks[j], allRanks[i]];
+        [allTargets[i], allTargets[j]] = [allTargets[j], allTargets[i]];
       }
-      shuffledRanks = allRanks;
+      targetIndex = 0;
       drawsCount  = 0;
       targetTimeMul = 1;
+      
+      console.log("🎲 SPIEL START - Target-Reihenfolge:", allTargets);
     }
 
     function pickRandom(arr){
@@ -2542,23 +2545,34 @@
     }
 
     function generateCardTarget(){
-      if (drawsCount >= MAX_TARGETS) return null;
+      if (targetIndex >= 6) {
+        console.log("❌ Keine Targets mehr (targetIndex >= 6)");
+        return null;
+      }
 
-      // Einfach den nächsten Rang aus der gemischten Liste nehmen
-      const rankStr = shuffledRanks[drawsCount];
+      // Einfach das nächste Element nehmen
+      const rankStr = allTargets[targetIndex];
+      targetIndex++;
+      
+      console.log(`🎯 TARGET ${targetIndex}/6 wird generiert: Rang = ${rankStr}`);
       
       const forbidden = getForbiddenPairsForCurrentState();
       const candidates = [];
 
-      // Nur die Farben prüfen (nicht den Rang - der ist schon eindeutig!)
+      // Farbe auswählen
       for (const c of allColors){
         if (forbidden.has(`${rankStr}|${c}`)) continue;
         candidates.push({ num: rankStr, color: c });
       }
 
-      if (!candidates.length) return null;
+      if (!candidates.length) {
+        console.log(`   ⚠️ Keine Farbe verfügbar für ${rankStr}`);
+        return null;
+      }
 
       const chosen = pickRandom(candidates);
+      console.log(`   ✅ Gewählt: ${chosen.num} ${chosen.color}`);
+      
       drawsCount++;
       updateTargetTimeMulByDraws();
       return chosen;

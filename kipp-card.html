@@ -1974,8 +1974,11 @@
     }
 
     function showTargetRankAndSuit(target){
+      logOnScreen(`<b style="color:yellow">ANZEIGE:</b> ${target ? target.num + " " + target.color : "null"}`);
       if (!target) return;
       const text = getVisualRank(target.num);
+      logOnScreen(`Zeige: "${text}"`);
+      
       if (targetRank10D){
         targetRank10D.textContent = text;
 
@@ -1992,6 +1995,7 @@
           targetSuitImg.style.display = "block";
         }
       }
+      logOnScreen(`---`);
     }
 
     function resetToNewTargetChoice(){
@@ -2509,8 +2513,35 @@
     let shuffledRanks = [];
     let rankIndex = 0;
     let drawsCount  = 0;
+    let generateCallCounter = 0;
+    
+    // On-screen logging
+    let logDiv = null;
+    function logOnScreen(msg) {
+      if (!logDiv) {
+        logDiv = document.createElement("div");
+        logDiv.id = "onscreenLog";
+        logDiv.style.position = "fixed";
+        logDiv.style.bottom = "0px";
+        logDiv.style.left = "0px";
+        logDiv.style.width = "100%";
+        logDiv.style.height = "200px";
+        logDiv.style.background = "rgba(0,0,0,0.9)";
+        logDiv.style.color = "lime";
+        logDiv.style.padding = "10px";
+        logDiv.style.fontSize = "14px";
+        logDiv.style.zIndex = "999999";
+        logDiv.style.overflowY = "scroll";
+        logDiv.style.fontFamily = "monospace";
+        document.body.appendChild(logDiv);
+      }
+      logDiv.innerHTML += msg + "<br>";
+      logDiv.scrollTop = logDiv.scrollHeight;
+    }
 
     function resetTargetDeck(){
+      logOnScreen(`<b>>>> RESET: Neues Spiel</b>`);
+      
       shuffledRanks = ["8", "9", "10", "J", "Q", "K"];
       
       // Klassischer Fisher-Yates mit temp-Variable
@@ -2521,9 +2552,12 @@
         shuffledRanks[j] = temp;
       }
       
+      logOnScreen(`Array: ${shuffledRanks.join(", ")}`);
+      
       rankIndex = 0;
       drawsCount  = 0;
       targetTimeMul = 1;
+      generateCallCounter = 0;
       
       // Zeige das gemischte Array auf dem Bildschirm
       let debugDiv = document.getElementById("shuffleDebug");
@@ -2562,10 +2596,14 @@
     }
 
     function generateCardTarget(){
+      generateCallCounter++;
+      logOnScreen(`<b style="color:cyan">>>> CALL #${generateCallCounter}</b>`);
+      logOnScreen(`rankIndex=${rankIndex}`);
+      
       if (rankIndex >= 6) return null;
 
       const rankStr = shuffledRanks[rankIndex];
-      console.log("Target #" + (rankIndex + 1) + ": " + rankStr);
+      logOnScreen(`Nehme [${rankIndex}] = "${rankStr}"`);
       rankIndex++;
 
       const forbidden = getForbiddenPairsForCurrentState();
@@ -2576,9 +2614,14 @@
         candidates.push({ num: rankStr, color: c });
       }
 
-      if (!candidates.length) return null;
+      if (!candidates.length) {
+        logOnScreen(`<span style="color:red">KEINE Farbe!</span>`);
+        return null;
+      }
 
       const chosen = pickRandom(candidates);
+      logOnScreen(`GEWÄHLT: ${chosen.num} ${chosen.color}`);
+      
       drawsCount++;
       updateTargetTimeMulByDraws();
       return chosen;

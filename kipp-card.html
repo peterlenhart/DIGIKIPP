@@ -2187,7 +2187,20 @@
 
       if (scrollBandWrap) scrollBandWrap.classList.add("hidden");
 
-      // target_verdeckt pulsierend machen
+      // Target Layer sichtbar machen
+      if (targetLayer) targetLayer.style.display = "block";
+
+      // Alle Target-Bilder außer target_1 verstecken
+      [targetImg2, targetImg3, targetImg4, targetImg5, targetImg6].forEach(img => {
+        if (img) img.style.display = "none";
+      });
+
+      // target_1 anzeigen (Basis)
+      if(targetImg1){
+        targetImg1.style.display = "block";
+      }
+
+      // target_verdeckt darüber pulsierend machen
       if(targetImgCovered){
         targetImgCovered.style.display = "block";
         targetImgCovered.classList.add("pulse");
@@ -2197,7 +2210,6 @@
 
       kippAnzahlView.classList.add("hidden");
 
-      if (targetLayer) targetLayer.style.display = "none";
       hideTargetRankAndSuit();
 
       targetRevealed   = false;

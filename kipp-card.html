@@ -69,8 +69,8 @@
       --clipRight:  calc((8 - 7) * var(--cell));
       --clipBottom: calc(var(--gridH) - (7 * var(--cell)));
 
-      /* Neutrales Blau (Reserve) */
-      --rankBlue: rgb(36, 145, 255);
+      /* Neutrales Blau für alle Kartenwerte */
+      --rankBlue: rgb(38, 77, 120);
     }
 
     html, body{
@@ -1410,22 +1410,37 @@
     // 5 = J rot, 6 = J schwarz, 7 = Q rot, 8 = Q schwarz,
     // 9 = K rot, 10 = K schwarz, 11 = A rot, 12 = A schwarz.
     const CARD_DEFS = {
-      1:  { rank: "9",  color: "red"    },
-      2:  { rank: "9",  color: "black"  },
-      3:  { rank: "10", color: "red"    },
-      4:  { rank: "10", color: "black"  },
-      5:  { rank: "J",  color: "red"    },
-      6:  { rank: "J",  color: "black"  },
-      7:  { rank: "Q",  color: "red"    },
-      8:  { rank: "Q",  color: "black"  },
-      9:  { rank: "K",  color: "red"    },
-      10: { rank: "K",  color: "black"  },
-      11: { rank: "A",  color: "red"    },
-      12: { rank: "A",  color: "black"  },
+      3:  { rank: "3",  value: 3  },
+      4:  { rank: "4",  value: 4  },
+      5:  { rank: "5",  value: 5  },
+      6:  { rank: "6",  value: 6  },
+      7:  { rank: "7",  value: 7  },
+      8:  { rank: "8",  value: 8  },
+      9:  { rank: "9",  value: 9  },
+      10: { rank: "10", value: 10 },
+      11: { rank: "J",  value: 10 },
+      12: { rank: "Q",  value: 10 },
+      13: { rank: "K",  value: 10 },
+      14: { rank: "A",  value: 14 },
     };
 
     function getCardColor(n){
-      return CARD_DEFS[n]?.color || "black";
+      return "neutral"; // Keine Farben mehr
+    }
+    
+    function getCardValue(n){
+      return CARD_DEFS[n]?.value || 0;
+    }
+    
+    function getCardRank(n){
+      return CARD_DEFS[n]?.rank || "";
+    }
+    
+    // Target-Werte (String-Ränge 2-K)
+    function getTargetValue(rankStr){
+      if(rankStr === "J" || rankStr === "Q" || rankStr === "K") return 10;
+      if(rankStr === "A") return 14;
+      return parseInt(rankStr) || 0;
     }
 
     // Verbrauchte Karten (transparent, inaktiv)
@@ -1464,7 +1479,7 @@
       7:"Siebtes",8:"Achtes",9:"Neuntes",10:"Zehntes",11:"Elftes"
     };
 
-    const MAX_TARGETS = 6;
+    const MAX_TARGETS = 12;
 
     function getTargetHintText(){
       const nextIndex = drawsCount + 1; // 1..MAX_TARGETS
@@ -1800,19 +1815,13 @@
       if (spanEl && n != null) {
         spanEl.classList.remove("cardRed", "cardBlack", "used");
 
-        const cardColor = getCardColor(n);
-        if (cardColor === "red") {
-          spanEl.classList.add("cardRed");
-        } else if (cardColor === "black") {
-          spanEl.classList.add("cardBlack");
-        }
+        // Neutralblau für alle Karten
+        spanEl.style.color = "var(--rankBlue)";
 
         if (usedCards.has(n)) {
           spanEl.classList.add("used");
         }
       }
-      
-      applySlotTextColor(spanEl, suitColor);
     }
 
     function renderW(){
@@ -2480,7 +2489,7 @@
     ];
 
     function reroll12_keepAssigned(){
-      const twelve = getUniqueRandomNumbers(12, 1, 12);
+      const twelve = getUniqueRandomNumbers(12, 3, 14); // Pool 3-14
       planned[0] = twelve.slice(0,4);
       planned[1] = twelve.slice(4,8);
       planned[2] = twelve.slice(8,12);
@@ -2529,8 +2538,9 @@
     let drawsCount  = 0;
 
     function resetTargetDeck(){
-      shuffledRanks = ["8", "9", "10", "J", "Q", "K"];
-      for (let i = 5; i > 0; i--) {
+      shuffledRanks = ["2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"];
+      // Fisher-Yates Shuffle
+      for (let i = shuffledRanks.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
         const temp = shuffledRanks[i];
         shuffledRanks[i] = shuffledRanks[j];
@@ -2559,26 +2569,15 @@
     }
 
     function generateCardTarget(){
-      if (rankIndex >= 6) return null;
+      if (rankIndex >= MAX_TARGETS) return null;
 
       const rankStr = shuffledRanks[rankIndex];
       console.log("Target #" + (rankIndex + 1) + ": " + rankStr);
       rankIndex++;
 
-      const forbidden = getForbiddenPairsForCurrentState();
-      const candidates = [];
-
-      for (const c of allColors){
-        if (forbidden.has(`${rankStr}|${c}`)) continue;
-        candidates.push({ num: rankStr, color: c });
-      }
-
-      if (!candidates.length) return null;
-
-      const chosen = pickRandom(candidates);
       drawsCount++;
       updateTargetTimeMulByDraws();
-      return chosen;
+      return { num: rankStr }; // Nur Rang, keine Farbe
     }
 
     function initPlayState(){

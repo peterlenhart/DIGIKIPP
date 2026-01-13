@@ -1979,17 +1979,18 @@
     }
 
     function buildKippAnzahlButtons(){
-      kippAnzahlBtns.innerHTML = "";
-      kippAnzahlBtns.classList.add("compact");
-      
-      // 6 einzelne Buttons für 0-5 Kipps erstellen
-      for(let i = 0; i <= 5; i++){
-        const btn = document.createElement("button");
-        btn.className = "squareBtn anzahlBtn";
-        btn.textContent = i.toString();
-        btn.addEventListener("click", () => handleAnzahlClick(i, btn));
-        kippAnzahlBtns.appendChild(btn);
+      if (!scrollBand) return;
+      scrollBand.innerHTML = "";
+      // 6 Buttons mit GLEICHEN Klassen wie Scrollband
+      for (let num = 0; num <= 5; num++){
+        const item = document.createElement("div");
+        item.className = "scrollItem";
+        item.dataset.anzahl = num;
+        item.textContent = String(num);
+        item.addEventListener("click", () => handleAnzahlClick(num, item));
+        scrollBand.appendChild(item);
       }
+      // KEIN wiggle, da keine Scroll-Funktion
     }
 
     function setAnzahlButtonsLocked(locked){
@@ -2092,16 +2093,10 @@
       
       await runSchauKippSequence(autoKippCount, { kipFactor: 2 });
 
-      // Kipp-Buttons anzeigen - Player ist dran
-      if(kippAnzahlBtns){
-        buildKippAnzahlButtons(); // 6 Buttons erstellen
-        kippAnzahlView.classList.remove("hidden");
-        setAnzahlButtonsLocked(false);
-      }
-      
-      // Scrollband NICHT anzeigen
+      // Scrollband mit 6 Buttons anzeigen - Player ist dran
       if(scrollBandWrap){
-        scrollBandWrap.classList.add("hidden");
+        buildKippAnzahlButtons(); // 6 Buttons in scrollBand erstellen
+        scrollBandWrap.classList.remove("hidden");
       }
     }
 
@@ -2168,7 +2163,7 @@
       attemptsForTarget++;
 
       markRunSelected(clickedBtn);
-      setAnzahlButtonsLocked(true); // Buttons während Kipp sperren
+      setScrollBandLocked(true); // Buttons sperren während Kipp
 
       // 0 = kein zusätzlicher Kipp, nur aktuelle Lage auswerten
       if (anzahl > 0){
@@ -2184,9 +2179,9 @@
 
       const isLastTarget = (drawsCount >= MAX_TARGETS);
 
-      // Buttons verstecken nach Stich
-      if(kippAnzahlView){
-        kippAnzahlView.classList.add("hidden");
+      // Scrollband verstecken nach Stich
+      if(scrollBandWrap){
+        scrollBandWrap.classList.add("hidden");
       }
 
       await sleep(900);

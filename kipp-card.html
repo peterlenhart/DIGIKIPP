@@ -516,6 +516,24 @@
       text-shadow: 0 1px 0 rgba(0,0,0,0.40);
     }
 
+    /* SCHAU GENAU Hinweistext */
+    .schauGenauHint{
+      font-size: calc(var(--cell) * 0.6);
+      font-weight: 1000;
+      letter-spacing: 0.12em;
+      color: #f4d03f; /* Gelb wie Score */
+      text-shadow: 
+        0 3px 6px rgba(0,0,0,0.6),
+        0 0 20px rgba(244,208,63,0.4);
+      pointer-events: none;
+      user-select: none;
+      text-align: center;
+      display: none; /* Initial versteckt */
+    }
+    .schauGenauHint.visible{
+      display: block;
+    }
+
     @keyframes pulseScale{
       0%   { transform: scale(1);   filter: drop-shadow(0 0 0 rgba(255,255,255,0)); }
       100% { transform: scale(1.06); filter: drop-shadow(0 0 14px rgba(255,255,255,0.45)); }
@@ -1161,6 +1179,7 @@
 
         <!-- NEU: Scrollband für Kippanzahl (Zeile 13, gleiche Position wie Startbutton) -->
         <div class="scrollBandWrap hidden" id="scrollBandWrap">
+          <div class="schauGenauHint pulse" id="schauGenauHint">SCHAU GENAU</div>
           <div class="scrollBand" id="scrollBand"></div>
         </div>
 
@@ -1356,46 +1375,72 @@
 
     // ALGORITHMUS: Auto-Kipp-Anzahl berechnen
     // Mind. 4 Kipps, max. 6, nächst höherer Wert muss verdeckt sein
-    function calculateAutoKippCount(targetRankStr){
-      const targetValue = getTargetValue(targetRankStr);
+    // NEU: Gewichtete Ziel-Kippzahl-Auswahl
+    // 2/3: 3 oder 6 (LEICHT - Wert sichtbar)
+    // 1/3: 1, 2, 4 oder 5 (SCHWER - Wert verdeckt)
+    function chooseTargetKippCount(){
+      const rand = Math.random();
       
-      // Finde nächst höheren Wert auf allen 12 Slots
-      let nextHigherValue = 999;
-      let nextHigherFace = -1;
-      
+      if(rand < 0.666){ // 2/3 der Zeit
+        // LEICHT: 3 oder 6 (Wert sichtbar am Würfel)
+        return Math.random() < 0.5 ? 3 : 6;
+      } else { // 1/3 der Zeit
+        // SCHWER: 1, 2, 4 oder 5 (Wert verdeckt)
+        const options = [1, 2, 4, 5];
+        return options[Math.floor(Math.random() * 4)];
+      }
+    }
+
+    // Findet auf welchem Face ein bestimmter Wert liegt
+    function findFaceForTargetValue(targetValue){
       for(let face = 0; face < 3; face++){
         for(let i = 0; i < 4; i++){
           const slotNum = sets[face][i];
           if(slotNum == null) continue;
           const slotValue = getCardValue(slotNum);
-          // Nächst höherer Wert finden
-          if(slotValue > targetValue && slotValue < nextHigherValue){
-            nextHigherValue = slotValue;
-            nextHigherFace = face;
+          if(slotValue === targetValue){
+            return face;
           }
         }
       }
+      return -1; // Nicht gefunden
+    }
+
+    // Berechnet Vorschau-Kipps basierend auf Target und gewünschter Player-Kippzahl
+    // Startet bei Face 0, kippt so dass Player genau targetKippCount Kipps vor Target ist
+    function calculatePreviewKipps(targetValue, targetKippCount){
+      // Finde Face wo Target-Wert liegt
+      const targetFace = findFaceForTargetValue(targetValue);
       
-      // Wenn kein höherer Wert gefunden: nur 4 Kipps (minimum)
-      if(nextHigherFace === -1){
+      if(targetFace === -1){
+        // Fallback: Target nicht gefunden, 4 Vorschau-Kipps
         return 4;
       }
+
+      // Berechne wie viele Kipps von Face 0 zu targetFace nötig sind
+      // Face nach N Kipps: N % 3
+      // Face 0: 0, 3, 6, 9, 12... Kipps
+      // Face 1: 1, 4, 7, 10, 13... Kipps
+      // Face 2: 2, 5, 8, 11, 14... Kipps
       
-      // Berechne welcher Face nach N Kipps sichtbar ist:
-      // Nach N Kipps: sichtbar = N % 3
-      // Wir wollen dass nextHigherFace NICHT sichtbar ist
+      // Wir wollen: previewKipps + targetKippCount = totalKipps zum Target
+      // totalKipps % 3 = targetFace
       
-      // Teste 4, 5, 6 Kipps
-      for(let kippCount = 4; kippCount <= 6; kippCount++){
-        const visibleFaceAfter = kippCount % 3;
-        if(visibleFaceAfter !== nextHigherFace){
-          // Perfekt: nächst höherer ist versteckt
-          return kippCount;
-        }
+      // Finde kleinste totalKipps die zu targetFace führen
+      let totalKipps = targetFace; // Startwert
+      while(totalKipps < targetKippCount){
+        totalKipps += 3; // Nächster Kipp zu diesem Face
       }
       
-      // Fallback (sollte nicht passieren): 4 Kipps
-      return 4;
+      // Vorschau-Kipps = totalKipps - targetKippCount
+      let previewKipps = totalKipps - targetKippCount;
+      
+      // Minimum 4 Vorschau-Kipps garantieren
+      if(previewKipps < 4){
+        previewKipps += 3; // Ein Zyklus mehr
+      }
+      
+      return previewKipps;
     }
 
     /* Mapping Board-Farbe -> Suit-WebP (Karo=grün, Kreuz=orange, Herz=blau, Pik=violett) */
@@ -2059,7 +2104,7 @@
     async function startNewTargetWithAutoKipp(){
       if(runningKipp) return;
       
-      // Target generieren
+      // 1. Target im Hintergrund generieren (NOCH NICHT anzeigen!)
       currentTarget = generateCardTarget();
       if(!currentTarget){
         // Keine Targets mehr - Spiel beenden
@@ -2067,36 +2112,55 @@
         return;
       }
 
-      targetRevealed = true;
+      targetRevealed = false; // Noch nicht revealed!
       attemptsForTarget = 0;
 
-      // Target anzeigen (nur Rang, neutralblau)
+      const targetValue = getTargetValue(currentTarget.num);
+
+      // 2. Algorithmus wählt Ziel-Kippzahl (gewichtet)
+      const targetKippCount = chooseTargetKippCount();
+      
+      // 3. Berechne Vorschau-Kipps basierend auf Target und Ziel-Kippzahl
+      const previewKipps = calculatePreviewKipps(targetValue, targetKippCount);
+      
+      console.log(`Target: ${currentTarget.num}, Wert: ${targetValue}, Ziel-Kipps: ${targetKippCount}, Vorschau: ${previewKipps}`);
+
+      // 4. "SCHAU GENAU" anzeigen während Vorschau-Kipps
+      const schauGenauHint = document.getElementById("schauGenauHint");
+      if(scrollBandWrap){
+        scrollBandWrap.classList.remove("hidden");
+      }
+      if(schauGenauHint){
+        schauGenauHint.classList.add("visible");
+      }
+      
+      // 5. Vorschau-Kipps ausführen
+      await runSchauKippSequence(previewKipps, { kipFactor: 2 });
+
+      // 6. "SCHAU GENAU" verstecken
+      if(schauGenauHint){
+        schauGenauHint.classList.remove("visible");
+      }
+
+      // 7. JETZT Target anzeigen
+      targetRevealed = true;
+
       if(targetRank10D){
         targetRank10D.textContent = currentTarget.num;
         targetRank10D.style.color = "var(--rankBlue)";
         targetRank10D.style.display = "block";
       }
 
-      // Zufälliges Suit-Icon anzeigen (rein optisch, keine Spiel-Logik)
+      // Zufälliges Suit-Icon anzeigen
       if(targetSuitImg){
         const randomSuit = getRandomSuitImage();
         targetSuitImg.src = randomSuit;
         targetSuitImg.style.display = "block";
       }
 
-      // Scrollband verstecken während Auto-Kipp
-      if(scrollBandWrap) scrollBandWrap.classList.add("hidden");
-
-      // Auto-Kipp berechnen und ausführen
-      const autoKippCount = calculateAutoKippCount(currentTarget.num);
-      console.log(`Auto-Kipp: ${autoKippCount} Kipps für Target ${currentTarget.num}`);
-      
-      await runSchauKippSequence(autoKippCount, { kipFactor: 2 });
-
-      // Scrollband mit 6 Buttons anzeigen - Player ist dran
+      // 8. 1-6 Buttons anzeigen - Player ist dran
       if(scrollBandWrap){
         buildKippAnzahlButtons(); // 6 Buttons in scrollBand erstellen
-        scrollBandWrap.classList.remove("hidden");
       }
     }
 

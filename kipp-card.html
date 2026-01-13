@@ -2086,8 +2086,8 @@
     function buildKippAnzahlButtons(){
       if (!scrollBand) return;
       scrollBand.innerHTML = "";
-      // 6 Buttons mit GLEICHEN Klassen wie Scrollband
-      for (let num = 0; num <= 5; num++){
+      // 6 Buttons: 1 bis 6 Kipps
+      for (let num = 1; num <= 6; num++){
         const item = document.createElement("div");
         item.className = "scrollItem";
         item.dataset.anzahl = num;
@@ -2095,7 +2095,6 @@
         item.addEventListener("click", () => handleAnzahlClick(num, item));
         scrollBand.appendChild(item);
       }
-      // KEIN wiggle, da keine Scroll-Funktion
     }
 
     function setAnzahlButtonsLocked(locked){
@@ -2156,7 +2155,12 @@
       clearHitPulse();
       hideTargetRankAndSuit();
       
-      // Neues Target mit Auto-Kipp-Sequenz starten
+      // Target-Bilder 2-6 verstecken (target_1 wird in startNewTargetWithAutoKipp angezeigt)
+      [targetImg2, targetImg3, targetImg4, targetImg5, targetImg6].forEach(img => {
+        if (img) img.style.display = "none";
+      });
+      
+      // Neues Target mit SCHAU GENAU Button starten
       await startNewTargetWithAutoKipp();
     }
 
@@ -2179,7 +2183,23 @@
       
       console.log(`Target generiert: ${currentTarget.num}, Wert: ${targetValue}`);
 
-      // 2. SCHAU GENAU Button anzeigen (scrollBand verstecken)
+      // 2. Target Layer und verdeckte Karte anzeigen
+      if(targetLayer){
+        targetLayer.style.display = "block";
+      }
+      
+      // target_1 anzeigen (Basis)
+      if(targetImg1){
+        targetImg1.style.display = "block";
+      }
+      
+      // target_verdeckt darüber (NICHT pulsierend, da SCHAU GENAU Button pulsiert)
+      if(targetImgCovered){
+        targetImgCovered.style.display = "block";
+        targetImgCovered.classList.remove("pulse");
+      }
+
+      // 3. SCHAU GENAU Button anzeigen (scrollBand verstecken)
       const schauGenauBtn = document.getElementById("schauGenauBtn");
       if(scrollBandWrap){
         scrollBandWrap.classList.remove("hidden");
@@ -2192,7 +2212,7 @@
         schauGenauBtn.disabled = false;
       }
 
-      // 3. Warten auf SCHAU GENAU Click (wird vom Event-Handler behandelt)
+      // 4. Warten auf SCHAU GENAU Click (wird vom Event-Handler behandelt)
       // Der Rest passiert im schauGenauBtn.addEventListener Handler
     }
 
@@ -2300,28 +2320,20 @@
       uiMode = "START";
 
       startBtnWrap.classList.remove("hidden");
-      // btnSchauen entfernt - target_verdeckt wird pulsieren
       btnErgebnis.classList.add("hidden");
 
-      if (scrollBandWrap) scrollBandWrap.classList.add("hidden");
+      // Target Layer verstecken beim Start
+      if (targetLayer) targetLayer.style.display = "none";
 
-      // Target Layer sichtbar machen
-      if (targetLayer) targetLayer.style.display = "block";
-
-      // Alle Target-Bilder außer target_1 verstecken
-      [targetImg2, targetImg3, targetImg4, targetImg5, targetImg6].forEach(img => {
+      // Alle Target-Bilder verstecken
+      [targetImg1, targetImg2, targetImg3, targetImg4, targetImg5, targetImg6].forEach(img => {
         if (img) img.style.display = "none";
       });
 
-      // target_1 anzeigen (Basis)
-      if(targetImg1){
-        targetImg1.style.display = "block";
-      }
-
-      // target_verdeckt darüber pulsierend machen
+      // target_verdeckt verstecken
       if(targetImgCovered){
-        targetImgCovered.style.display = "block";
-        targetImgCovered.classList.add("pulse");
+        targetImgCovered.style.display = "none";
+        targetImgCovered.classList.remove("pulse");
       }
 
       showHint("SCHAUKIPP-RUNDE", false);
@@ -2811,31 +2823,14 @@
 
       showStartView();
       updateShadowVisibility();
-    }
-
-    // NEU: Click auf target_verdeckt startet Auto-Kipp-Sequenz
-    if(targetImgCovered){
-      targetImgCovered.addEventListener("click", async () => {
-        if (runningKipp) return;
-        if (targetRevealed) return; // Nur beim ersten Click
-
-        started = true;
-
-        // Target verstecken, Puls stoppen
-        targetImgCovered.style.display = "none";
-        targetImgCovered.classList.remove("pulse");
-
-        // Würfel vorbereiten
-        cancelPreview();
-        rotIndex  = 0;
-        faceIndex = 0;
-        setRotationSnap();
-        showW();
-        renderW();
-
-        // Erste Target-Runde mit Auto-Kipp starten
-        await startNewTargetWithAutoKipp();
-      });
+      
+      // Würfel vorbereiten
+      rotIndex  = 0;
+      faceIndex = 0;
+      setRotationSnap();
+      
+      // Direkt erstes Target mit SCHAU GENAU Button starten
+      startNewTargetWithAutoKipp();
     }
 
     // SCHAU GENAU Button Handler
@@ -2860,6 +2855,11 @@
 
         // SCHAU GENAU Button verstecken
         schauGenauBtn.classList.add("hidden");
+
+        // target_verdeckt ausblenden, damit Target sichtbar wird
+        if(targetImgCovered){
+          targetImgCovered.style.display = "none";
+        }
 
         // Target anzeigen
         targetRevealed = true;

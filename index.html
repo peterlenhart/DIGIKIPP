@@ -281,6 +281,27 @@
       color:#fff;
     }
 
+    /* Link zu Impressum / Datenschutz / Nutzungsbedingungen */
+    .legal-link{
+      position: fixed;
+      right: 10px;
+      bottom: 10px;
+      font-size: 11px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(0,0,0,0.72);
+      color: #ead7be;
+      border: 1px solid rgba(234,215,190,0.45);
+      text-decoration: none;
+      z-index: 5000;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .legal-link:hover{
+      background: rgba(234,215,190,0.12);
+    }
+
   </style>
 </head>
 
@@ -338,6 +359,11 @@
       </div>
     </div>
   </div>
+
+  <!-- Rechts-Link: öffnet legal.html in neuem Tab -->
+  <a href="legal.html" target="_blank" class="legal-link">
+    Impressum / Datenschutz / Nutzungsbedingungen
+  </a>
 
   <script>
 

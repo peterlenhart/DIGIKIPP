@@ -1406,6 +1406,13 @@
       violett: "pik.webp"     // ♠
     };
 
+    // Array aller Suit-Bilder für zufällige Auswahl
+    const ALL_SUIT_IMAGES = ["karo.webp", "kreuz.webp", "herz.webp", "pik.webp"];
+
+    function getRandomSuitImage(){
+      return ALL_SUIT_IMAGES[Math.floor(Math.random() * ALL_SUIT_IMAGES.length)];
+    }
+
     function isRedSuitColor(boardColor){
       return boardColor === "blau" || boardColor === "gruen"; // Herz oder Karo
     }
@@ -2060,9 +2067,11 @@
         targetRank10D.style.display = "block";
       }
 
-      // Suit-Icon verstecken
+      // Zufälliges Suit-Icon anzeigen (rein optisch, keine Spiel-Logik)
       if(targetSuitImg){
-        targetSuitImg.style.display = "none";
+        const randomSuit = getRandomSuitImage();
+        targetSuitImg.src = randomSuit;
+        targetSuitImg.style.display = "block";
       }
 
       // Scrollband verstecken während Auto-Kipp

@@ -936,6 +936,7 @@
       transition: opacity 0.4s ease;
       padding: 40px 20px;
       box-sizing: border-box;
+      pointer-events: auto;
     }
     #introOverlay.hidden{
       opacity: 0;
@@ -2791,19 +2792,30 @@
       e.preventDefault();
     }, { passive:false });
 
-    const introOverlay  = document.getElementById("introOverlay");
-    const introStartBtn = document.getElementById("introStartBtn");
-    const introBackBtn  = document.getElementById("introBackBtn");
+    // Intro Button Listeners - warten bis DOM ready
+    document.addEventListener("DOMContentLoaded", () => {
+      const introOverlay  = document.getElementById("introOverlay");
+      const introStartBtn = document.getElementById("introStartBtn");
+      const introBackBtn  = document.getElementById("introBackBtn");
 
-    introStartBtn.addEventListener("click", () => {
-      introOverlay.classList.add("hidden");
-      setTimeout(() => {
-        introOverlay.remove();
-      }, 400);
-    });
+      if(introStartBtn){
+        introStartBtn.addEventListener("click", () => {
+          console.log("LOS GEHT'S clicked!");
+          if(introOverlay){
+            introOverlay.classList.add("hidden");
+            setTimeout(() => {
+              introOverlay.remove();
+            }, 400);
+          }
+        });
+      }
 
-    introBackBtn.addEventListener("click", () => {
-      window.location.href = "index.html";
+      if(introBackBtn){
+        introBackBtn.addEventListener("click", () => {
+          console.log("Zur Auswahl clicked!");
+          window.location.href = "index.html";
+        });
+      }
     });
 
     </script>

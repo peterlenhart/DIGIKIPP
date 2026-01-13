@@ -1981,6 +1981,15 @@
     function buildKippAnzahlButtons(){
       kippAnzahlBtns.innerHTML = "";
       kippAnzahlBtns.classList.add("compact");
+      
+      // 6 einzelne Buttons für 0-5 Kipps erstellen
+      for(let i = 0; i <= 5; i++){
+        const btn = document.createElement("button");
+        btn.className = "squareBtn anzahlBtn";
+        btn.textContent = i.toString();
+        btn.addEventListener("click", () => handleAnzahlClick(i, btn));
+        kippAnzahlBtns.appendChild(btn);
+      }
     }
 
     function setAnzahlButtonsLocked(locked){
@@ -2083,10 +2092,16 @@
       
       await runSchauKippSequence(autoKippCount, { kipFactor: 2 });
 
-      // Scrollband einblenden - Player ist dran
+      // Kipp-Buttons anzeigen - Player ist dran
+      if(kippAnzahlBtns){
+        buildKippAnzahlButtons(); // 6 Buttons erstellen
+        kippAnzahlView.classList.remove("hidden");
+        setAnzahlButtonsLocked(false);
+      }
+      
+      // Scrollband NICHT anzeigen
       if(scrollBandWrap){
-        scrollBandWrap.classList.remove("hidden");
-        scrollBand.classList.add("wiggle");
+        scrollBandWrap.classList.add("hidden");
       }
     }
 
@@ -2153,7 +2168,7 @@
       attemptsForTarget++;
 
       markRunSelected(clickedBtn);
-      setScrollBandLocked(true);
+      setAnzahlButtonsLocked(true); // Buttons während Kipp sperren
 
       // 0 = kein zusätzlicher Kipp, nur aktuelle Lage auswerten
       if (anzahl > 0){
@@ -2168,6 +2183,11 @@
       clearRunSelected();
 
       const isLastTarget = (drawsCount >= MAX_TARGETS);
+
+      // Buttons verstecken nach Stich
+      if(kippAnzahlView){
+        kippAnzahlView.classList.add("hidden");
+      }
 
       await sleep(900);
 

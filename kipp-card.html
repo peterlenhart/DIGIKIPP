@@ -1154,10 +1154,6 @@
 
         <!-- START / ERGEBNIS: gleicher Maskenplatz -->
         <div class="startBtnWrap" id="startBtnWrap">
-          <button id="btnSchauen" class="squareBtn startBtn" type="button">
-            <span class="anzahlText pulse" id="btnSchauenPulse">SCHAUEN &amp; MERKEN</span>
-          </button>
-
           <button id="btnErgebnis" class="squareBtn startBtn hidden" type="button">
             <span class="anzahlText" id="btnErgebnisText">NEU SPIELEN</span>
           </button>
@@ -1193,8 +1189,7 @@
   <script>
     const colorsEl = document.getElementById("colors");
 
-    const btnSchauen      = document.getElementById("btnSchauen");
-    const btnSchauenPulse = document.getElementById("btnSchauenPulse");
+    // btnSchauen entfernt - wird durch target_verdeckt ersetzt
     const btnErgebnis     = document.getElementById("btnErgebnis");
     const btnErgebnisText = document.getElementById("btnErgebnisText");
     const startBtnWrap    = document.getElementById("startBtnWrap");
@@ -1358,6 +1353,50 @@
     }
 
     const allColors = ["violett","blau","gruen","orange"];
+
+    // ALGORITHMUS: Auto-Kipp-Anzahl berechnen
+    // Mind. 4 Kipps, max. 6, nächst höherer Wert muss verdeckt sein
+    function calculateAutoKippCount(targetRankStr){
+      const targetValue = getTargetValue(targetRankStr);
+      
+      // Finde nächst höheren Wert auf allen 12 Slots
+      let nextHigherValue = 999;
+      let nextHigherFace = -1;
+      
+      for(let face = 0; face < 3; face++){
+        for(let i = 0; i < 4; i++){
+          const slotNum = sets[face][i];
+          if(slotNum == null) continue;
+          const slotValue = getCardValue(slotNum);
+          // Nächst höherer Wert finden
+          if(slotValue > targetValue && slotValue < nextHigherValue){
+            nextHigherValue = slotValue;
+            nextHigherFace = face;
+          }
+        }
+      }
+      
+      // Wenn kein höherer Wert gefunden: nur 4 Kipps (minimum)
+      if(nextHigherFace === -1){
+        return 4;
+      }
+      
+      // Berechne welcher Face nach N Kipps sichtbar ist:
+      // Nach N Kipps: sichtbar = N % 3
+      // Wir wollen dass nextHigherFace NICHT sichtbar ist
+      
+      // Teste 4, 5, 6 Kipps
+      for(let kippCount = 4; kippCount <= 6; kippCount++){
+        const visibleFaceAfter = kippCount % 3;
+        if(visibleFaceAfter !== nextHigherFace){
+          // Perfekt: nächst höherer ist versteckt
+          return kippCount;
+        }
+      }
+      
+      // Fallback (sollte nicht passieren): 4 Kipps
+      return 4;
+    }
 
     /* Mapping Board-Farbe -> Suit-WebP (Karo=grün, Kreuz=orange, Herz=blau, Pik=violett) */
     const SUIT_IMG_BY_COLOR = {
@@ -1581,91 +1620,58 @@
     // Wert & Rang-Index für Vergleich und Punkte
     function getCardInfo(n){
       const rankStr = getVisualRank(n);
-      const order = ["8","9","10","J","Q","K","A"];
+      const order = ["2","3","4","5","6","7","8","9","10","J","Q","K","A"];
       const rankIndex = order.indexOf(rankStr);
-
-      let value;
-      if (rankStr === "A"){
-        value = 12;
-      } else if (["K","Q","J","10"].includes(rankStr)){
-        value = 10;
-      } else {
-        const parsed = parseInt(rankStr, 10);
-        value = isNaN(parsed) ? 0 : parsed;
-      }
+      const value = getCardValue(n);
 
       return { rank: rankStr, value, rankIndex };
     }
 
-    // Für Target-Karten (String-Werte wie "10", "J", "Q")
+    // Für Target-Karten (String-Werte wie "2", "10", "J", "Q")
     function getTargetCardInfo(rankStr){
-      const order = ["8","9","10","J","Q","K","A"];
+      const order = ["2","3","4","5","6","7","8","9","10","J","Q","K","A"];
       const rankIndex = order.indexOf(rankStr);
-
-      let value;
-      if (rankStr === "A"){
-        value = 12;
-      } else if (["K","Q","J","10"].includes(rankStr)){
-        value = 10;
-      } else {
-        const parsed = parseInt(rankStr, 10);
-        value = isNaN(parsed) ? 0 : parsed;
-      }
+      const value = getTargetValue(rankStr);
 
       return { rank: rankStr, value, rankIndex };
     }
 
     // Hilfsfunktion: Slot auf Zielsymbol-Farbe finden
-    function getSlotOnTargetColor(){
-      if (!currentTarget) return null;
-      const targetColor = currentTarget.color;
+    // NEU: Fester Evaluations-Slot (S3 = obere Mitte, Index 2)
+    function getMainEvaluationSlot(){
       const infos = getVisibleSlotInfos();
-      return infos.find(info => info.color === targetColor) || null;
+      return infos[2] || null; // S3 ist der dritte Slot (Index 2)
     }
 
     // Einmalige Auswertung am aktuellen Würfelface:
-    // - bereits verbrauchte Karte am Zielsymbol → "autoKip"
-    // - sonst Stich für Player oder Bank nach Farb-/Wertlogik
+    // - bereits verbrauchte Karte → "autoKip"
+    // - sonst Stich für Player oder Bank nach WERT (keine Farben mehr)
     function evaluateTrickAtCurrentFaceOnce(){
       if (!currentTarget) return { result: "none" };
 
-      const info = getSlotOnTargetColor();
+      const info = getMainEvaluationSlot();
       if (!info || info.num == null){
         return { result: "none" };
       }
 
-      // Fall: bereits verbrauchte Karte am Zielsymbol → Auto-Kipp
+      // Fall: bereits verbrauchte Karte → Auto-Kipp
       if (usedCards.has(info.num)){
-        // verbrauchtes Symbol pulsiert deutlich
         applyHitVisual(info);
         return { result: "autoKip", slotInfo: info };
       }
 
       const playerCard = getCardInfo(info.num);
-      const targetCard = getTargetCardInfo(currentTarget.num); // NEUE FUNKTION für String-Werte!
-
-      const cardColor  = getCardColor(info.num);
-      const targetIsRed   = isRedSuitColor(currentTarget.color);
-      const targetIsBlack = isBlackSuitColor(currentTarget.color);
-
-      const colorMatches =
-        (targetIsRed   && cardColor === "red") ||
-        (targetIsBlack && cardColor === "black");
+      const targetCard = getTargetCardInfo(currentTarget.num);
 
       let winner = "bank";
 
-      // Falsche Farbe: immer BANZ
-      if (!colorMatches){
-        winner = "bank";
+      // NEU: Nur Wert-Vergleich (keine Farben)
+      // Höherer Wert → Player sticht
+      // Gleicher/niedrigerer Wert → Bank
+      if (playerCard.value > targetCard.value){
+        winner = "player";
       } else {
-        // Richtige Farbe:
-        // höhere Karte → Player
-        // gleiche/niedrigere Karte → BANZ
-        if (playerCard.rankIndex > targetCard.rankIndex){
-          winner = "player";
-        } else {
-          winner = "bank";
-        }
+        winner = "bank";
       }
 
       const roundPoints = playerCard.value + targetCard.value;
@@ -2021,13 +2027,58 @@
       }
     }
 
-    function resetToNewTargetChoice(){
+    async function resetToNewTargetChoice(){
       attemptsForTarget = 0;
       currentTarget     = null;
       targetRevealed    = false;
       clearHitPulse();
       hideTargetRankAndSuit();
-      showTargetSelectView();
+      
+      // Neues Target mit Auto-Kipp-Sequenz starten
+      await startNewTargetWithAutoKipp();
+    }
+
+    // Gemeinsame Funktion für neues Target mit Auto-Kipp
+    async function startNewTargetWithAutoKipp(){
+      if(runningKipp) return;
+      
+      // Target generieren
+      currentTarget = generateCardTarget();
+      if(!currentTarget){
+        // Keine Targets mehr - Spiel beenden
+        showEndResultView();
+        return;
+      }
+
+      targetRevealed = true;
+      attemptsForTarget = 0;
+
+      // Target anzeigen (nur Rang, neutralblau)
+      if(targetRank10D){
+        targetRank10D.textContent = currentTarget.num;
+        targetRank10D.style.color = "var(--rankBlue)";
+        targetRank10D.style.display = "block";
+      }
+
+      // Suit-Icon verstecken
+      if(targetSuitImg){
+        targetSuitImg.style.display = "none";
+      }
+
+      // Scrollband verstecken während Auto-Kipp
+      if(scrollBandWrap) scrollBandWrap.classList.add("hidden");
+
+      // Auto-Kipp berechnen und ausführen
+      const autoKippCount = calculateAutoKippCount(currentTarget.num);
+      console.log(`Auto-Kipp: ${autoKippCount} Kipps für Target ${currentTarget.num}`);
+      
+      await runSchauKippSequence(autoKippCount, { kipFactor: 2 });
+
+      // Scrollband einblenden - Player ist dran
+      if(scrollBandWrap){
+        scrollBandWrap.classList.remove("hidden");
+        scrollBand.classList.add("wiggle");
+      }
     }
 
     function clearAllUsedClasses(){
@@ -2068,7 +2119,7 @@
       }
 
       startBtnWrap.classList.remove("hidden");
-      btnSchauen.classList.add("hidden");
+      // btnSchauen entfernt
       btnErgebnis.classList.remove("hidden");
       btnErgebnisText.textContent = "NEU SPIELEN";
 
@@ -2131,12 +2182,16 @@
       uiMode = "START";
 
       startBtnWrap.classList.remove("hidden");
-      btnSchauen.classList.remove("hidden");
+      // btnSchauen entfernt - target_verdeckt wird pulsieren
       btnErgebnis.classList.add("hidden");
 
       if (scrollBandWrap) scrollBandWrap.classList.add("hidden");
 
-      btnSchauenPulse.classList.add("pulse");
+      // target_verdeckt pulsierend machen
+      if(targetImgCovered){
+        targetImgCovered.style.display = "block";
+        targetImgCovered.classList.add("pulse");
+      }
 
       showHint("SCHAUKIPP-RUNDE", false);
 
@@ -2628,34 +2683,30 @@
       updateShadowVisibility();
     }
 
-    btnSchauen.addEventListener("click", async () => {
-      if (runningKipp) return;
+    // NEU: Click auf target_verdeckt startet Auto-Kipp-Sequenz
+    if(targetImgCovered){
+      targetImgCovered.addEventListener("click", async () => {
+        if (runningKipp) return;
+        if (targetRevealed) return; // Nur beim ersten Click
 
-      started = true;
+        started = true;
 
-      cancelPreview();
-      rotIndex  = 0;
-      faceIndex = 0;
-      setRotationSnap();
-      showW();
-      renderW();
+        // Target verstecken, Puls stoppen
+        targetImgCovered.style.display = "none";
+        targetImgCovered.classList.remove("pulse");
 
-      hideStartUI();
+        // Würfel vorbereiten
+        cancelPreview();
+        rotIndex  = 0;
+        faceIndex = 0;
+        setRotationSnap();
+        showW();
+        renderW();
 
-      kippAnzahlView.classList.add("hidden");
-      if (scrollBandWrap) scrollBandWrap.classList.add("hidden");
-
-      targetRevealed     = false;
-      currentTarget      = null;
-      attemptsForTarget  = 0;
-
-      resetTargetPadUI();
-      clearHitPulse();
-
-      await runSchauKippSequence(4, { kipFactor: 2 });
-
-      showTargetSelectView();
-    });
+        // Erste Target-Runde mit Auto-Kipp starten
+        await startNewTargetWithAutoKipp();
+      });
+    }
 
     btnErgebnis.addEventListener("click", () => {
       resetGameToStart();

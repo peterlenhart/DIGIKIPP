@@ -909,13 +909,13 @@
       animation: kippPulseGlow 0.22s ease-in-out 0s 10 alternate;
     }
 
-    /* Intro Overlay (CARD-Variante) */
+    /* Intro Overlay (CARD-Variante) – jetzt über voller Viewport-Breite */
     #introOverlay{
-      position: absolute;
+      position: fixed;
       left: 0;
       top: 0;
-      width: var(--gridW);
-      height: var(--gridH);
+      width: 100vw;
+      height: 100vh;
       background: rgb(0, 76, 28);
       z-index: 10000;
       display: flex;
@@ -924,6 +924,7 @@
       justify-content: center;
       gap: calc(32px * var(--uiscale));
       transition: opacity 0.4s ease;
+      pointer-events: auto;
     }
     #introOverlay.hidden{
       opacity: 0;
@@ -1043,18 +1044,19 @@
 </head>
 <body>
   <div class="stage" id="stage">
-    <div class="layout" id="layout">
 
-      <!-- Intro Overlay INNERHALB layout – CARD-Text -->
-      <div id="introOverlay">
-        <div class="introTitle">STICH DIE BANK!</div>
-        <div class="introText">
-          Jedes Target lässt sich überstechen.<br>
-          Highscore: 180
-        </div>
-        <button class="introBackBtn" id="introBackBtn">← Zur Auswahl</button>
-        <button class="introBtn" id="introStartBtn">LOS GEHT'S</button>
+    <!-- Intro Overlay jetzt über der ganzen Stage -->
+    <div id="introOverlay">
+      <div class="introTitle">STICH DIE BANK!</div>
+      <div class="introText">
+        Jedes Target lässt sich überstechen.<br>
+        Highscore: 180
       </div>
+      <button class="introBackBtn" id="introBackBtn">← Zur Auswahl</button>
+      <button class="introBtn" id="introStartBtn">LOS GEHT'S</button>
+    </div>
+
+    <div class="layout" id="layout">
 
       <div class="bgPNG" aria-hidden="true"></div>
 
@@ -1196,7 +1198,7 @@
         </div>
 
         <!-- NEU: Scrollband für Kippanzahl (Zeile 13, gleiche Position wie Startbutton) -->
-        <div class="scrollBandWrap" id="scrollBandWrap">
+        <div class="scrollBandWrap hidden" id="scrollBandWrap">
           <button class="schauGenauBtn pulse" id="schauGenauBtn" type="button">SCHAU GENAU</button>
           <div class="scrollBand hidden" id="scrollBand"></div>
         </div>
@@ -2946,6 +2948,6 @@
       window.location.href = "index.html";
     });
 
-    </script>
+  </script>
 </body>
 </html>

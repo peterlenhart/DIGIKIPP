@@ -317,13 +317,14 @@
           <span class="startBtnText">KIPP COLOR</span>
         </button>
 
-        <!-- KIPP CARD jetzt aktiv -->
+        <!-- KIPP CARD -->
         <button id="btnCard" class="squareBtn menu-btn">
           <span class="startBtnText">KIPP CARD</span>
         </button>
 
-        <button id="btnFairy" class="squareBtn menu-btn fairyBtn" disabled>
-          <span class="startBtnText">KIPP FAIRY</span>
+        <!-- KIPP TIPP (ehem. FAIRY) -->
+        <button id="btnFairy" class="squareBtn menu-btn">
+          <span class="startBtnText">KIPP TIPP</span>
         </button>
 
         <!-- X -->
@@ -441,6 +442,7 @@
     // Game navigation
     document.getElementById("btnColor").onclick = () => location.href="kipp-color.html";
     document.getElementById("btnCard").onclick  = () => location.href="kipp-card.html";
+    document.getElementById("btnFairy").onclick = () => location.href="kipp-tipp.html";
 
     // Modal
     const closeBtn = document.getElementById("closeBtn");

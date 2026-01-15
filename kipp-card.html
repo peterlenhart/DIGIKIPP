@@ -1277,52 +1277,6 @@
       wFaceGroup.querySelector('[data-slot="S4"]'),
     ];
 
-    // ======== NEU: Hilfsfunktionen, die vorher gefehlt haben ========
-
-    // Start-UI ausblenden (wird bei SCHAU GENAU verwendet)
-    function hideStartUI(){
-      if (startBtnWrap) startBtnWrap.classList.add("hidden");
-      if (kippAnzahlView) kippAnzahlView.classList.add("hidden");
-      if (scrollBandWrap) scrollBandWrap.classList.add("hidden");
-    }
-
-    // Hinweistext (CARD: bleibt unsichtbar, aber soll keinen Fehler werfen)
-    function showHint(msg, isWarn){
-      if (!hintTitle) return;
-      if (!msg){
-        hintTitle.textContent = "";
-        return;
-      }
-      hintTitle.textContent = msg;
-    }
-
-    // Text für die Target-Auswahl
-    function getTargetHintText(){
-      return "Wähle eine KIPP ANZAHL von 1 bis 11.";
-    }
-
-    // Sichtbare Slots des Würfels: einfache Version ohne Board-Mapping
-    function getVisibleSlotInfos(){
-      const curr = sets[faceIndex] || [null,null,null,null];
-      const out = [];
-      for (let i = 0; i < 4; i++){
-        out.push({
-          num: curr[i],
-          slotEl: slotElsW[i],
-          spanEl: slotTargetsW[i],
-          color: null   // Farb-Info im Moment nicht relevant
-        });
-      }
-      return out;
-    }
-
-    // Treffer-Visualisierung als Puls
-    function applyHitVisual(info){
-      if (!info || !info.slotEl || !info.spanEl) return;
-      info.slotEl.classList.add("kippPulse");
-      info.spanEl.classList.add("kippPulse");
-    }
-
     // =========================================================
     // Hit-Memory – CARD-Version: keine Slot-Hintergrundfärbung mehr
     // =========================================================
@@ -1390,7 +1344,7 @@
     // Textfarbe nach Suit (Rot bei Herz/Karo, sonst Schwarz)
     function applySlotTextColor(spanEl, suitColor){
       if(!spanEl) return;
-      // Kartenfarbe über Klassen, zusätzlich neutrales Blau für Spielstil:
+      // ALLE Kartenwerte immer blau - einheitliche Farbe
       spanEl.style.color = "rgba(38, 77, 120, 1.0)";
     }
 
@@ -1604,8 +1558,25 @@
       return new Set(getVisibleSlotInfos().map(s => s.num).filter(n => n != null));
     }
 
-    // (getVisibleInfosAt / isPairReachableWithin6 bleiben ungenutzt,
-    //  daher unverändert gelassen)
+    // *** FIX: Slot-Farben für Treffer & Target-Logik ***
+    function getVisibleSlotInfos(){
+      const curr = sets[faceIndex] || [null,null,null,null];
+
+      // Feste Zuordnung der 4 Würfelslots zu den 4 Symbol-Farben:
+      // S1 -> violett, S2 -> blau, S3 -> grün, S4 -> orange
+      const slotColors = ["violett", "blau", "gruen", "orange"];
+
+      const out = [];
+      for (let i = 0; i < 4; i++){
+        out.push({
+          num: curr[i],
+          slotEl: slotElsW[i],
+          spanEl: slotTargetsW[i],
+          color: slotColors[i]
+        });
+      }
+      return out;
+    }
 
     function getVisibleInfosAt(rotIdx, faceIdx){
       const curr = sets[faceIdx];
@@ -1653,24 +1624,6 @@
       targetTimeMul = lerp(1.0, TARGET_MIN, t);
     }
 
-    const FIXED_SPEED = 3;
-
-    function getTiming(){
-      const v = FIXED_SPEED;
-
-      const baseHold = Math.max(520, Math.round(2400 - v * 450));
-      const baseKip  = Math.max(160, Math.round(baseHold * 0.50));
-      const baseW    = baseHold;
-
-      const mul = clamp(targetTimeMul || 1, TARGET_MIN, 1);
-
-      const hold = Math.max(260, Math.round(baseHold * mul));
-      const kip  = Math.max(120, Math.round(baseKip  * mul));
-      const wfull= Math.max(260, Math.round(baseW    * mul));
-
-      return { holdMs: hold, kipMs: kip, wMs: wfull };
-    }
-
     const rotDeg = [0, 90, 180, 270];
     let rotIndex  = 0;
     let faceIndex = 0;
@@ -1695,23 +1648,17 @@
       
       // Kartenfarben und verbrauchte Karten
       if (spanEl && n != null) {
-        // Entferne alte Klassen
         spanEl.classList.remove("cardRed", "cardBlack", "used");
-        
-        // Setze Kartenfarbe (rot/schwarz)
         const cardColor = cardColors[n];
         if (cardColor === "red") {
           spanEl.classList.add("cardRed");
         } else if (cardColor === "black") {
           spanEl.classList.add("cardBlack");
         }
-        
-        // Markiere verbrauchte Karten
         if (usedCards.has(n)) {
           spanEl.classList.add("used");
         }
       }
-      
       applySlotTextColor(spanEl, suitColor);
     }
 
@@ -1799,6 +1746,24 @@
         await sleep(50);
       }
       return (myToken === previewToken);
+    }
+
+    const FIXED_SPEED = 3;
+
+    function getTiming(){
+      const v = FIXED_SPEED;
+
+      const baseHold = Math.max(520, Math.round(2400 - v * 450));
+      const baseKip  = Math.max(160, Math.round(baseHold * 0.50));
+      const baseW    = baseHold;
+
+      const mul = clamp(targetTimeMul || 1, TARGET_MIN, 1);
+
+      const hold = Math.max(260, Math.round(baseHold * mul));
+      const kip  = Math.max(120, Math.round(baseKip  * mul));
+      const wfull= Math.max(260, Math.round(baseW    * mul));
+
+      return { holdMs: hold, kipMs: kip, wMs: wfull };
     }
 
     async function runSchauKippSequence(steps, opts = {}){
@@ -1961,8 +1926,9 @@
         targetImgCovered.style.display = "none";
         targetImgCovered.classList.remove("pulse");
       }
-      
+
       hideTargetRankAndSuit();
+
       showHint("ENDE – VERGLEICHE DIE SCORES", true);
     }
 
@@ -2264,11 +2230,11 @@
         const bImg  = stichBImgs[i];
         if (plImg){
           plImg.style.left = left + "px";
-          plImg.style.top  = top + "px";
+          plImg.style.top  = top  + "px";
         }
         if (bImg){
           bImg.style.left = left + "px";
-          bImg.style.top  = top + "px";
+          bImg.style.top  = top  + "px";
         }
       }
     }
@@ -2428,7 +2394,7 @@
       for (const si of visibleSlots){
         if (si.num == null) continue;
         if (!si.color) continue;
-        forbidden.add( getTargetVisualRank(si.num) + "|" + si.color );
+        forbidden.add( getDiceVisualRank(si.num) + "|" + si.color );
       }
       return forbidden;
     }
@@ -2505,6 +2471,25 @@
       showStartView();
       updateShadowVisibility();
     }
+
+    // --- kleine Helper, damit Button & Hint sauber laufen ---
+    function hideStartUI(){
+      if (startBtnWrap) startBtnWrap.classList.add("hidden");
+      if (kippAnzahlView) kippAnzahlView.classList.add("hidden");
+      if (scrollBandWrap) scrollBandWrap.classList.add("hidden");
+    }
+
+    function showHint(msg, isWarn){
+      if (!hintTitle) return;
+      // Hinweis ist in KIPP CARD laut Layout eigentlich unsichtbar,
+      // aber wir setzen trotzdem den Text, falls du ihn später aktivieren willst.
+      hintTitle.textContent = msg || "";
+    }
+
+    function getTargetHintText(){
+      return "Wähle eine KIPP ANZAHL von 1 bis 11 und stich das Target.";
+    }
+    // --------------------------------------------------------
 
     btnSchauen.addEventListener("click", async () => {
       if (runningKipp) return;
@@ -2594,6 +2579,6 @@
         showKippCountView();
       });
     }
-    </script>
+  </script>
 </body>
 </html>

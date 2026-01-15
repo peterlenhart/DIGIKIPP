@@ -1234,6 +1234,30 @@
 
     const cubeShadowLayer = document.getElementById("cubeShadowLayer");
 
+    /* NEU: Hilfsfunktionen für UI/Hints */
+
+    function hideStartUI(){
+      if (startBtnWrap) startBtnWrap.classList.add("hidden");
+      if (kippAnzahlView) kippAnzahlView.classList.add("hidden");
+      if (scrollBandWrap) scrollBandWrap.classList.add("hidden");
+    }
+
+    function showHint(msg, isWarn){
+      if (!hintTitle) return;
+      if (!msg){
+        hintTitle.textContent = "";
+        return;
+      }
+      // Farbe/Optik sind via CSS ohnehin ausgeblendet,
+      // aber wir halten den Textzustand sauber.
+      hintTitle.textContent = msg;
+    }
+
+    function getTargetHintText(){
+      // Text laut deiner Vorgabe für die Kippanzahl-Phase
+      return "Wähle eine KIPP ANZAHL von 1 bis 11.";
+    }
+
     /* Target-Karten WebP-Elemente */
     const targetLayer      = document.getElementById("targetLayer");
     const targetImg1       = document.getElementById("target1");
@@ -2215,11 +2239,11 @@
         const bImg  = stichBImgs[i];
         if (plImg){
           plImg.style.left = left + "px";
-          plImg.style.top  = top  + "px";
+          plImg.style.top  = top + "px";
         }
         if (bImg){
           bImg.style.left = left + "px";
-          bImg.style.top  = top  + "px";
+          bImg.style.top  = top + "px";
         }
       }
     }

@@ -902,6 +902,20 @@
       text-align: center;
     }
 
+    .introTitle{
+      font-size: calc(48px * var(--uiscale));
+      font-weight: 1000;
+      letter-spacing: 0.08em;
+      color: var(--ui-text);
+      text-shadow:
+        0 3px 0 rgba(0,0,0,0.75),
+        0 10px 22px rgba(0,0,0,0.55);
+      text-transform: uppercase;
+      line-height: 1.1;
+      margin-bottom: calc(20px * var(--uiscale));
+      text-align: center;
+    }
+
     .introText{
       font-size: calc(22px * var(--uiscale));
       font-weight: 700;
@@ -1249,7 +1263,9 @@
     };
 
     let activeKipId = "0_1";
-    function getKipId(fromFace, toFace){ return `\( {fromFace}_ \){toFace}`; }
+    function getKipId(fromFace, toFace){
+      return `${fromFace}_${toFace}`;
+    }
 
     function setActiveKipGroup(kipId){
       activeKipId = kipId;
@@ -1261,19 +1277,9 @@
       updateShadowVisibility();
     }
 
-    const slotTargetsW = [
-      wFaceGroup.querySelector('[data-slot="S1"] .num > span'),
-      wFaceGroup.querySelector('[data-slot="S2"] .num > span'),
-      wFaceGroup.querySelector('[data-slot="S3"] .num > span'),
-      wFaceGroup.querySelector('[data-slot="S4"] .num > span'),
-    ];
+    const slotTargetsW = [      wFaceGroup.querySelector('[data-slot="S1"] .num > span'),      wFaceGroup.querySelector('[data-slot="S2"] .num > span'),      wFaceGroup.querySelector('[data-slot="S3"] .num > span'),      wFaceGroup.querySelector('[data-slot="S4"] .num > span'),    ];
 
-    const slotElsW = [
-      wFaceGroup.querySelector('[data-slot="S1"]'),
-      wFaceGroup.querySelector('[data-slot="S2"]'),
-      wFaceGroup.querySelector('[data-slot="S3"]'),
-      wFaceGroup.querySelector('[data-slot="S4"]'),
-    ];
+    const slotElsW = [      wFaceGroup.querySelector('[data-slot="S1"]'),      wFaceGroup.querySelector('[data-slot="S2"]'),      wFaceGroup.querySelector('[data-slot="S3"]'),      wFaceGroup.querySelector('[data-slot="S4"]'),    ];
 
     // =========================================================
     // Hit-Memory – CARD-Version: keine Slot-Hintergrundfärbung mehr
@@ -1309,31 +1315,11 @@
         return kipSlotCache[kipId];
       }
 
-      const rightEls = [
-        g.querySelector('[data-slot="W1_1"]'),
-        g.querySelector('[data-slot="W1_2"]'),
-        g.querySelector('[data-slot="W1_3"]'),
-        g.querySelector('[data-slot="W1_4"]'),
-      ];
-      const leftEls = [
-        g.querySelector('[data-slot="W2_A"]'),
-        g.querySelector('[data-slot="W2_B"]'),
-        g.querySelector('[data-slot="W2_C"]'),
-        g.querySelector('[data-slot="W2_D"]'),
-      ];
+      const rightEls = [        g.querySelector('[data-slot="W1_1"]'),        g.querySelector('[data-slot="W1_2"]'),        g.querySelector('[data-slot="W1_3"]'),        g.querySelector('[data-slot="W1_4"]'),      ];
+      const leftEls = [        g.querySelector('[data-slot="W2_A"]'),        g.querySelector('[data-slot="W2_B"]'),        g.querySelector('[data-slot="W2_C"]'),        g.querySelector('[data-slot="W2_D"]'),      ];
 
-      const rightSpans = [
-        g.querySelector('[data-slot="W1_1"] .num > span'),
-        g.querySelector('[data-slot="W1_2"] .num > span'),
-        g.querySelector('[data-slot="W1_3"] .num > span'),
-        g.querySelector('[data-slot="W1_4"] .num > span'),
-      ];
-      const leftSpans = [
-        g.querySelector('[data-slot="W2_A"] .num > span'),
-        g.querySelector('[data-slot="W2_B"] .num > span'),
-        g.querySelector('[data-slot="W2_C"] .num > span'),
-        g.querySelector('[data-slot="W2_D"] .num > span'),
-      ];
+      const rightSpans = [        g.querySelector('[data-slot="W1_1"] .num > span'),        g.querySelector('[data-slot="W1_2"] .num > span'),        g.querySelector('[data-slot="W1_3"] .num > span'),        g.querySelector('[data-slot="W1_4"] .num > span'),      ];
+      const leftSpans = [        g.querySelector('[data-slot="W2_A"] .num > span'),        g.querySelector('[data-slot="W2_B"] .num > span'),        g.querySelector('[data-slot="W2_C"] .num > span'),        g.querySelector('[data-slot="W2_D"] .num > span'),      ];
 
       kipSlotCache[kipId] = { rightSpans, leftSpans, rightEls, leftEls };
       return kipSlotCache[kipId];
@@ -1702,7 +1688,7 @@
       for (let i=min; i<=max; i++) pool.push(i);
       for (let i=pool.length-1; i>0; i--){
         const j = Math.floor(Math.random() * (i+1));
-        [pool[i], pool[j] = [pool[j], pool[i]];
+        [pool[i], pool[j]] = [pool[j], pool[i]];
       }
       return pool.slice(0, count);
     }
@@ -2116,8 +2102,7 @@
       const cellPx = numVar("--cell") || 142;
       const sizePx = numVar("--colorSize") || 126;
 
-      const placements = [
-        ["1C","c-gruen"],  ["1D","c-orange"], ["1E","c-orange"], ["1F","c-blau"],
+      const placements = [        ["1C","c-gruen"],  ["1D","c-orange"], ["1E","c-orange"], ["1F","c-blau"],
         ["8C","c-gruen"],  ["8D","c-violett"],["8E","c-violett"],["8F","c-blau"],
         ["3A","c-violett"],["4A","c-blau"],   ["5A","c-blau"],   ["6A","c-orange"],
         ["3H","c-violett"],["4H","c-gruen"],  ["5H","c-gruen"],  ["6H","c-orange"],
@@ -2318,13 +2303,11 @@
       else renderKip();
     }
 
-    let planned = [
-      [null,null,null,null],
+    let planned = [      [null,null,null,null],
       [null,null,null,null],
       [null,null,null,null],
     ];
-    let sets = [
-      [null,null,null,null],
+    let sets = [      [null,null,null,null],
       [null,null,null,null],
       [null,null,null,null],
     ];
@@ -2335,8 +2318,7 @@
       planned[1] = twelve.slice(4,8);
       planned[2] = twelve.slice(8,12);
 
-      sets = [
-        planned[0].slice(),
+      sets = [        planned[0].slice(),
         planned[1].slice(),
         planned[2].slice(),
       ];
@@ -2376,6 +2358,7 @@
 
     let usedNumbers = new Set();
     let drawsCount  = 0;
+    const MAX_TARGETS = 12;
 
     function resetTargetDeck(){
       usedNumbers = new Set();

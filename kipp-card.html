@@ -1470,23 +1470,27 @@
     }
 
     // Wert & Rang-Index für Vergleich und Punkte
-    function getCardInfo(n, isTarget = false){
-      const rankStr = isTarget ? getTargetVisualRank(n) : getDiceVisualRank(n);
-      const order = ["2","3","4","5","6","7","8","9","10","J","Q","K","A"];
-      const rankIndex = order.indexOf(rankStr);
+function getCardInfo(n, isTarget = false){
+  // Rang so wie er auf Slot bzw. Target angezeigt wird
+  const rankStr = isTarget ? getTargetVisualRank(n) : getDiceVisualRank(n);
 
-      let value;
-      if (rankStr === "A"){
-        value = 12;
-      } else if (["K","Q","J","10"].includes(rankStr)){
-        value = 10;
-      } else {
-        const parsed = parseInt(rankStr, 10);
-        value = isNaN(parsed) ? 0 : parsed;
-      }
+  // Reihenfolge für "höher / niedriger" – A ist am höchsten
+  const order = ["2","3","4","5","6","7","8","9","10","J","Q","K","A"];
+  const rankIndex = order.indexOf(rankStr);
 
-      return { rank: rankStr, value, rankIndex };
-    }
+  // Punktewert für die Score-Anzeige
+  let value;
+  if (rankStr === "A"){
+    value = 14;                 // Ass = 14
+  } else if (["J","Q","K"].includes(rankStr)){
+    value = 10;                 // J, Q, K = 10
+  } else {
+    const parsed = parseInt(rankStr, 10);
+    value = isNaN(parsed) ? 0 : parsed;   // Zahlenkarten = ihr Wert
+  }
+
+  return { rank: rankStr, value, rankIndex };
+}
 
     // Player-Karte auf Ziel-Farbe finden
     function getPlayerCardOnTargetColor(){

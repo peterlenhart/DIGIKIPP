@@ -1503,6 +1503,24 @@
       return null;
     }
 
+    // Niedrigste noch unverbrauchte Karte auf dem aktuellen Face finden
+    function findLowestUnusedOnCurrentFace(){
+      const infos = getVisibleSlotInfos();
+      let best = null;
+
+      for (const info of infos){
+        if (info.num == null) continue;
+        if (usedCards.has(info.num)) continue;
+
+        const ci = getCardInfo(info.num, false);
+        if (!best || ci.rankIndex < best.cardInfo.rankIndex){
+          best = { info, cardInfo: ci };
+        }
+      }
+
+      return best; // {info, cardInfo} oder null
+    }
+
     // Treffer-Highlight
     function applyHitVisual(info){
       if (!info || !info.slotEl) return;
@@ -1511,29 +1529,68 @@
       if (info.spanEl) info.spanEl.classList.add("kippPulse");
     }
 
-    // Treffererkennung + Score Player/Bank
+    // Treffererkennung + Score Player/Bank EXAKT nach deinen Regeln
     function checkHitAndAnimate(){
       if (!currentTarget) return false;
 
-      const info = getPlayerCardOnTargetColor();
-      if (!info) return false;
-
-      if (usedCards.has(info.num)) {
-        console.log("Karte", info.num, "ist bereits verbraucht!");
-        return false;
-      }
-
-      const playerCard = getCardInfo(info.num, false);
       const targetCard = getCardInfo(currentTarget.num, true);
 
-      let winner = "bank";
-      if (playerCard.rankIndex > targetCard.rankIndex){
-        winner = "player";
+      let winner        = "bank";   // Default: Bank
+      let takenInfo     = null;     // Slot-Info der Karte, die "eingezogen" wird
+      let takenCardInfo = null;     // getCardInfo(...) dieser Karte
+
+      let safety = 0;
+      while (!takenInfo && safety < 24) {
+
+        // 1) Immer zuerst: Karte am Ziel-Symbol auf aktuellem Face
+        const infoAtTarget = getPlayerCardOnTargetColor(); // kann auch "used" sein
+
+        if (infoAtTarget && !usedCards.has(infoAtTarget.num)) {
+          // Karte am Ziel-Symbol ist vorhanden und unverbraucht
+          const playerCard = getCardInfo(infoAtTarget.num, false);
+          takenInfo     = infoAtTarget;
+          takenCardInfo = playerCard;
+
+          // höherer Wert  => Player
+          // gleicher oder niedriger Wert => Bank
+          if (playerCard.rankIndex > targetCard.rankIndex) {
+            winner = "player";
+          } else {
+            winner = "bank";
+          }
+
+          break; // Stich entschieden
+
+        } else {
+          // 2) Karte am Ziel-Symbol fehlt oder ist verbraucht:
+          //    -> niedrigste unverbrauchte Karte auf aktuellem Face
+          const lowest = findLowestUnusedOnCurrentFace();
+
+          if (lowest) {
+            // Fallback-Karte gehört IMMER der Bank
+            winner        = "bank";
+            takenInfo     = lowest.info;
+            takenCardInfo = lowest.cardInfo;
+            break; // Stich entschieden
+          }
+
+          // 3) Auf diesem Face sind alle 4 Karten verbraucht:
+          //    -> GENAU EIN Kipp weiter, dann wieder bei Schritt 1 anfangen
+          advanceFullCW();
+          renderW();
+          safety++;
+        }
       }
 
-      const roundPoints = playerCard.value + targetCard.value;
+      // Sollte in einem Extremfall wirklich nichts gefunden werden, abbrechen
+      if (!takenInfo) return false;
 
-      if (winner === "player"){
+      // Punkte = Wert Target + Wert der genommenen Karte
+      const roundPoints =
+        (takenCardInfo ? takenCardInfo.value : 0) +
+        (targetCard     ? targetCard.value     : 0);
+
+      if (winner === "player") {
         playerScore += roundPoints;
         playerTricks++;
       } else {
@@ -1542,21 +1599,26 @@
       }
 
       updateScoresUI();
-      applyHitVisual(info);
 
-      usedCards.add(info.num);
-      renderW();
+      // Visuell markieren & Karte verbrauchen
+      if (takenInfo) {
+        applyHitVisual(takenInfo);
+        usedCards.add(takenInfo.num);
+        renderW();
+      }
 
-      if (winner === "player"){
-        if (stichPLImgs[playerTricks]){
+      // Stich-WebPs einblenden
+      if (winner === "player") {
+        if (stichPLImgs[playerTricks]) {
           stichPLImgs[playerTricks].style.display = "block";
         }
       } else {
-        if (stichBImgs[bankTricks]){
+        if (stichBImgs[bankTricks]) {
           stichBImgs[bankTricks].style.display = "block";
         }
       }
 
+      // Rückgabe bleibt: true = Player hat Stich gewonnen
       return (winner === "player");
     }
 
@@ -2336,7 +2398,7 @@
           else s.classList.remove("visible");
         });
       } else {
-        allShadows.forEach(s => s.classList.remove("visible"));
+        allShadows.forEach(s => s.classList.remove("visible");
       }
 
       if (isWVisible) cubeShadowLayer.classList.add("visible");

@@ -1007,9 +1007,11 @@
       <div id="introOverlay">
         <div class="introTitle">STICH DIE BANK!</div>
         <div class="introText">
-          Kippe einen höheren<br>
-          Kartenwert an das<br>
-          gleiche Symbol.
+          Wähle eine<br>
+          KIPP ANZAHL<br>
+          von 1 bis 11 und<br>
+          stich das Target.<br>
+          Highscore: 180
         </div>
         <button class="introBackBtn" id="introBackBtn">← Zur Auswahl</button>
         <button class="introBtn" id="introStartBtn">LOS GEHT'S</button>
@@ -1391,7 +1393,7 @@
     let playerScore = 0;
     let bankScore   = 0;
 
-    // Player-/Bank-Stiche (noch ohne Logik)
+    // Player-/Bank-Stiche
     let playerTricks = 0;
     let bankTricks   = 0;
 
@@ -1419,7 +1421,7 @@
       }
     }
 
-    // aktuell nur Werte zurücksetzen – Stiche werden später mit WebP-Stichen verknüpft
+    // aktuell nur Werte zurücksetzen – Stiche werden mit WebP-Stichen verknüpft
     function resetStichLayers(){
       playerTricks = 0;
       bankTricks   = 0;
@@ -1471,22 +1473,19 @@
 
     // Wert & Rang-Index für Vergleich und Punkte
     function getCardInfo(n, isTarget = false){
-      // Rang so wie er auf Slot bzw. Target angezeigt wird
       const rankStr = isTarget ? getTargetVisualRank(n) : getDiceVisualRank(n);
 
-      // Reihenfolge für "höher / niedriger" – A ist am höchsten
       const order = ["2","3","4","5","6","7","8","9","10","J","Q","K","A"];
       const rankIndex = order.indexOf(rankStr);
 
-      // Punktewert für die Score-Anzeige
       let value;
       if (rankStr === "A"){
-        value = 14;                 // Ass = 14
+        value = 14;
       } else if (["J","Q","K"].includes(rankStr)){
-        value = 10;                 // J, Q, K = 10
+        value = 10;
       } else {
         const parsed = parseInt(rankStr, 10);
-        value = isNaN(parsed) ? 0 : parsed;   // Zahlenkarten = ihr Wert
+        value = isNaN(parsed) ? 0 : parsed;
       }
 
       return { rank: rankStr, value, rankIndex };
@@ -1498,10 +1497,18 @@
       const infos = getVisibleSlotInfos();
       for (const info of infos){
         if (info.num == null) continue;
-        if (!currentTarget.color) return info; // falls Farbe nicht gemappt wird
+        if (!currentTarget.color) return info;
         if (info.color === currentTarget.color) return info;
       }
       return null;
+    }
+
+    // Treffer-Highlight
+    function applyHitVisual(info){
+      if (!info || !info.slotEl) return;
+      clearHitPulse();
+      info.slotEl.classList.add("kippPulse");
+      if (info.spanEl) info.spanEl.classList.add("kippPulse");
     }
 
     // Treffererkennung + Score Player/Bank
@@ -1511,7 +1518,6 @@
       const info = getPlayerCardOnTargetColor();
       if (!info) return false;
 
-      // Prüfe ob die Karte bereits verbraucht ist
       if (usedCards.has(info.num)) {
         console.log("Karte", info.num, "ist bereits verbraucht!");
         return false;
@@ -1520,7 +1526,6 @@
       const playerCard = getCardInfo(info.num, false);
       const targetCard = getCardInfo(currentTarget.num, true);
 
-      // Vergleich über Rang-Reihenfolge (A > K > Q > J > 10 > 9 ... 3)
       let winner = "bank";
       if (playerCard.rankIndex > targetCard.rankIndex){
         winner = "player";
@@ -1539,12 +1544,9 @@
       updateScoresUI();
       applyHitVisual(info);
 
-      // *** KARTE ALS VERBRAUCHT MARKIEREN ***
       usedCards.add(info.num);
-      // Rendering aktualisieren um Transparenz zu zeigen
       renderW();
 
-      // *** STICH-EINBLENDUNG ***
       if (winner === "player"){
         if (stichPLImgs[playerTricks]){
           stichPLImgs[playerTricks].style.display = "block";
@@ -1562,26 +1564,19 @@
       return new Set(getVisibleSlotInfos().map(s => s.num).filter(n => n != null));
     }
 
-    // *** WICHTIG: Slot-Infos board-basiert (Symbol-Zuordnung über Koordinaten) ***
+    // Slot-Farben für Treffer & Target-Logik – einfache Zuordnung S1..S4
     function getVisibleSlotInfos(){
-      const curr = sets[faceIndex] || [null, null, null, null];
+      const curr = sets[faceIndex] || [null,null,null,null];
 
-      // ZS-Koordinaten für aktuelle Rotation
-      const zsCoords = ZS_COORDS_BY_ROT_ZSINDEX[rotIndex];
+      const slotColors = ["violett", "blau", "gruen", "orange"];
 
       const out = [];
       for (let i = 0; i < 4; i++){
-        const zsIndex = DOM_SLOT_TO_ZS_INDEX[i];      // Mapping DOM-Slot -> ZS-Index
-        const zsCoord = zsCoords[zsIndex - 1];        // Koordinate wie "4C"
-        const zfCoord = getAdjacentZFCoordForZS(zsCoord);
-        const col     = zfCoord ? COLOR_BY_ZF_COORD[zfCoord] : null;
-
         out.push({
-          num:    curr[i],
+          num: curr[i],
           slotEl: slotElsW[i],
           spanEl: slotTargetsW[i],
-          color:  col,
-          zsCoord
+          color: slotColors[i]
         });
       }
       return out;
@@ -1589,19 +1584,13 @@
 
     function getVisibleInfosAt(rotIdx, faceIdx){
       const curr = sets[faceIdx];
-      const zsCoords = ZS_COORDS_BY_ROT_ZSINDEX[rotIdx];
+      const zsCoords = []; // Platzhalter – nicht benötigt in aktueller Logik
       const out = [];
       for (let i=0;i<4;i++){
-        const zsIndex = DOM_SLOT_TO_ZS_INDEX[i];
-        const zsCoord = zsCoords[zsIndex - 1];
-        const zfCoord = getAdjacentZFCoordForZS(zsCoord);
-        const col = zfCoord ? COLOR_BY_ZF_COORD[zfCoord] : null;
-        out.push({ num: curr[i], zsCoord, color: col });
+        out.push({ num: curr[i], zsCoord: null, color: null });
       }
       return out;
     }
-
-    function applyHitVisualNoop(){}
 
     function isPairReachableWithin6(num, color){
       let r = rotIndex;
@@ -1655,7 +1644,6 @@
       renderNumber(spanEl, n);
       applyPersistentFill(slotEl, n);
       
-      // Kartenfarben und verbrauchte Karten
       if (spanEl && n != null) {
         spanEl.classList.remove("cardRed", "cardBlack", "used");
         const cardColor = cardColors[n];
@@ -2190,22 +2178,6 @@
       backBtn.style.transform = "translate(-50%, -50%)";
     }
 
-    function positionTestButton(cellPx){
-      const row = 9;
-      const col = 8;
-      const visualRow = row + HEADER_ROW_OFFSET;
-
-      const left = (col - 1) * cellPx + cellPx/2;
-      const top  = (visualRow - 1) * cellPx + cellPx/2;
-
-      testTargetBtn.style.position = "absolute";
-      testTargetBtn.style.left = left + "px";
-      testTargetBtn.style.top  = top + "px";
-      testTargetBtn.style.transform = "translate(-50%, -50%)";
-      testTargetBtn.style.zIndex = "30";
-      testTargetBtn.style.pointerEvents = "auto";
-    }
-
     function positionTargetCards(cellPx){
       if (!targetLayer) return;
       const coord = coordToXY("9A");
@@ -2308,7 +2280,6 @@
       positionTargetCards(cellPx);
       positionStichCards(cellPx);
       positionBackButton(cellPx);
-      positionTestButton(cellPx);
     }
 
     function rebuild(){
@@ -2481,7 +2452,7 @@
       updateShadowVisibility();
     }
 
-    // --- kleine Helper, damit Button & Hint sauber laufen ---
+    // --- Helper für Start-UI / Hint ---
     function hideStartUI(){
       if (startBtnWrap) startBtnWrap.classList.add("hidden");
       if (kippAnzahlView) kippAnzahlView.classList.add("hidden");
@@ -2490,8 +2461,6 @@
 
     function showHint(msg, isWarn){
       if (!hintTitle) return;
-      // Hinweis ist in KIPP CARD laut Layout eigentlich unsichtbar,
-      // aber wir setzen trotzdem den Text, falls du ihn später aktivieren willst.
       hintTitle.textContent = msg || "";
     }
 

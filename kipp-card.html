@@ -1439,6 +1439,36 @@
       }
     }
 
+    // === PUNKTEBERECHNUNG FÜR STICHE ===
+    // Berechnet Rundenpunkte aus Player-intern und Target-rank
+    function calculateRoundPoints(playerIntern, targetRank){
+      // Player-Wert aus interner Zahl
+      let playerValue;
+      if (playerIntern >= 1 && playerIntern <= 8) {
+        playerValue = playerIntern + 2; // 1→3, 2→4, ..., 8→10
+      } else if (playerIntern >= 9 && playerIntern <= 11) {
+        playerValue = 10; // J, Q, K alle = 10
+      } else if (playerIntern === 12) {
+        playerValue = 14; // Ass
+      } else {
+        playerValue = 0;
+      }
+
+      // Target-Wert aus Rang-String
+      let targetValue;
+      if (targetRank === "A") {
+        targetValue = 14;
+      } else if (targetRank === "J" || targetRank === "Q" || targetRank === "K") {
+        targetValue = 10;
+      } else {
+        targetValue = parseInt(targetRank, 10) || 0;
+      }
+
+      console.log("PUNKTE: Player intern", playerIntern, "=", playerValue, "+ Target", targetRank, "=", targetValue, "→ SUMME:", playerValue + targetValue);
+      
+      return playerValue + targetValue;
+    }
+
     // Berechne Score-Wert direkt aus interner Slot-Nummer
     function getSlotValue(internalNum){
       if (internalNum >= 1 && internalNum <= 8) {
@@ -1573,17 +1603,6 @@
         const playerCard = getCardInfo(info.num, false);
         const targetCard = getCardInfo(currentTarget.rank, true);
 
-        // SCORE-WERTE: Direkt aus intern/rank berechnen
-        const playerValue = getSlotValue(info.num);
-        const targetValue = getTargetValue(currentTarget.rank);
-
-        // DEBUG: Zeige alle Werte
-        console.log("=== STICH-BERECHNUNG ===");
-        console.log("Player intern:", info.num);
-        console.log("Player visuell:", playerCard.rank, "| Wert:", playerValue);
-        console.log("Target rank:", currentTarget.rank, "| Wert:", targetValue);
-        console.log("Rundenpunkte:", playerValue, "+", targetValue, "=", playerValue + targetValue);
-
         let winner = "bank";
         if (playerCard.rankIndex > targetCard.rankIndex){
           // Player hat HÖHERE Karte → Player-Stich
@@ -1591,9 +1610,8 @@
         }
         // Bei gleich oder niedriger → Bank-Stich
 
-        const roundPoints = playerValue + targetValue;
-        console.log("Gewinner:", winner, "| Punkte:", roundPoints);
-        console.log("=======================");
+        const roundPoints = calculateRoundPoints(info.num, currentTarget.rank);
+        console.log("Gewinner:", winner);
 
         if (winner === "player"){
           playerScore += roundPoints;
@@ -1632,16 +1650,12 @@
           const playerCard = getCardInfo(lowestInfo.num, false);
           const targetCard = getCardInfo(currentTarget.rank, true);
 
-          // SCORE-WERTE: Direkt aus intern/rank berechnen
-          const playerValue = getSlotValue(lowestInfo.num);
-          const targetValue = getTargetValue(currentTarget.rank);
-
           let winner = "bank";
           if (playerCard.rankIndex > targetCard.rankIndex){
             winner = "player";
           }
 
-          const roundPoints = playerValue + targetValue;
+          const roundPoints = calculateRoundPoints(lowestInfo.num, currentTarget.rank);
 
           if (winner === "player"){
             playerScore += roundPoints;

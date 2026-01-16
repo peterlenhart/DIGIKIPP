@@ -1154,7 +1154,7 @@
           </button>
 
           <button id="btnErgebnis" class="squareBtn startBtn hidden" type="button">
-            <span class="anzahlText" id="btnErgebnisText">Neues Spiel</span>
+            <span class="anzahlText" id="btnErgebnisText">NEU SPIELEN</span>
           </button>
         </div>
 
@@ -1320,7 +1320,7 @@
         g.querySelector('[data-slot="W2_B"]'),
         g.querySelector('[data-slot="W2_C"]'),
         g.querySelector('[data-slot="W2_D"]'),
-      };
+      ];
 
       const rightSpans = [
         g.querySelector('[data-slot="W1_1"] .num > span'),
@@ -1432,7 +1432,100 @@
       }
     }
 
-    function getDiceVisualRank(n){
+    const ordinals = {
+      1:"Erstes",2:"Zweites",3:"Drittes",4:"Viertes",5:"Fünftes",6:"Sechstes",
+      7:"Siebtes",8:"Achtes",9:"Neuntes",10:"Zehntes",11:"Elftes"
+    };
+
+    const MAX_TARGETS = 6;
+
+    function getTargetHintText(){
+      const nextIndex = drawsCount + 1; // 1..MAX_TARGETS
+      if (nextIndex >= MAX_TARGETS) return "LETZTES KIPPZIEL";
+      return `${ordinals[nextIndex] || (nextIndex + ".")} KIPPZIEL VON ${MAX_TARGETS}`;
+    }
+
+    function showHint(text, small=false){
+      if (!hintTitle) return;
+      hintTitle.textContent = text;
+      hintTitle.classList.toggle("hintSmall", !!small);
+    }
+    function hideHint(){
+      if (!hintTitle) return;
+      hintTitle.textContent = "";
+    }
+
+    function hideStartUI(){
+      startBtnWrap.classList.add("hidden");
+      hideHint();
+    }
+
+    const ZS_COORDS_BY_ROT_ZSINDEX = [
+      ["4B","3B","2C","2D"],
+      ["2E","2F","3G","4G"],
+      ["5G","6G","7F","7E"],
+      ["7D","7C","6B","5B"],
+    ];
+    const DOM_SLOT_TO_ZS_INDEX = [2, 1, 3, 4];
+
+    const colorFieldCoords = {
+      'violett': ['3A','8D','8E','3H'],
+      'blau':    ['1F','8F','4A','5A'],
+      'gruen':   ['1C','8C','4H','5H'],
+      'orange':  ['1D','1E','6A','6H']
+    };
+
+    const COLOR_BY_ZF_COORD = (() => {
+      const m = {};
+      for (const [c, arr] of Object.entries(colorFieldCoords)){
+        for (const coord of arr) m[coord] = c;
+      }
+      return m;
+    })();
+
+    function getAdjacentZFCoordForZS(zsCoord){
+      const p = coordToXY(zsCoord);
+      if (p.colLetter === "B") return `${p.row}A`;
+      if (p.colLetter === "G") return `${p.row}H`;
+      if (p.row === 2) return `1${p.colLetter}`;
+      if (p.row === 7) return `8${p.colLetter}`;
+      return null;
+    }
+
+    function getVisibleSlotInfos(){
+      const curr = sets[faceIndex];
+      const rot  = rotIndex;
+      const zsCoords = ZS_COORDS_BY_ROT_ZSINDEX[rot];
+      const out = [];
+      for (let i = 0; i < 4; i++){
+        const zsIndex = DOM_SLOT_TO_ZS_INDEX[i];
+        const zsCoord = zsCoords[zsIndex - 1];
+        const zfCoord = getAdjacentZFCoordForZS(zsCoord);
+        const color   = zfCoord ? COLOR_BY_ZF_COORD[zfCoord] : null;
+        out.push({
+          slotEl: slotElsW[i],
+          spanEl: slotTargetsW[i],
+          num:    curr[i],
+          zsIndex,
+          zsCoord,
+          zfCoord,
+          color
+        });
+      }
+      return out;
+    }
+
+    function applyHitVisual(slotInfo){
+      slotInfo.slotEl.classList.add("kippPulse");
+      if (slotInfo.spanEl) slotInfo.spanEl.classList.add("kippPulse");
+      setTimeout(() => {
+        slotInfo.slotEl.classList.remove("kippPulse");
+        if (slotInfo.spanEl) slotInfo.spanEl.classList.remove("kippPulse");
+      }, 2600);
+    }
+
+    // Karten-Visualisierung: 1–12 → 3–A
+    function getVisualRank(n){
       switch (n){
         case 12: return "A";
         case 11: return "K";
@@ -1451,20 +1544,15 @@
       }
     }
 
-    function getInternalValue(visualRank){
-      const order = ["3","4","5","6","7","8","9","10","J","Q","K","A"];
-      return order.indexOf(visualRank) + 1; // 3=1, 4=2, ..., A=12
-    }
-
     // Wert & Rang-Index für Vergleich und Punkte
-    function getCardInfo(n, isTarget = false){
-      const rankStr = isTarget ? n : getDiceVisualRank(n);
-      const order = ["2","3","4","5","6","7","8","9","10","J","Q","K","A"];
+    function getCardInfo(n){
+      const rankStr = getVisualRank(n);
+      const order = ["3","4","5","6","7","8","9","10","J","Q","K","A"];
       const rankIndex = order.indexOf(rankStr);
 
       let value;
       if (rankStr === "A"){
-        value = 14;
+        value = 12;
       } else if (["K","Q","J","10"].includes(rankStr)){
         value = 10;
       } else {
@@ -1502,9 +1590,9 @@
       }
 
       const playerCard = getCardInfo(info.num);
-      const targetCard = getCardInfo(currentTarget.rank, true); // true für Target
+      const targetCard = getCardInfo(currentTarget.num);
 
-      // Vergleich über Rang-Reihenfolge (A > K > Q > J > 10 > 9 ... 2)
+      // Vergleich über Rang-Reihenfolge (A > K > Q > J > 10 > 9 ... 3)
       let winner = "bank";
       if (playerCard.rankIndex > targetCard.rankIndex){
         winner = "player";
@@ -1688,7 +1776,7 @@
       for (let i=min; i<=max; i++) pool.push(i);
       for (let i=pool.length-1; i>0; i--){
         const j = Math.floor(Math.random() * (i+1));
-        [pool[i], pool[j] = [pool[j], pool[i]];
+        [pool[i], pool[j]] = [pool[j], pool[i]];
       }
       return pool.slice(0, count);
     }
@@ -1708,7 +1796,7 @@
         return;
       }
 
-      const text = getDiceVisualRank(n);
+      const text = getVisualRank(n);
       span.textContent = text;
 
       if (text.length >= 2){
@@ -1828,7 +1916,7 @@
 
     function showTargetRankAndSuit(target){
       if (!target) return;
-      const text = target.rank;
+      const text = getVisualRank(target.num);
       if (targetRank10D){
         targetRank10D.textContent = text;
         // Einheitliche blaue Farbe für Zielwert
@@ -1872,8 +1960,13 @@
       resetStichLayers();
       rotIndex = 0;
 
+      // *** FIX: Verbrauchte Karten zurücksetzen ***
       usedCards.clear();
+      
+      // *** FIX: Entferne "used"-Klasse von allen DOM-Elementen ***
       clearAllUsedClasses();
+      
+      // *** FIX: Neue zufällige Kartenfarben (Rot/Schwarz) ***
       initRandomCardColors();
 
       reroll12_keepAssigned();
@@ -1895,7 +1988,7 @@
       startBtnWrap.classList.remove("hidden");
       btnSchauen.classList.add("hidden");
       btnErgebnis.classList.remove("hidden");
-      btnErgebnisText.textContent = "Neues Spiel";
+      btnErgebnisText.textContent = "NEU SPIELEN";
 
       // *** FIX: Alle Zielkarten ausblenden ***
       if (targetLayer) targetLayer.style.display = "none";
@@ -2010,14 +2103,14 @@
 
       const nextIdx = drawsCount + 1;
       let activeImg = null;
-      const imgIndex = ((nextIdx - 1) % 6) + 1;
-      switch (imgIndex){
+      switch (nextIdx){
         case 1: activeImg = targetImg1; break;
         case 2: activeImg = targetImg2; break;
         case 3: activeImg = targetImg3; break;
         case 4: activeImg = targetImg4; break;
         case 5: activeImg = targetImg5; break;
         case 6: activeImg = targetImg6; break;
+        default: activeImg = targetImg6; break;
       }
       if (activeImg){
         activeImg.style.display = "block";

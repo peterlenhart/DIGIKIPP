@@ -1727,13 +1727,13 @@
     }
 
     // SLOT-ZU-FARBFELD-ZUORDNUNG nach Rotation
+    // Farbfelder sind FIX, Slots rotieren im Uhrzeigersinn (CW)
     // Slots: S1=Index 0, S2=Index 1, S3=Index 2, S4=Index 3
-    // Bei rotIndex=0 (0°): S1→violett, S2→blau, S3→gruen, S4→orange
     const SLOT_COLORS_BY_ROTATION = [
       ["violett", "blau", "gruen", "orange"],    // rotIndex 0 (0°)
-      ["gruen", "violett", "orange", "blau"],    // rotIndex 1 (90° CW)
-      ["orange", "gruen", "blau", "violett"],    // rotIndex 2 (180°)
-      ["blau", "orange", "violett", "gruen"]     // rotIndex 3 (270° CW)
+      ["orange", "violett", "blau", "gruen"],    // rotIndex 1 (90° CW)
+      ["gruen", "orange", "violett", "blau"],    // rotIndex 2 (180°)
+      ["blau", "gruen", "orange", "violett"]     // rotIndex 3 (270° CW)
     ];
 
     // Slot-Farben für Treffer & Target-Logik – MIT Rotation

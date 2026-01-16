@@ -1503,24 +1503,6 @@
       return null;
     }
 
-    // Niedrigste noch unverbrauchte Karte auf dem aktuellen Face finden
-    function findLowestUnusedOnCurrentFace(){
-      const infos = getVisibleSlotInfos();
-      let best = null;
-
-      for (const info of infos){
-        if (info.num == null) continue;
-        if (usedCards.has(info.num)) continue;
-
-        const ci = getCardInfo(info.num, false);
-        if (!best || ci.rankIndex < best.cardInfo.rankIndex){
-          best = { info, cardInfo: ci };
-        }
-      }
-
-      return best; // {info, cardInfo} oder null
-    }
-
     // Treffer-Highlight
     function applyHitVisual(info){
       if (!info || !info.slotEl) return;
@@ -1529,97 +1511,166 @@
       if (info.spanEl) info.spanEl.classList.add("kippPulse");
     }
 
-    // Treffererkennung + Score Player/Bank EXAKT nach deinen Regeln
-    function checkHitAndAnimate(){
+    // Treffererkennung + Score Player/Bank mit neuem Stich-System
+    async function checkHitAndAnimate(){
       if (!currentTarget) return false;
 
-      const targetCard = getCardInfo(currentTarget.num, true);
-
-      let winner        = "bank";   // Default: Bank
-      let takenInfo     = null;     // Slot-Info der Karte, die "eingezogen" wird
-      let takenCardInfo = null;     // getCardInfo(...) dieser Karte
-
-      let safety = 0;
-      while (!takenInfo && safety < 24) {
-
-        // 1) Immer zuerst: Karte am Ziel-Symbol auf aktuellem Face
-        const infoAtTarget = getPlayerCardOnTargetColor(); // kann auch "used" sein
-
-        if (infoAtTarget && !usedCards.has(infoAtTarget.num)) {
-          // Karte am Ziel-Symbol ist vorhanden und unverbraucht
-          const playerCard = getCardInfo(infoAtTarget.num, false);
-          takenInfo     = infoAtTarget;
-          takenCardInfo = playerCard;
-
-          // höherer Wert  => Player
-          // gleicher oder niedriger Wert => Bank
-          if (playerCard.rankIndex > targetCard.rankIndex) {
-            winner = "player";
-          } else {
-            winner = "bank";
-          }
-
-          break; // Stich entschieden
-
-        } else {
-          // 2) Karte am Ziel-Symbol fehlt oder ist verbraucht:
-          //    -> niedrigste unverbrauchte Karte auf aktuellem Face
-          const lowest = findLowestUnusedOnCurrentFace();
-
-          if (lowest) {
-            // Fallback-Karte gehört IMMER der Bank
-            winner        = "bank";
-            takenInfo     = lowest.info;
-            takenCardInfo = lowest.cardInfo;
-            break; // Stich entschieden
-          }
-
-          // 3) Auf diesem Face sind alle 4 Karten verbraucht:
-          //    -> GENAU EIN Kipp weiter, dann wieder bei Schritt 1 anfangen
+      // Hauptschleife für automatisches Weiter-Kippen
+      let maxAutoKipps = 12; // Sicherheit gegen Endlosschleifen
+      let autoKippCount = 0;
+      
+      while (autoKippCount < maxAutoKipps) {
+        const result = await processTrickAttempt();
+        
+        if (result === "DONE") {
+          return true; // Stich erfolgreich abgeschlossen
+        } else if (result === "BANK_WIN") {
+          return false; // Bank hat gewonnen
+        } else if (result === "AUTO_KIPP") {
+          // Automatischer Kipp weiter
+          autoKippCount++;
+          await sleep(400); // Kurze Pause für visuelles Feedback
           advanceFullCW();
+          showW();
           renderW();
-          safety++;
+          await sleep(600);
+        } else {
+          // Fehlerfall
+          return false;
         }
       }
+      
+      console.warn("Maximale Auto-Kipps erreicht");
+      return false;
+    }
 
-      // Sollte in einem Extremfall wirklich nichts gefunden werden, abbrechen
-      if (!takenInfo) return false;
-
-      // Punkte = Wert Target + Wert der genommenen Karte
-      const roundPoints =
-        (takenCardInfo ? takenCardInfo.value : 0) +
-        (targetCard     ? targetCard.value     : 0);
-
-      if (winner === "player") {
-        playerScore += roundPoints;
-        playerTricks++;
-      } else {
-        bankScore   += roundPoints;
-        bankTricks++;
+    // Einzelner Stich-Versuch auf aktuellem Face
+    async function processTrickAttempt(){
+      const info = getPlayerCardOnTargetColor();
+      if (!info || info.num == null) {
+        console.log("Keine Karte am richtigen Symbol gefunden");
+        return "BANK_WIN";
       }
 
-      updateScoresUI();
+      // Prüfen: Ist die Karte unverbraucht?
+      if (!usedCards.has(info.num)) {
+        // UNVERBRAUCHT: Normal vergleichen
+        const playerCard = getCardInfo(info.num, false);
+        const targetCard = getCardInfo(currentTarget.num, true);
 
-      // Visuell markieren & Karte verbrauchen
-      if (takenInfo) {
-        applyHitVisual(takenInfo);
-        usedCards.add(takenInfo.num);
+        let winner = "bank";
+        if (playerCard.rankIndex > targetCard.rankIndex){
+          // Player hat HÖHERE Karte → Player-Stich
+          winner = "player";
+        }
+        // Bei gleich oder niedriger → Bank-Stich
+
+        const roundPoints = playerCard.value + targetCard.value;
+
+        if (winner === "player"){
+          playerScore += roundPoints;
+          playerTricks++;
+        } else {
+          bankScore   += roundPoints;
+          bankTricks++;
+        }
+
+        updateScoresUI();
+        applyHitVisual(info);
+
+        usedCards.add(info.num);
         renderW();
+
+        if (winner === "player"){
+          if (stichPLImgs[playerTricks]){
+            stichPLImgs[playerTricks].style.display = "block";
+          }
+        } else {
+          if (stichBImgs[bankTricks]){
+            stichBImgs[bankTricks].style.display = "block";
+          }
+        }
+
+        return winner === "player" ? "DONE" : "BANK_WIN";
       }
 
-      // Stich-WebPs einblenden
-      if (winner === "player") {
-        if (stichPLImgs[playerTricks]) {
-          stichPLImgs[playerTricks].style.display = "block";
-        }
-      } else {
-        if (stichBImgs[bankTricks]) {
-          stichBImgs[bankTricks].style.display = "block";
+      // VERBRAUCHT: Suche niedrigsten unverbrauchten Wert auf aktuellem Face
+      const lowestUnused = findLowestUnusedOnCurrentFace();
+      
+      if (lowestUnused !== null) {
+        // Es gibt einen unverbrauchten Wert → diesen verwenden
+        const lowestInfo = getInfoForNumber(lowestUnused);
+        if (lowestInfo) {
+          const playerCard = getCardInfo(lowestInfo.num, false);
+          const targetCard = getCardInfo(currentTarget.num, true);
+
+          let winner = "bank";
+          if (playerCard.rankIndex > targetCard.rankIndex){
+            winner = "player";
+          }
+
+          const roundPoints = playerCard.value + targetCard.value;
+
+          if (winner === "player"){
+            playerScore += roundPoints;
+            playerTricks++;
+          } else {
+            bankScore   += roundPoints;
+            bankTricks++;
+          }
+
+          updateScoresUI();
+          applyHitVisual(lowestInfo);
+
+          usedCards.add(lowestInfo.num);
+          renderW();
+
+          if (winner === "player"){
+            if (stichPLImgs[playerTricks]){
+              stichPLImgs[playerTricks].style.display = "block";
+            }
+          } else {
+            if (stichBImgs[bankTricks]){
+              stichBImgs[bankTricks].style.display = "block";
+            }
+          }
+
+          return winner === "player" ? "DONE" : "BANK_WIN";
         }
       }
 
-      // Rückgabe bleibt: true = Player hat Stich gewonnen
-      return (winner === "player");
+      // Alle Karten auf diesem Face sind verbraucht → AUTO_KIPP
+      console.log("Alle Karten auf diesem Face verbraucht → Automatischer Kipp");
+      return "AUTO_KIPP";
+    }
+
+    // Finde niedrigsten unverbrauchten Wert auf aktuellem Face
+    function findLowestUnusedOnCurrentFace(){
+      const infos = getVisibleSlotInfos();
+      let lowestNum = null;
+      let lowestRankIndex = Infinity;
+
+      for (const info of infos){
+        if (info.num == null) continue;
+        if (usedCards.has(info.num)) continue;
+
+        const cardInfo = getCardInfo(info.num, false);
+        if (cardInfo.rankIndex < lowestRankIndex){
+          lowestRankIndex = cardInfo.rankIndex;
+          lowestNum = info.num;
+        }
+      }
+
+      return lowestNum;
+    }
+
+    // Finde Info-Objekt für eine bestimmte Nummer
+    function getInfoForNumber(num){
+      const infos = getVisibleSlotInfos();
+      for (const info of infos){
+        if (info.num === num) return info;
+      }
+      return null;
     }
 
     function getVisibleNumbersSet(){
@@ -2002,7 +2053,7 @@
       setScrollBandLocked(true);
       runSchauKippSequence(anzahl, { kipFactor: 1 }).finally(async () => {
         clearHitPulse();
-        const hit = checkHitAndAnimate();
+        const hit = await checkHitAndAnimate();
 
         clearRunSelected();
 
@@ -2398,7 +2449,7 @@
           else s.classList.remove("visible");
         });
       } else {
-        allShadows.forEach(s => s.classList.remove("visible");
+        allShadows.forEach(s => s.classList.remove("visible"));
       }
 
       if (isWVisible) cubeShadowLayer.classList.add("visible");

@@ -1458,28 +1458,17 @@
       }
     }
 
-    function getTargetVisualRank(n){
-      switch (n){
-        case 12: return "K";
-        case 11: return "Q";
-        case 10: return "J";
-        case 9:  return "10";
-        case 8:  return "9";
-        case 7:  return "8";
-        case 6:  return "7";
-        case 5:  return "6";
-        case 4:  return "5";
-        case 3:  return "4";
-        case 2:  return "3";
-        case 1:  return "2";
-        default:
-          return (n === null || n === undefined) ? "" : String(n);
-      }
-    }
-
     // Wert & Rang-Index für Vergleich und Punkte
-    function getCardInfo(n, isTarget = false){
-      const rankStr = isTarget ? getTargetVisualRank(n) : getDiceVisualRank(n);
+    function getCardInfo(input, isTarget = false){
+      let rankStr;
+      
+      if (isTarget) {
+        // Target: input ist bereits ein Kartenwert-String ("2", "3", ... "K")
+        rankStr = input;
+      } else {
+        // Slot: input ist interne Zahl (1-12), muss konvertiert werden
+        rankStr = getDiceVisualRank(input);
+      }
 
       const order = ["2","3","4","5","6","7","8","9","10","J","Q","K","A"];
       const rankIndex = order.indexOf(rankStr);
@@ -1562,7 +1551,7 @@
       if (!usedCards.has(info.num)) {
         // UNVERBRAUCHT: Normal vergleichen
         const playerCard = getCardInfo(info.num, false);
-        const targetCard = getCardInfo(currentTarget.num, true);
+        const targetCard = getCardInfo(currentTarget.rank, true);
 
         let winner = "bank";
         if (playerCard.rankIndex > targetCard.rankIndex){
@@ -1608,7 +1597,7 @@
         const lowestInfo = getInfoForNumber(lowestUnused);
         if (lowestInfo) {
           const playerCard = getCardInfo(lowestInfo.num, false);
-          const targetCard = getCardInfo(currentTarget.num, true);
+          const targetCard = getCardInfo(currentTarget.rank, true);
 
           let winner = "bank";
           if (playerCard.rankIndex > targetCard.rankIndex){
@@ -1983,7 +1972,8 @@
 
     function showTargetRankAndSuit(target){
       if (!target) return;
-      const text = getTargetVisualRank(target.num);
+      // Target hat jetzt direkt .rank (String) statt .num
+      const text = target.rank;
       if (targetRank10D){
         targetRank10D.textContent = text;
         targetRank10D.style.color = "rgba(38, 77, 120, 1.0)";
@@ -2489,12 +2479,15 @@
       updateShadowVisibility();
     }
 
-    let usedNumbers = new Set();
+    let usedRanks = new Set(); // Verwendet für Target-Deck (Strings: "2", "3", ... "K")
     let drawsCount  = 0;
     const MAX_TARGETS = 12;
 
+    // Target-Deck: Kartenwerte von 2 bis K
+    const TARGET_CARDS = ["2","3","4","5","6","7","8","9","10","J","Q","K"];
+
     function resetTargetDeck(){
-      usedNumbers = new Set();
+      usedRanks = new Set();
       drawsCount  = 0;
       targetTimeMul = 1;
     }
@@ -2509,6 +2502,7 @@
       for (const si of visibleSlots){
         if (si.num == null) continue;
         if (!si.color) continue;
+        // Konvertiere Slot-Nummer zu sichtbarem Rang
         forbidden.add( getDiceVisualRank(si.num) + "|" + si.color );
       }
       return forbidden;
@@ -2520,21 +2514,22 @@
       const forbidden = getForbiddenPairsForCurrentState();
       const candidates = [];
 
-      for (let n=1; n<=12; n++){
-        if (usedNumbers.has(n)) continue;
+      // Direkt mit Kartenwerten arbeiten (keine internen Zahlen)
+      for (const rank of TARGET_CARDS){
+        if (usedRanks.has(rank)) continue;
         for (const c of allColors){
-          if (forbidden.has( getTargetVisualRank(n) + "|" + c )) continue;
-          candidates.push({ num:n, color:c });
+          if (forbidden.has( rank + "|" + c )) continue;
+          candidates.push({ rank: rank, color: c });
         }
       }
 
       if (!candidates.length) return null;
 
       const chosen = pickRandom(candidates);
-      usedNumbers.add(chosen.num);
+      usedRanks.add(chosen.rank);
       drawsCount++;
       updateTargetTimeMulByDraws();
-      return chosen;
+      return chosen; // { rank: "Q", color: "blau" }
     }
 
     function initPlayState(){

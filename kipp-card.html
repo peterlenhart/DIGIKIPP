@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html lang="de">
 <head>
@@ -1007,11 +1008,9 @@
       <div id="introOverlay">
         <div class="introTitle">STICH DIE BANK!</div>
         <div class="introText">
-          Wähle eine<br>
-          KIPP ANZAHL<br>
-          von 1 bis 11 und<br>
-          stich das Target.<br>
-          Highscore: 180
+          Kippe einen höheren<br>
+          Kartenwert an das<br>
+          gleiche Symbol.
         </div>
         <button class="introBackBtn" id="introBackBtn">← Zur Auswahl</button>
         <button class="introBtn" id="introStartBtn">LOS GEHT'S</button>
@@ -1251,9 +1250,7 @@
     };
 
     let activeKipId = "0_1";
-    function getKipId(fromFace, toFace){
-      return `${fromFace}_${toFace}`;
-    }
+    function getKipId(fromFace, toFace){ return `${fromFace}_${toFace}`; }
 
     function setActiveKipGroup(kipId){
       activeKipId = kipId;
@@ -1346,6 +1343,7 @@
     // Textfarbe nach Suit (Rot bei Herz/Karo, sonst Schwarz)
     function applySlotTextColor(spanEl, suitColor){
       if(!spanEl) return;
+      
       // ALLE Kartenwerte immer blau - einheitliche Farbe
       spanEl.style.color = "rgba(38, 77, 120, 1.0)";
     }
@@ -1358,13 +1356,7 @@
 
     const allColors = ["violett","blau","gruen","orange"];
 
-    /* Mapping Board-Farbe -> Suit-WebP 
-       WICHTIG: Diese Zuordnung definiert, welches Symbol auf welchem Farbfeld liegt:
-       - Pik (♠)   → violett-Farbfeld
-       - Herz (♥)  → blau-Farbfeld  
-       - Karo (♦)  → gruen-Farbfeld
-       - Kreuz (♣) → orange-Farbfeld
-    */
+    /* Mapping Board-Farbe -> Suit-WebP (Karo=grün, Kreuz=orange, Herz=blau, Pik=violett) */
     const SUIT_IMG_BY_COLOR = {
       gruen:   "karo.webp",   // ♦
       orange:  "kreuz.webp",  // ♣
@@ -1399,7 +1391,7 @@
     let playerScore = 0;
     let bankScore   = 0;
 
-    // Player-/Bank-Stiche
+    // Player-/Bank-Stiche (noch ohne Logik)
     let playerTricks = 0;
     let bankTricks   = 0;
 
@@ -1427,66 +1419,18 @@
       }
     }
 
-    // aktuell nur Werte zurücksetzen – Stiche werden mit WebP-Stichen verknüpft
+    // aktuell nur Werte zurücksetzen – Stiche werden später mit WebP-Stichen verknüpft
     function resetStichLayers(){
       playerTricks = 0;
       bankTricks   = 0;
+      // Platzhalter: wenn du stich1_pl.webp etc. als <img> eingebunden hast,
+      // kannst du sie hier schon alle unsichtbar schalten.
       for (let i = 1; i <= 6; i++){
         const pl = document.getElementById(`stich${i}_pl`);
         const b  = document.getElementById(`stich${i}_b`);
         if (pl) pl.style.display = "none";
         if (b)  b.style.display  = "none";
       }
-    }
-
-    // === PUNKTEBERECHNUNG FÜR STICHE ===
-    // Berechnet Rundenpunkte aus Player-intern und Target-rank
-    function calculateRoundPoints(playerIntern, targetRank){
-      // Player-Wert aus interner Zahl
-      let playerValue;
-      if (playerIntern >= 1 && playerIntern <= 8) {
-        playerValue = playerIntern + 2; // 1→3, 2→4, ..., 8→10
-      } else if (playerIntern >= 9 && playerIntern <= 11) {
-        playerValue = 10; // J, Q, K alle = 10
-      } else if (playerIntern === 12) {
-        playerValue = 14; // Ass
-      } else {
-        playerValue = 0;
-      }
-
-      // Target-Wert aus Rang-String
-      let targetValue;
-      if (targetRank === "A") {
-        targetValue = 14;
-      } else if (targetRank === "J" || targetRank === "Q" || targetRank === "K") {
-        targetValue = 10;
-      } else {
-        targetValue = parseInt(targetRank, 10) || 0;
-      }
-
-      console.log("PUNKTE: Player intern", playerIntern, "=", playerValue, "+ Target", targetRank, "=", targetValue, "→ SUMME:", playerValue + targetValue);
-      
-      return playerValue + targetValue;
-    }
-
-    // Berechne Score-Wert direkt aus interner Slot-Nummer
-    function getSlotValue(internalNum){
-      if (internalNum >= 1 && internalNum <= 8) {
-        return internalNum + 2; // 1→3, 2→4, 3→5, ..., 8→10
-      } else if (internalNum >= 9 && internalNum <= 11) {
-        return 10; // J, Q, K
-      } else if (internalNum === 12) {
-        return 14; // Ass
-      }
-      return 0;
-    }
-
-    // Berechne Score-Wert aus Target-Rang
-    function getTargetValue(rank){
-      if (rank === "A") return 14;
-      if (["J","Q","K"].includes(rank)) return 10;
-      const parsed = parseInt(rank, 10);
-      return isNaN(parsed) ? 0 : parsed;
     }
 
     function getDiceVisualRank(n){
@@ -1509,24 +1453,15 @@
     }
 
     // Wert & Rang-Index für Vergleich und Punkte
-    function getCardInfo(input, isTarget = false){
-      let rankStr;
-      
-      if (isTarget) {
-        // Target: input ist bereits ein Kartenwert-String ("2", "3", ... "K")
-        rankStr = input;
-      } else {
-        // Slot: input ist interne Zahl (1-12), muss konvertiert werden
-        rankStr = getDiceVisualRank(input);
-      }
-
-      const order = ["2","3","4","5","6","7","8","9","10","J","Q","K","A"];
+    function getCardInfo(n){
+      const rankStr = getDiceVisualRank(n);
+      const order = ["3","4","5","6","7","8","9","10","J","Q","K","A"];
       const rankIndex = order.indexOf(rankStr);
 
       let value;
       if (rankStr === "A"){
         value = 14;
-      } else if (["J","Q","K"].includes(rankStr)){
+      } else if (["K","Q","J","10"].includes(rankStr)){
         value = 10;
       } else {
         const parsed = parseInt(rankStr, 10);
@@ -1539,236 +1474,92 @@
     // Player-Karte auf Ziel-Farbe finden
     function getPlayerCardOnTargetColor(){
       if (!currentTarget) return null;
-      
       const infos = getVisibleSlotInfos();
-      
       for (const info of infos){
         if (info.num == null) continue;
-        if (!currentTarget.color) return info;
-        if (info.color === currentTarget.color) return info;
+        if (info.color === currentTarget.color){
+          return info;
+        }
       }
-      
       return null;
     }
 
-    // Treffer-Highlight
-    function applyHitVisual(info){
-      if (!info || !info.slotEl) return;
-      clearHitPulse();
-      info.slotEl.classList.add("kippPulse");
-      if (info.spanEl) info.spanEl.classList.add("kippPulse");
-    }
-
-    // Treffererkennung + Score Player/Bank mit neuem Stich-System
-    async function checkHitAndAnimate(){
+    // Treffererkennung + Score Player/Bank
+    function checkHitAndAnimate(){
       if (!currentTarget) return false;
 
-      // Hauptschleife für automatisches Weiter-Kippen
-      let maxAutoKipps = 12; // Sicherheit gegen Endlosschleifen
-      let autoKippCount = 0;
-      
-      while (autoKippCount < maxAutoKipps) {
-        const result = await processTrickAttempt();
-        
-        if (result === "DONE") {
-          return true; // Stich erfolgreich abgeschlossen
-        } else if (result === "BANK_WIN") {
-          return false; // Bank hat gewonnen
-        } else if (result === "AUTO_KIPP") {
-          // Automatischer Kipp weiter
-          autoKippCount++;
-          await sleep(400); // Kurze Pause für visuelles Feedback
-          advanceFullCW();
-          showW();
-          renderW();
-          await sleep(600);
-        } else {
-          // Fehlerfall
-          return false;
-        }
-      }
-      
-      console.warn("Maximale Auto-Kipps erreicht");
-      return false;
-    }
-
-    // Einzelner Stich-Versuch auf aktuellem Face
-    async function processTrickAttempt(){
       const info = getPlayerCardOnTargetColor();
-      if (!info || info.num == null) {
-        console.log("Keine Karte am richtigen Symbol gefunden");
-        return "BANK_WIN";
+      if (!info) return false;
+
+      // Prüfe ob die Karte bereits verbraucht ist
+      if (usedCards.has(info.num)) {
+        console.log("Karte", info.num, "ist bereits verbraucht!");
+        return false;
       }
 
-      // Prüfen: Ist die Karte unverbraucht?
-      if (!usedCards.has(info.num)) {
-        // UNVERBRAUCHT: Normal vergleichen
-        const playerCard = getCardInfo(info.num, false);
-        const targetCard = getCardInfo(currentTarget.rank, true);
+      const playerCard = getCardInfo(info.num);
+      const targetCard = getCardInfo(currentTarget.num);
 
-        let winner = "bank";
-        if (playerCard.rankIndex > targetCard.rankIndex){
-          // Player hat HÖHERE Karte → Player-Stich
-          winner = "player";
-        }
-        // Bei gleich oder niedriger → Bank-Stich
-
-        const roundPoints = calculateRoundPoints(info.num, currentTarget.rank);
-        console.log("Gewinner:", winner);
-
-        if (winner === "player"){
-          playerScore += roundPoints;
-          playerTricks++;
-        } else {
-          bankScore   += roundPoints;
-          bankTricks++;
-        }
-
-        updateScoresUI();
-        applyHitVisual(info);
-
-        usedCards.add(info.num);
-        renderW();
-
-        if (winner === "player"){
-          if (stichPLImgs[playerTricks]){
-            stichPLImgs[playerTricks].style.display = "block";
-          }
-        } else {
-          if (stichBImgs[bankTricks]){
-            stichBImgs[bankTricks].style.display = "block";
-          }
-        }
-
-        return winner === "player" ? "DONE" : "BANK_WIN";
+      // Vergleich über Rang-Reihenfolge (A > K > Q > J > 10 > 9 ... 3)
+      let winner = "bank";
+      if (playerCard.rankIndex > targetCard.rankIndex){
+        winner = "player";
       }
 
-      // VERBRAUCHT: Suche niedrigsten unverbrauchten Wert auf aktuellem Face
-      const lowestUnused = findLowestUnusedOnCurrentFace();
-      
-      if (lowestUnused !== null) {
-        // Es gibt einen unverbrauchten Wert → diesen verwenden
-        const lowestInfo = getInfoForNumber(lowestUnused);
-        if (lowestInfo) {
-          const playerCard = getCardInfo(lowestInfo.num, false);
-          const targetCard = getCardInfo(currentTarget.rank, true);
+      const roundPoints = playerCard.value + targetCard.value;
 
-          let winner = "bank";
-          if (playerCard.rankIndex > targetCard.rankIndex){
-            winner = "player";
-          }
+      if (winner === "player"){
+        playerScore += roundPoints;
+        playerTricks++;
+      } else {
+        bankScore   += roundPoints;
+        bankTricks++;
+      }
 
-          const roundPoints = calculateRoundPoints(lowestInfo.num, currentTarget.rank);
+      updateScoresUI();
+      applyHitVisual(info);
 
-          if (winner === "player"){
-            playerScore += roundPoints;
-            playerTricks++;
-          } else {
-            bankScore   += roundPoints;
-            bankTricks++;
-          }
+      // *** KARTE ALS VERBRAUCHT MARKIEREN ***
+      usedCards.add(info.num);
+      // Rendering aktualisieren um Transparenz zu zeigen
+      renderW();
 
-          updateScoresUI();
-          applyHitVisual(lowestInfo);
-
-          usedCards.add(lowestInfo.num);
-          renderW();
-
-          if (winner === "player"){
-            if (stichPLImgs[playerTricks]){
-              stichPLImgs[playerTricks].style.display = "block";
-            }
-          } else {
-            if (stichBImgs[bankTricks]){
-              stichBImgs[bankTricks].style.display = "block";
-            }
-          }
-
-          return winner === "player" ? "DONE" : "BANK_WIN";
+      // *** STICH-EINBLENDUNG ***
+      // Die Nummer in stichX_pl/stichX_b zeigt die ANZAHL der Stiche, die der Spieler hat
+      if (winner === "player"){
+        if (stichPLImgs[playerTricks]){  // playerTricks wurde gerade hochgezählt!
+          stichPLImgs[playerTricks].style.display = "block";
+        }
+      } else {
+        if (stichBImgs[bankTricks]){  // bankTricks wurde gerade hochgezählt!
+          stichBImgs[bankTricks].style.display = "block";
         }
       }
 
-      // Alle Karten auf diesem Face sind verbraucht → AUTO_KIPP
-      console.log("Alle Karten auf diesem Face verbraucht → Automatischer Kipp");
-      return "AUTO_KIPP";
+      return (winner === "player");
     }
 
-    // Finde niedrigsten unverbrauchten Wert auf aktuellem Face
-    function findLowestUnusedOnCurrentFace(){
-      const infos = getVisibleSlotInfos();
-      let lowestNum = null;
-      let lowestRankIndex = Infinity;
-
-      for (const info of infos){
-        if (info.num == null) continue;
-        if (usedCards.has(info.num)) continue;
-
-        const cardInfo = getCardInfo(info.num, false);
-        if (cardInfo.rankIndex < lowestRankIndex){
-          lowestRankIndex = cardInfo.rankIndex;
-          lowestNum = info.num;
-        }
-      }
-
-      return lowestNum;
-    }
-
-    // Finde Info-Objekt für eine bestimmte Nummer
-    function getInfoForNumber(num){
-      const infos = getVisibleSlotInfos();
-      for (const info of infos){
-        if (info.num === num) return info;
-      }
-      return null;
-    }
+    // Hilfsfunktionen usw. – von hier an unverändert
 
     function getVisibleNumbersSet(){
       return new Set(getVisibleSlotInfos().map(s => s.num).filter(n => n != null));
     }
 
-    // SLOT-ZU-FARBFELD-ZUORDNUNG nach Rotation
-    // Farbfelder sind FIX, Slots rotieren im Uhrzeigersinn (CW)
-    // Slots: S1=Index 0, S2=Index 1, S3=Index 2, S4=Index 3
-    const SLOT_COLORS_BY_ROTATION = [
-      ["violett", "blau", "gruen", "orange"],    // rotIndex 0 (0°)
-      ["orange", "violett", "blau", "gruen"],    // rotIndex 1 (90° CW)
-      ["gruen", "orange", "violett", "blau"],    // rotIndex 2 (180°)
-      ["blau", "gruen", "orange", "violett"]     // rotIndex 3 (270° CW)
-    ];
-
-    // Slot-Farben für Treffer & Target-Logik – MIT Rotation
-    function getVisibleSlotInfos(){
-      const curr = sets[faceIndex] || [null,null,null,null];
-
-      // Hole die korrekte Farb-Zuordnung für aktuelle Rotation
-      const slotColors = SLOT_COLORS_BY_ROTATION[rotIndex] || SLOT_COLORS_BY_ROTATION[0];
-
-      const out = [];
-      for (let i = 0; i < 4; i++){
-        out.push({
-          num: curr[i],
-          slotEl: slotElsW[i],
-          spanEl: slotTargetsW[i],
-          color: slotColors[i]
-        });
-      }
-      return out;
-    }
-
     function getVisibleInfosAt(rotIdx, faceIdx){
       const curr = sets[faceIdx];
-      const slotColors = SLOT_COLORS_BY_ROTATION[rotIdx] || SLOT_COLORS_BY_ROTATION[0];
-      
+      const zsCoords = ZS_COORDS_BY_ROT_ZSINDEX[rotIdx];
       const out = [];
       for (let i=0;i<4;i++){
-        out.push({ 
-          num: curr[i], 
-          zsCoord: null, 
-          color: slotColors[i] 
-        });
+        const zsIndex = DOM_SLOT_TO_ZS_INDEX[i];
+        const zsCoord = zsCoords[zsIndex - 1];
+        const zfCoord = getAdjacentZFCoordForZS(zsCoord);
+        const col = zfCoord ? COLOR_BY_ZF_COORD[zfCoord] : null;
+        out.push({ num: curr[i], zsCoord, color: col });
       }
       return out;
     }
+
+    function applyHitVisualNoop(){}
 
     function isPairReachableWithin6(num, color){
       let r = rotIndex;
@@ -1800,6 +1591,24 @@
       targetTimeMul = lerp(1.0, TARGET_MIN, t);
     }
 
+    const FIXED_SPEED = 3;
+
+    function getTiming(){
+      const v = FIXED_SPEED;
+
+      const baseHold = Math.max(520, Math.round(2400 - v * 450));
+      const baseKip  = Math.max(160, Math.round(baseHold * 0.50));
+      const baseW    = baseHold;
+
+      const mul = clamp(targetTimeMul || 1, TARGET_MIN, 1);
+
+      const hold = Math.max(260, Math.round(baseHold * mul));
+      const kip  = Math.max(120, Math.round(baseKip  * mul));
+      const wfull= Math.max(260, Math.round(baseW    * mul));
+
+      return { holdMs: hold, kipMs: kip, wMs: wfull };
+    }
+
     const rotDeg = [0, 90, 180, 270];
     let rotIndex  = 0;
     let faceIndex = 0;
@@ -1822,18 +1631,25 @@
       renderNumber(spanEl, n);
       applyPersistentFill(slotEl, n);
       
+      // Kartenfarben und verbrauchte Karten
       if (spanEl && n != null) {
+        // Entferne alte Klassen
         spanEl.classList.remove("cardRed", "cardBlack", "used");
+        
+        // Setze Kartenfarbe (rot/schwarz)
         const cardColor = cardColors[n];
         if (cardColor === "red") {
           spanEl.classList.add("cardRed");
         } else if (cardColor === "black") {
           spanEl.classList.add("cardBlack");
         }
+        
+        // Markiere verbrauchte Karten
         if (usedCards.has(n)) {
           spanEl.classList.add("used");
         }
       }
+      
       applySlotTextColor(spanEl, suitColor);
     }
 
@@ -1868,7 +1684,7 @@
       for (let i=min; i<=max; i++) pool.push(i);
       for (let i=pool.length-1; i>0; i--){
         const j = Math.floor(Math.random() * (i+1));
-        [pool[i], pool[j]] = [pool[j], pool[i]];
+        [pool[i], pool[j] = [pool[j], pool[i]];
       }
       return pool.slice(0, count);
     }
@@ -1921,24 +1737,6 @@
         await sleep(50);
       }
       return (myToken === previewToken);
-    }
-
-    const FIXED_SPEED = 3;
-
-    function getTiming(){
-      const v = FIXED_SPEED;
-
-      const baseHold = Math.max(520, Math.round(2400 - v * 450));
-      const baseKip  = Math.max(160, Math.round(baseHold * 0.50));
-      const baseW    = baseHold;
-
-      const mul = clamp(targetTimeMul || 1, TARGET_MIN, 1);
-
-      const hold = Math.max(260, Math.round(baseHold * mul));
-      const kip  = Math.max(120, Math.round(baseKip  * mul));
-      const wfull= Math.max(260, Math.round(baseW    * mul));
-
-      return { holdMs: hold, kipMs: kip, wMs: wfull };
     }
 
     async function runSchauKippSequence(steps, opts = {}){
@@ -2026,10 +1824,10 @@
 
     function showTargetRankAndSuit(target){
       if (!target) return;
-      // Target hat jetzt direkt .rank (String) statt .num
       const text = target.rank;
       if (targetRank10D){
         targetRank10D.textContent = text;
+        // Einheitliche blaue Farbe für Zielwert
         targetRank10D.style.color = "rgba(38, 77, 120, 1.0)";
         targetRank10D.style.display = "block";
       }
@@ -2052,6 +1850,7 @@
     }
 
     function clearAllUsedClasses(){
+      // Entferne "used"-Klasse von allen Slots (W-Face und alle Kipp-Gruppen)
       document.querySelectorAll('.slot .num > span').forEach(span => {
         span.classList.remove("used");
       });
@@ -2094,6 +1893,7 @@
       btnErgebnis.classList.remove("hidden");
       btnErgebnisText.textContent = "Neues Spiel";
 
+      // *** FIX: Alle Zielkarten ausblenden ***
       if (targetLayer) targetLayer.style.display = "none";
       [targetImg1, targetImg2, targetImg3, targetImg4, targetImg5, targetImg6].forEach(img => {
         if (img) img.style.display = "none";
@@ -2102,7 +1902,8 @@
         targetImgCovered.style.display = "none";
         targetImgCovered.classList.remove("pulse");
       }
-
+      
+      // *** FIX: Random-Zielwert und Symbol ausblenden ***
       hideTargetRankAndSuit();
 
       showHint("ENDE – VERGLEICHE DIE SCORES", true);
@@ -2119,7 +1920,7 @@
       setScrollBandLocked(true);
       runSchauKippSequence(anzahl, { kipFactor: 1 }).finally(async () => {
         clearHitPulse();
-        const hit = await checkHitAndAnimate();
+        const hit = checkHitAndAnimate();
 
         clearRunSelected();
 
@@ -2357,6 +2158,22 @@
       backBtn.style.transform = "translate(-50%, -50%)";
     }
 
+    function positionTestButton(cellPx){
+      const row = 9;
+      const col = 8;
+      const visualRow = row + HEADER_ROW_OFFSET;
+
+      const left = (col - 1) * cellPx + cellPx/2;
+      const top  = (visualRow - 1) * cellPx + cellPx/2;
+
+      testTargetBtn.style.position = "absolute";
+      testTargetBtn.style.left = left + "px";
+      testTargetBtn.style.top  = top + "px";
+      testTargetBtn.style.transform = "translate(-50%, -50%)";
+      testTargetBtn.style.zIndex = "30";
+      testTargetBtn.style.pointerEvents = "auto";
+    }
+
     function positionTargetCards(cellPx){
       if (!targetLayer) return;
       const coord = coordToXY("9A");
@@ -2459,6 +2276,7 @@
       positionTargetCards(cellPx);
       positionStichCards(cellPx);
       positionBackButton(cellPx);
+      positionTestButton(cellPx);
     }
 
     function rebuild(){
@@ -2533,15 +2351,11 @@
       updateShadowVisibility();
     }
 
-    let usedRanks = new Set(); // Verwendet für Target-Deck (Strings: "2", "3", ... "K")
+    let usedNumbers = new Set();
     let drawsCount  = 0;
-    const MAX_TARGETS = 12;
-
-    // Target-Deck: Kartenwerte von 2 bis K
-    const TARGET_CARDS = ["2","3","4","5","6","7","8","9","10","J","Q","K"];
 
     function resetTargetDeck(){
-      usedRanks = new Set();
+      usedNumbers = new Set();
       drawsCount  = 0;
       targetTimeMul = 1;
     }
@@ -2556,8 +2370,7 @@
       for (const si of visibleSlots){
         if (si.num == null) continue;
         if (!si.color) continue;
-        // Konvertiere Slot-Nummer zu sichtbarem Rang
-        forbidden.add( getDiceVisualRank(si.num) + "|" + si.color );
+        forbidden.add(`${si.num}|${si.color}`);
       }
       return forbidden;
     }
@@ -2568,22 +2381,21 @@
       const forbidden = getForbiddenPairsForCurrentState();
       const candidates = [];
 
-      // Direkt mit Kartenwerten arbeiten (keine internen Zahlen)
-      for (const rank of TARGET_CARDS){
-        if (usedRanks.has(rank)) continue;
+      for (let n=1; n<=12; n++){
+        if (usedNumbers.has(n)) continue;
         for (const c of allColors){
-          if (forbidden.has( rank + "|" + c )) continue;
-          candidates.push({ rank: rank, color: c });
+          if (forbidden.has(`${n}|${c}`)) continue;
+          candidates.push({ num:n, color:c });
         }
       }
 
       if (!candidates.length) return null;
 
       const chosen = pickRandom(candidates);
-      usedRanks.add(chosen.rank);
+      usedNumbers.add(chosen.num);
       drawsCount++;
       updateTargetTimeMulByDraws();
-      return chosen; // { rank: "Q", color: "blau" }
+      return chosen;
     }
 
     function initPlayState(){
@@ -2598,7 +2410,9 @@
       resetLockedColors();
       resetStichLayers();
       
+      // Random Kartenfarben initialisieren
       initRandomCardColors();
+      // Verbrauchte Karten zurücksetzen
       usedCards.clear();
       
       playerScore = 0;
@@ -2635,23 +2449,6 @@
       showStartView();
       updateShadowVisibility();
     }
-
-    // --- Helper für Start-UI / Hint ---
-    function hideStartUI(){
-      if (startBtnWrap) startBtnWrap.classList.add("hidden");
-      if (kippAnzahlView) kippAnzahlView.classList.add("hidden");
-      if (scrollBandWrap) scrollBandWrap.classList.add("hidden");
-    }
-
-    function showHint(msg, isWarn){
-      if (!hintTitle) return;
-      hintTitle.textContent = msg || "";
-    }
-
-    function getTargetHintText(){
-      return "Wähle eine KIPP ANZAHL von 1 bis 11 und stich das Target.";
-    }
-    // --------------------------------------------------------
 
     btnSchauen.addEventListener("click", async () => {
       if (runningKipp) return;
@@ -2741,6 +2538,6 @@
         showKippCountView();
       });
     }
-  </script>
+    </script>
 </body>
 </html>

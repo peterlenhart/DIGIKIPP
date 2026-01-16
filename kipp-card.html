@@ -1539,12 +1539,15 @@
     // Player-Karte auf Ziel-Farbe finden
     function getPlayerCardOnTargetColor(){
       if (!currentTarget) return null;
+      
       const infos = getVisibleSlotInfos();
+      
       for (const info of infos){
         if (info.num == null) continue;
         if (!currentTarget.color) return info;
         if (info.color === currentTarget.color) return info;
       }
+      
       return null;
     }
 

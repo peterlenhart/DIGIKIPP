@@ -1358,7 +1358,13 @@
 
     const allColors = ["violett","blau","gruen","orange"];
 
-    /* Mapping Board-Farbe -> Suit-WebP (Karo=gruen, Kreuz=orange, Herz=blau, Pik=violett) */
+    /* Mapping Board-Farbe -> Suit-WebP 
+       WICHTIG: Diese Zuordnung definiert, welches Symbol auf welchem Farbfeld liegt:
+       - Pik (♠)   → violett-Farbfeld
+       - Herz (♥)  → blau-Farbfeld  
+       - Karo (♦)  → gruen-Farbfeld
+       - Kreuz (♣) → orange-Farbfeld
+    */
     const SUIT_IMG_BY_COLOR = {
       gruen:   "karo.webp",   // ♦
       orange:  "kreuz.webp",  // ♣
@@ -1677,11 +1683,22 @@
       return new Set(getVisibleSlotInfos().map(s => s.num).filter(n => n != null));
     }
 
-    // Slot-Farben für Treffer & Target-Logik – einfache Zuordnung S1..S4
+    // SLOT-ZU-FARBFELD-ZUORDNUNG nach Rotation
+    // Slots: S1=Index 0, S2=Index 1, S3=Index 2, S4=Index 3
+    // Bei rotIndex=0 (0°): S1→violett, S2→blau, S3→gruen, S4→orange
+    const SLOT_COLORS_BY_ROTATION = [
+      ["violett", "blau", "gruen", "orange"],    // rotIndex 0 (0°)
+      ["gruen", "violett", "orange", "blau"],    // rotIndex 1 (90° CW)
+      ["orange", "gruen", "blau", "violett"],    // rotIndex 2 (180°)
+      ["blau", "orange", "violett", "gruen"]     // rotIndex 3 (270° CW)
+    ];
+
+    // Slot-Farben für Treffer & Target-Logik – MIT Rotation
     function getVisibleSlotInfos(){
       const curr = sets[faceIndex] || [null,null,null,null];
 
-      const slotColors = ["violett", "blau", "gruen", "orange"];
+      // Hole die korrekte Farb-Zuordnung für aktuelle Rotation
+      const slotColors = SLOT_COLORS_BY_ROTATION[rotIndex] || SLOT_COLORS_BY_ROTATION[0];
 
       const out = [];
       for (let i = 0; i < 4; i++){
@@ -1697,10 +1714,15 @@
 
     function getVisibleInfosAt(rotIdx, faceIdx){
       const curr = sets[faceIdx];
-      const zsCoords = []; // Platzhalter – nicht benötigt in aktueller Logik
+      const slotColors = SLOT_COLORS_BY_ROTATION[rotIdx] || SLOT_COLORS_BY_ROTATION[0];
+      
       const out = [];
       for (let i=0;i<4;i++){
-        out.push({ num: curr[i], zsCoord: null, color: null });
+        out.push({ 
+          num: curr[i], 
+          zsCoord: null, 
+          color: slotColors[i] 
+        });
       }
       return out;
     }

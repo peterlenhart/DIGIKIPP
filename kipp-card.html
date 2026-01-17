@@ -1629,9 +1629,10 @@
       const playerCard = getCardInfo(info.num);
       const targetCard = getTargetCardInfo(currentTarget.num);  // *** Target-Karten-Info ***
 
-      // Vergleich: Player muss höheren Rang haben als Target
+      // Vergleich: Höhere interne Nummer = höherer Rang
+      // Target: 1-12 entspricht 2-K, Player: 1-12 entspricht 3-A
       let winner = "bank";
-      if (playerCard.rankIndex > targetCard.rankIndex){
+      if (info.num > currentTarget.num){
         winner = "player";
       }
 

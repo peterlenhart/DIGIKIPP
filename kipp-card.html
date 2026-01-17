@@ -2242,6 +2242,12 @@
       const imgs = [targetImg1, targetImg2, targetImg3, targetImg4, targetImg5, targetImg6];
       imgs.forEach(img => { if (img) img.style.display = "none"; });
 
+      // *** FIX: targetImgCovered explizit zurücksetzen BEVOR es neu eingeblendet wird ***
+      if (targetImgCovered){
+        targetImgCovered.style.display = "none";
+        targetImgCovered.classList.remove("pulse");
+      }
+
       const nextIdx = drawsCount + 1;
       // Targets 1-6 und 7-12 nutzen Bilder 1-6 zyklisch
       const imgIndex = ((nextIdx - 1) % 6) + 1;

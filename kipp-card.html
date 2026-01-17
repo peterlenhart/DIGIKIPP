@@ -1627,12 +1627,17 @@
       }
 
       const playerCard = getCardInfo(info.num);
-      const targetCard = getTargetCardInfo(currentTarget.num);  // *** Target-Karten-Info ***
+      const targetCard = getTargetCardInfo(currentTarget.num);
 
-      // Vergleich: Höhere interne Nummer = höherer Rang
-      // Target: 1-12 entspricht 2-K, Player: 1-12 entspricht 3-A
+      // Vergleich über gemeinsame Rang-Hierarchie
+      const allRanks = ["2","3","4","5","6","7","8","9","10","J","Q","K","A"];
+      const targetRank = getTargetVisualRank(currentTarget.num);
+      const playerRank = getVisualRank(info.num);
+      const targetIdx = allRanks.indexOf(targetRank);
+      const playerIdx = allRanks.indexOf(playerRank);
+
       let winner = "bank";
-      if (info.num > currentTarget.num){
+      if (playerIdx > targetIdx){
         winner = "player";
       }
 

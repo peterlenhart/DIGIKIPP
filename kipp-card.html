@@ -2153,15 +2153,13 @@
 
         clearRunSelected();
 
-        // *** Wenn kein Treffer UND Karte ist verbraucht: Scrollband freigeben ***
+        // *** Bei erfolgreichem Stich: weiter zu neuem Target ***
+        // *** Bei Fehlversuch (hit=false): Target bleibt, Scrollband freigeben ***
         if (!hit) {
-          const info = getPlayerCardOnTargetColor();
-          if (info && usedCards.has(info.num)) {
-            // Verbrauchte Karte auf Target → Player kann erneut kippen
-            await sleep(500);
-            setScrollBandLocked(false);
-            return;
-          }
+          attemptsForTarget--;
+          await sleep(500);
+          setScrollBandLocked(false);
+          return;
         }
 
         const isLastTarget = (drawsCount >= MAX_TARGETS);

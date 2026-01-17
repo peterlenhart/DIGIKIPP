@@ -2269,15 +2269,15 @@
         activeImg.style.display = "block";
       }
 
-      // *** FIX: targetImgCovered EXPLIZIT zurücksetzen bevor neu einblenden ***
+      // *** FIX: targetImgCovered komplett zurücksetzen und NEU einblenden ***
       if (targetImgCovered){
         targetImgCovered.style.display = "none";
         targetImgCovered.classList.remove("pulse");
-        // Kleine Verzögerung für sauberen Reset
-        setTimeout(() => {
-          targetImgCovered.style.display = "block";
-          targetImgCovered.classList.add("pulse");
-        }, 50);
+        // Force reflow
+        void targetImgCovered.offsetHeight;
+        // Jetzt neu einblenden
+        targetImgCovered.style.display = "block";
+        targetImgCovered.classList.add("pulse");
       }
 
       targetRevealed    = false;

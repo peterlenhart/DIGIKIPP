@@ -334,7 +334,7 @@
       transform:
         translate(var(--pivot-x), var(--pivot-y))
         rotate(var(--rot))
-        translate(calc(-1 * var(--pivot-x)), calc(-1 * var(--pivot-y)));
+        translate(calc(-1 * var(--pivot-x)), calc(-1 * var(--pivot-y));
       transform-origin: 0 0;
     }
 
@@ -1007,9 +1007,11 @@
       <div id="introOverlay">
         <div class="introTitle">STICH DIE BANK!</div>
         <div class="introText">
-          Kippe einen höheren<br>
-          Kartenwert an das<br>
-          gleiche Symbol.
+          Wähle eine<br>
+          KIPP ANZAHL<br>
+          von 1 bis 11 und<br>
+          stich das Target.<br>
+          Highscore: 180
         </div>
         <button class="introBackBtn" id="introBackBtn">← Zur Auswahl</button>
         <button class="introBtn" id="introStartBtn">LOS GEHT'S</button>
@@ -1150,11 +1152,11 @@
         <!-- START / ERGEBNIS: gleicher Maskenplatz -->
         <div class="startBtnWrap" id="startBtnWrap">
           <button id="btnSchauen" class="squareBtn startBtn" type="button">
-            <span class="anzahlText pulse" id="btnSchauenPulse">SCHAUEN &amp; MERKEN</span>
+            <span class="anzahlText pulse" id="btnSchauenPulse">SCHAU GENAU</span>
           </button>
 
           <button id="btnErgebnis" class="squareBtn startBtn hidden" type="button">
-            <span class="anzahlText" id="btnErgebnisText">NEU SPIELEN</span>
+            <span class="anzahlText" id="btnErgebnisText">Neues Spiel</span>
           </button>
         </div>
 
@@ -1273,7 +1275,7 @@
       wFaceGroup.querySelector('[data-slot="S2"]'),
       wFaceGroup.querySelector('[data-slot="S3"]'),
       wFaceGroup.querySelector('[data-slot="S4"]'),
-    ];
+    };
 
     // =========================================================
     // Hit-Memory – CARD-Version: keine Slot-Hintergrundfärbung mehr
@@ -1336,7 +1338,7 @@
       ];
 
       kipSlotCache[kipId] = { rightSpans, leftSpans, rightEls, leftEls };
-      return kipSlotCache[kipId];
+      return kipSlotCache[kipId};
     }
 
     // Textfarbe nach Suit (Rot bei Herz/Karo, sonst Schwarz)
@@ -1552,7 +1554,7 @@
 
       let value;
       if (rankStr === "A"){
-        value = 12;
+        value = 14;
       } else if (["K","Q","J","10"].includes(rankStr)){
         value = 10;
       } else {
@@ -1776,7 +1778,7 @@
       for (let i=min; i<=max; i++) pool.push(i);
       for (let i=pool.length-1; i>0; i--){
         const j = Math.floor(Math.random() * (i+1));
-        [pool[i], pool[j]] = [pool[j], pool[i]];
+        [pool[i], pool[j] = [pool[j], pool[i]];
       }
       return pool.slice(0, count);
     }
@@ -1916,7 +1918,7 @@
 
     function showTargetRankAndSuit(target){
       if (!target) return;
-      const text = getVisualRank(target.num);
+      const text = target.rank;
       if (targetRank10D){
         targetRank10D.textContent = text;
         // Einheitliche blaue Farbe für Zielwert
@@ -1960,13 +1962,8 @@
       resetStichLayers();
       rotIndex = 0;
 
-      // *** FIX: Verbrauchte Karten zurücksetzen ***
       usedCards.clear();
-      
-      // *** FIX: Entferne "used"-Klasse von allen DOM-Elementen ***
       clearAllUsedClasses();
-      
-      // *** FIX: Neue zufällige Kartenfarben (Rot/Schwarz) ***
       initRandomCardColors();
 
       reroll12_keepAssigned();
@@ -1988,7 +1985,7 @@
       startBtnWrap.classList.remove("hidden");
       btnSchauen.classList.add("hidden");
       btnErgebnis.classList.remove("hidden");
-      btnErgebnisText.textContent = "NEU SPIELEN";
+      btnErgebnisText.textContent = "Neues Spiel";
 
       // *** FIX: Alle Zielkarten ausblenden ***
       if (targetLayer) targetLayer.style.display = "none";
@@ -2017,7 +2014,7 @@
       setScrollBandLocked(true);
       runSchauKippSequence(anzahl, { kipFactor: 1 }).finally(async () => {
         clearHitPulse();
-        const hit = checkHitAndAnimate();
+        const hit = await checkHitAndAnimate(); // Async für autoKipp
 
         clearRunSelected();
 
@@ -2103,14 +2100,14 @@
 
       const nextIdx = drawsCount + 1;
       let activeImg = null;
-      switch (nextIdx){
+      const imgIndex = ((nextIdx - 1) % 6) + 1;
+      switch (imgIndex){
         case 1: activeImg = targetImg1; break;
         case 2: activeImg = targetImg2; break;
         case 3: activeImg = targetImg3; break;
         case 4: activeImg = targetImg4; break;
         case 5: activeImg = targetImg5; break;
         case 6: activeImg = targetImg6; break;
-        default: activeImg = targetImg6; break;
       }
       if (activeImg){
         activeImg.style.display = "block";

@@ -1660,9 +1660,8 @@
       updateScoresUI();
       applyHitVisual(info);
 
-      // *** BEIDE Karten als verbraucht markieren ***
+      // *** NUR die Player-Würfelkarte als verbraucht markieren ***
       usedCards.add(info.num);
-      usedCards.add(currentTarget.num);
       
       // Rendering aktualisieren
       renderW();
@@ -2154,8 +2153,7 @@
 
         clearRunSelected();
 
-        // *** Bei erfolgreichem Stich: weiter zu neuem Target ***
-        // *** Bei Fehlversuch (hit=false): Target bleibt, Scrollband freigeben ***
+        // *** Bei verbrauchter Karte: Target bleibt, weiterspielen ***
         if (!hit) {
           attemptsForTarget--;
           await sleep(500);
@@ -2163,15 +2161,18 @@
           return;
         }
 
-        const isLastTarget = (drawsCount >= MAX_TARGETS);
+        // *** Bei Stich: Prüfe ob Spiel zuende (12 Stiche gespielt) ***
+        const totalTricks = playerTricks + bankTricks;
+        const isGameOver = (totalTricks >= 12);
 
         await sleep(900);
 
-        if (isLastTarget){
+        if (isGameOver){
           showEndResultView();
           return;
         }
 
+        // *** Neues Target zeigen ***
         resetToNewTargetChoice();
         renderW();
       });

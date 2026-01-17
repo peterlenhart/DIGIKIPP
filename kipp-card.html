@@ -2171,6 +2171,16 @@
           return;
         }
 
+        // *** FIX: Target-Karten explizit zurücksetzen vor neuem Target ***
+        hideTargetRankAndSuit();
+        [targetImg1, targetImg2, targetImg3, targetImg4, targetImg5, targetImg6].forEach(img => {
+          if (img) img.style.display = "none";
+        });
+        if (targetImgCovered){
+          targetImgCovered.style.display = "none";
+          targetImgCovered.classList.remove("pulse");
+        }
+
         resetToNewTargetChoice();
         renderW();
       });

@@ -1670,7 +1670,8 @@
       // *** STICH-STAPEL-LOGIK ***
       updateStichDisplay(playerTricks, bankTricks);
 
-      return (winner === "player");
+      // *** FIX: Bei JEDEM Stich true zurückgeben (Player ODER Bank) ***
+      return true;
     }
 
     // Stich-Stapel-Anzeige aktualisieren
@@ -2154,7 +2155,7 @@
         clearRunSelected();
 
         // *** Bei erfolgreichem Stich: weiter zu neuem Target ***
-        // *** Bei Fehlversuch (hit=false): Target bleibt, Scrollband freigeben ***
+        // *** Bei Fehlversuch (hit=false, verbrauchte Karte): Target bleibt, Scrollband freigeben ***
         if (!hit) {
           attemptsForTarget--;
           await sleep(500);

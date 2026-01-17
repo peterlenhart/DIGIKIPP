@@ -1422,13 +1422,19 @@
     function resetStichLayers(){
       playerTricks = 0;
       bankTricks   = 0;
-      // Platzhalter: wenn du stich1_pl.webp etc. als <img> eingebunden hast,
-      // kannst du sie hier schon alle unsichtbar schalten.
       for (let i = 1; i <= 6; i++){
         const pl = document.getElementById(`stich${i}_pl`);
         const b  = document.getElementById(`stich${i}_b`);
-        if (pl) pl.style.display = "none";
-        if (b)  b.style.display  = "none";
+        if (pl){
+          pl.style.display = "none";
+          pl.style.transform = "translateX(0px)";
+          pl.style.zIndex = "";
+        }
+        if (b){
+          b.style.display = "none";
+          b.style.transform = "translateX(0px)";
+          b.style.zIndex = "";
+        }
       }
     }
 
@@ -1662,52 +1668,43 @@
       renderW();
 
       // *** STICH-STAPEL-LOGIK ***
-      updateStichDisplay(winner === "player" ? playerTricks : 0, winner === "bank" ? bankTricks : 0);
+      updateStichDisplay(playerTricks, bankTricks);
 
       return (winner === "player");
     }
 
     // Stich-Stapel-Anzeige aktualisieren
     function updateStichDisplay(plTricks, bTricks){
-      // Player-Stiche
+      // Verstecke zuerst ALLE Stiche
+      for (let i = 1; i <= 6; i++){
+        if (stichPLImgs[i]) stichPLImgs[i].style.display = "none";
+        if (stichBImgs[i]) stichBImgs[i].style.display = "none";
+      }
+
+      // Player-Stiche anzeigen
       if (plTricks > 0){
         if (plTricks <= 6){
-          // Durchlauf 1: Stiche 1-6 an Original-Position
-          for (let i = 1; i <= 6; i++){
-            if (stichPLImgs[i]){
-              if (i === plTricks){
-                stichPLImgs[i].style.display = "block";
-                stichPLImgs[i].style.transform = "translateX(0px)";
-                stichPLImgs[i].style.zIndex = i;
-              } else if (i < plTricks){
-                stichPLImgs[i].style.display = "none";
-              }
-            }
+          // Durchlauf 1: Zeige nur den aktuellen Stich
+          if (stichPLImgs[plTricks]){
+            stichPLImgs[plTricks].style.display = "block";
+            stichPLImgs[plTricks].style.transform = "translateX(0px)";
+            stichPLImgs[plTricks].style.zIndex = plTricks;
           }
         } else if (plTricks <= 11){
-          // Durchlauf 2: Stiche 7-11
-          // stich6 bleibt sichtbar an Original
+          // Durchlauf 2: stich6 bleibt sichtbar, neuer Stich bei +20px
           if (stichPLImgs[6]){
             stichPLImgs[6].style.display = "block";
             stichPLImgs[6].style.transform = "translateX(0px)";
             stichPLImgs[6].style.zIndex = 6;
           }
-          
           const currentStichIndex = ((plTricks - 7) % 6) + 1; // 7→1, 8→2, ..., 11→5
-          
-          for (let i = 1; i <= 5; i++){
-            if (stichPLImgs[i]){
-              if (i === currentStichIndex){
-                stichPLImgs[i].style.display = "block";
-                stichPLImgs[i].style.transform = "translateX(20px)";
-                stichPLImgs[i].style.zIndex = 6 + i;
-              } else {
-                stichPLImgs[i].style.display = "none";
-              }
-            }
+          if (stichPLImgs[currentStichIndex]){
+            stichPLImgs[currentStichIndex].style.display = "block";
+            stichPLImgs[currentStichIndex].style.transform = "translateX(20px)";
+            stichPLImgs[currentStichIndex].style.zIndex = 6 + currentStichIndex;
           }
         } else if (plTricks === 12){
-          // Stich 12: stich6 + stich5(+20px) + stich1(+40px)
+          // Stich 12: stich6(0px) + stich5(+20px) + stich1(+40px)
           if (stichPLImgs[6]){
             stichPLImgs[6].style.display = "block";
             stichPLImgs[6].style.transform = "translateX(0px)";
@@ -1726,19 +1723,13 @@
         }
       }
 
-      // Bank-Stiche (gleiche Logik)
+      // Bank-Stiche anzeigen (gleiche Logik)
       if (bTricks > 0){
         if (bTricks <= 6){
-          for (let i = 1; i <= 6; i++){
-            if (stichBImgs[i]){
-              if (i === bTricks){
-                stichBImgs[i].style.display = "block";
-                stichBImgs[i].style.transform = "translateX(0px)";
-                stichBImgs[i].style.zIndex = i;
-              } else if (i < bTricks){
-                stichBImgs[i].style.display = "none";
-              }
-            }
+          if (stichBImgs[bTricks]){
+            stichBImgs[bTricks].style.display = "block";
+            stichBImgs[bTricks].style.transform = "translateX(0px)";
+            stichBImgs[bTricks].style.zIndex = bTricks;
           }
         } else if (bTricks <= 11){
           if (stichBImgs[6]){
@@ -1746,19 +1737,11 @@
             stichBImgs[6].style.transform = "translateX(0px)";
             stichBImgs[6].style.zIndex = 6;
           }
-          
           const currentStichIndex = ((bTricks - 7) % 6) + 1;
-          
-          for (let i = 1; i <= 5; i++){
-            if (stichBImgs[i]){
-              if (i === currentStichIndex){
-                stichBImgs[i].style.display = "block";
-                stichBImgs[i].style.transform = "translateX(20px)";
-                stichBImgs[i].style.zIndex = 6 + i;
-              } else {
-                stichBImgs[i].style.display = "none";
-              }
-            }
+          if (stichBImgs[currentStichIndex]){
+            stichBImgs[currentStichIndex].style.display = "block";
+            stichBImgs[currentStichIndex].style.transform = "translateX(20px)";
+            stichBImgs[currentStichIndex].style.zIndex = 6 + currentStichIndex;
           }
         } else if (bTricks === 12){
           if (stichBImgs[6]){
@@ -2170,11 +2153,15 @@
 
         clearRunSelected();
 
-        // *** Wenn kein Treffer: Scrollband freigeben, Player kann erneut kippen ***
+        // *** Wenn kein Treffer UND Karte ist verbraucht: Scrollband freigeben ***
         if (!hit) {
-          await sleep(500);
-          setScrollBandLocked(false);
-          return;
+          const info = getPlayerCardOnTargetColor();
+          if (info && usedCards.has(info.num)) {
+            // Verbrauchte Karte auf Target → Player kann erneut kippen
+            await sleep(500);
+            setScrollBandLocked(false);
+            return;
+          }
         }
 
         const isLastTarget = (drawsCount >= MAX_TARGETS);

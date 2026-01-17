@@ -1670,7 +1670,7 @@
       // *** STICH-STAPEL-LOGIK ***
       updateStichDisplay(playerTricks, bankTricks);
 
-      // *** FIX: Bei JEDEM Stich true zurückgeben (Player ODER Bank) ***
+      // *** FIX: Bei JEDEM Stich (Player ODER Bank) true zurückgeben ***
       return true;
     }
 
@@ -2155,22 +2155,12 @@
         clearRunSelected();
 
         // *** Bei erfolgreichem Stich: weiter zu neuem Target ***
-        // *** Bei Fehlversuch (hit=false, verbrauchte Karte): Target bleibt, Scrollband freigeben ***
+        // *** Bei Fehlversuch (hit=false): Target bleibt, Scrollband freigeben ***
         if (!hit) {
           attemptsForTarget--;
           await sleep(500);
           setScrollBandLocked(false);
           return;
-        }
-
-        // *** FIX: Nach Hit SOFORT alle Target-Elemente ausblenden ***
-        hideTargetRankAndSuit();
-        [targetImg1, targetImg2, targetImg3, targetImg4, targetImg5, targetImg6].forEach(img => {
-          if (img) img.style.display = "none";
-        });
-        if (targetImgCovered){
-          targetImgCovered.style.display = "none";
-          targetImgCovered.classList.remove("pulse");
         }
 
         const isLastTarget = (drawsCount >= MAX_TARGETS);
@@ -2270,13 +2260,7 @@
         activeImg.style.display = "block";
       }
 
-      // *** FIX: targetImgCovered komplett zurücksetzen und NEU einblenden ***
       if (targetImgCovered){
-        targetImgCovered.style.display = "none";
-        targetImgCovered.classList.remove("pulse");
-        // Force reflow
-        void targetImgCovered.offsetHeight;
-        // Jetzt neu einblenden
         targetImgCovered.style.display = "block";
         targetImgCovered.classList.add("pulse");
       }

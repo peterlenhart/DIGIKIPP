@@ -1572,7 +1572,7 @@
 
       let value;
       if (rankStr === "A"){
-        value = 12;
+        value = 14;
       } else if (["K","Q","J","10"].includes(rankStr)){
         value = 10;
       } else {
@@ -2170,15 +2170,11 @@
 
         clearRunSelected();
 
-        // *** NEU: Wenn Karte verbraucht war (hit = false), Scrollband reaktivieren ***
+        // *** Wenn kein Treffer: Scrollband freigeben, Player kann erneut kippen ***
         if (!hit) {
-          const info = getPlayerCardOnTargetColor();
-          if (info && usedCards.has(info.num)) {
-            // Karte ist verbraucht → Player kann erneut kippen
-            await sleep(500);
-            setScrollBandLocked(false);
-            return;
-          }
+          await sleep(500);
+          setScrollBandLocked(false);
+          return;
         }
 
         const isLastTarget = (drawsCount >= MAX_TARGETS);

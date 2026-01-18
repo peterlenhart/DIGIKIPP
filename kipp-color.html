@@ -737,8 +737,10 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      gap: calc(32px * var(--uiscale));
+      gap: calc(20px * var(--uiscale));
+      padding: calc(20px * var(--uiscale));
       transition: opacity 0.4s ease;
+      overflow-y: auto;
     }
     #introOverlay.hidden{
       opacity: 0;
@@ -746,28 +748,29 @@
     }
 
     .introTitle{
-      font-size: calc(48px * var(--uiscale));
+      font-size: calc(42px * var(--uiscale));
       font-weight: 1000;
-      letter-spacing: 0.08em;
+      letter-spacing: 0.10em;
       color: var(--ui-text);
       text-shadow:
         0 3px 0 rgba(0,0,0,0.75),
         0 10px 22px rgba(0,0,0,0.55);
       text-transform: uppercase;
       line-height: 1.1;
-      margin-bottom: calc(20px * var(--uiscale));
+      margin-bottom: calc(10px * var(--uiscale));
       text-align: center;
     }
 
     .introText{
-      font-size: calc(22px * var(--uiscale));
-      font-weight: 700;
-      letter-spacing: 0.04em;
+      font-size: calc(18px * var(--uiscale));
+      font-weight: 600;
+      letter-spacing: 0.02em;
       color: var(--ui-text);
       text-align: center;
-      line-height: 1.6;
+      line-height: 1.5;
       opacity: 0.95;
-      max-width: calc(600px * var(--uiscale));
+      max-width: calc(700px * var(--uiscale));
+      padding: 0 calc(20px * var(--uiscale));
     }
 
     .introSub{
@@ -840,10 +843,19 @@
     <div class="layout" id="layout">
       <!-- Intro Overlay INNERHALB layout -->
       <div id="introOverlay">
-        <div class="introTitle">DIGIKIPP<br>COLOR</div>
+        <div class="introTitle">KIPP COLOR</div>
         <div class="introText">
-          Kippe die richtige Zahl<br>
-          an die richtige Farbe.
+          <strong>Wetten, du schaffst nicht alle ZIELE?</strong><br><br>
+          
+          <strong>1.</strong> Klicke auf das pulsierende Kärtchen.<br><br>
+          
+          <strong>2.</strong> Das Kärtchen zeigt das KIPP ZIEL an.<br><br>
+          
+          <strong>3.</strong> Versuche, die Zahl an die Farbe zu kippen.<br>
+          Wähle eine KIPP ANZAHL von 1 bis 6 aus.<br><br>
+          
+          Merken trifft Logik.<br>
+          Jedes KIPP ZIEL kann man schaffen.
         </div>
         <div class="introSub">Highscore: 12</div>
 

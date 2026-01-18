@@ -1707,6 +1707,7 @@
       resetTargetDeck();
       resetLockedColors();
       rotIndex = 0;
+      started = false;  // Beim kompletten Neustart zurücksetzen
       
       // WICHTIG: Zahlen neu mischen!
       reroll12_keepAssigned();
@@ -1788,7 +1789,9 @@
 
       attemptsForTarget++;
 
-      runSchauKippSequence(anzahl, { kipFactor: 1 }).finally(async () => {
+      // Spieler-Kipps sind SEHR SCHNELL - wie ein Roulettekessel! (kipFactor: 0.25)
+      // Die Zahlen sollen NICHT verfolgbar sein - das ist der Schwierigkeitsgrad!
+      runSchauKippSequence(anzahl, { kipFactor: 0.25 }).finally(async () => {
         clearHitPulse();
         const hit = checkHitAndAnimate();
 
@@ -1861,7 +1864,7 @@
       targetPadBtn.disabled = true;
 
       targetRevealed = false;
-      started = false;
+      // started = false;  ← ENTFERNT! Das war das Problem!
       currentTarget = null;
       attemptsForTarget = 0;
 
@@ -1963,9 +1966,10 @@
       resetTargetPadUI();
       clearHitPulse();
 
-      // 4 Vorschau-Kipps von aktueller Position
+      // 4 Vorschau-Kipps in LANGSAMER Geschwindigkeit (kipFactor: 2)
       await runSchauKippSequence(4, { kipFactor: 2 });
 
+      // Direkt zur Zielauswahl - OHNE Treffer-Prüfung
       showTargetSelectView();
     });
 

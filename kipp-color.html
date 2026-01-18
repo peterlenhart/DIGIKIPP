@@ -1691,7 +1691,13 @@
       targetRevealed = false;
       resetTargetPadUI();
       clearHitPulse();
-      showTargetSelectView();
+      
+      // WICHTIG: Zahlen neu mischen für die nächste Runde!
+      reroll12_keepAssigned();
+      renderW();
+      
+      // Zur START-Ansicht zurück (mit SCHAUEN & MERKEN Button)
+      showStartView();
     }
 
     // ---------- Reset Game to Start ----------

@@ -1633,7 +1633,7 @@
 
       showW();
       renderW();
-      if(!await waitOrPause("w", myToken, kipFactor * 1)){ runningKipp=false; return; }
+      if(!await waitOrPause("w", myToken, 1)){ runningKipp=false; return; }
 
       const totalSteps = Math.max(1, steps);
 
@@ -1648,7 +1648,7 @@
         advanceFullCW();
         showW();
         renderW();
-        if(!await waitOrPause("w", myToken, kipFactor * stepMul)){ runningKipp=false; return; }
+        if(!await waitOrPause("w", myToken, stepMul)){ runningKipp=false; return; }
       }
 
       runningKipp = false;
@@ -1691,12 +1691,7 @@
       targetRevealed = false;
       resetTargetPadUI();
       clearHitPulse();
-      
-      // KEINE Änderung an rotIndex oder Zahlen!
-      // Der Würfel bleibt in seiner aktuellen Lage
-      
-      // Zur START-Ansicht zurück (mit SCHAUEN & MERKEN Button)
-      showStartView();
+      showTargetSelectView();
     }
 
     // ---------- Reset Game to Start ----------
@@ -1707,7 +1702,6 @@
       resetTargetDeck();
       resetLockedColors();
       rotIndex = 0;
-      started = false;  // Beim kompletten Neustart zurücksetzen
       
       // WICHTIG: Zahlen neu mischen!
       reroll12_keepAssigned();
@@ -1789,9 +1783,7 @@
 
       attemptsForTarget++;
 
-      // Spieler-Kipps sind schneller - aber verfolgbar (kipFactor: 0.5)
-      // 4× schneller als Vorschau
-      runSchauKippSequence(anzahl, { kipFactor: 0.5 }).finally(async () => {
+      runSchauKippSequence(anzahl, { kipFactor: 1 }).finally(async () => {
         clearHitPulse();
         const hit = checkHitAndAnimate();
 
@@ -1864,7 +1856,7 @@
       targetPadBtn.disabled = true;
 
       targetRevealed = false;
-      // started = false;  ← ENTFERNT! Das war das Problem!
+      started = false;
       currentTarget = null;
       attemptsForTarget = 0;
 
@@ -1940,16 +1932,12 @@
     btnSchauen.addEventListener("click", async () => {
       if(runningKipp) return;
 
-      // Nur beim allerersten Start: Position auf 0 setzen
-      if(!started){
-        started = true;
-        cancelPreview();
-        rotIndex = 0;
-        faceIndex = 0;
-        setRotationSnap();
-      }
-      
-      // Würfel anzeigen (falls noch nicht sichtbar)
+      started = true;
+
+      cancelPreview();
+      rotIndex = 0;
+      faceIndex = 0;
+      setRotationSnap();
       showW();
       renderW();
 
@@ -1966,10 +1954,8 @@
       resetTargetPadUI();
       clearHitPulse();
 
-      // 4 Vorschau-Kipps in LANGSAMER Geschwindigkeit (kipFactor: 2)
       await runSchauKippSequence(4, { kipFactor: 2 });
 
-      // Direkt zur Zielauswahl - OHNE Treffer-Prüfung
       showTargetSelectView();
     });
 

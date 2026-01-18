@@ -15,7 +15,7 @@
   <link rel="apple-touch-icon" href="icon-192.png">
   
   <!-- Theme Color -->
-  <meta name="theme-color" content="#1a0f0a">
+  <meta name="theme-color" content="#4a2418">
 
   <style>
     :root{
@@ -75,52 +75,20 @@
       touch-action: manipulation;
     }
 
-    /* Funkelnder Sternen-Hintergrund */
-    @keyframes twinkle {
-      0%, 100% { opacity: 0.3; }
-      50% { opacity: 1; }
-    }
-
     body{
-      background: 
-        radial-gradient(2px 2px at 20% 30%, white, transparent),
-        radial-gradient(2px 2px at 60% 70%, white, transparent),
-        radial-gradient(1px 1px at 50% 50%, white, transparent),
-        radial-gradient(1px 1px at 80% 10%, white, transparent),
-        radial-gradient(2px 2px at 90% 60%, white, transparent),
-        radial-gradient(1px 1px at 33% 50%, white, transparent),
-        radial-gradient(1px 1px at 15% 80%, white, transparent),
-        linear-gradient(135deg, #0a0505 0%, #1a0f0a 50%, #0f0a05 100%);
-      background-size: 
-        200% 200%,
-        200% 200%,
-        200% 200%,
-        200% 200%,
-        200% 200%,
-        200% 200%,
-        200% 200%,
-        100% 100%;
-      animation: twinkle 3s ease-in-out infinite;
+      background:
+        radial-gradient(120% 90% at 50% 10%, rgba(255,255,255,0.18), rgba(0,0,0,0.12) 55%, rgba(0,0,0,0.22) 100%),
+        repeating-linear-gradient(
+          90deg,
+          rgba(140,105,70,0.10) 0px,
+          rgba(140,105,70,0.10) 10px,
+          rgba(230,205,165,0.10) 10px,
+          rgba(230,205,165,0.10) 22px
+        ),
+        linear-gradient(180deg, #d9c3a2, #cdb28f);
       display: flex;
       justify-content: center;
       align-items: flex-start;
-      position: relative;
-    }
-
-    /* Zusätzliche funkelnde Sterne */
-    body::before {
-      content: '';
-      position: absolute;
-      width: 100%;
-      height: 100%;
-      background-image: 
-        radial-gradient(circle at 10% 20%, rgba(255, 215, 0, 0.3) 0%, transparent 2%),
-        radial-gradient(circle at 90% 80%, rgba(255, 215, 0, 0.2) 0%, transparent 2%),
-        radial-gradient(circle at 50% 10%, rgba(255, 255, 255, 0.4) 0%, transparent 1%),
-        radial-gradient(circle at 30% 90%, rgba(255, 255, 255, 0.3) 0%, transparent 1%),
-        radial-gradient(circle at 70% 40%, rgba(255, 215, 0, 0.25) 0%, transparent 2%);
-      animation: twinkle 4s ease-in-out infinite reverse;
-      pointer-events: none;
     }
 
     .stage{
@@ -138,45 +106,6 @@
       height: var(--gridH);
       transform-origin: top center;
       transform: translateX(-50%) scale(var(--scale));
-    }
-
-    /* Goldener Rahmen um das Spielfeld */
-    @keyframes goldenGlow {
-      0%, 100% { 
-        box-shadow: 
-          0 0 20px rgba(255, 215, 0, 0.6),
-          inset 0 0 20px rgba(255, 215, 0, 0.3),
-          0 0 40px rgba(255, 165, 0, 0.4);
-      }
-      50% { 
-        box-shadow: 
-          0 0 30px rgba(255, 215, 0, 0.8),
-          inset 0 0 30px rgba(255, 215, 0, 0.5),
-          0 0 60px rgba(255, 165, 0, 0.6);
-      }
-    }
-
-    .layout::before {
-      content: '';
-      position: absolute;
-      left: calc(1 * var(--cell) - 12px);
-      top: calc(1 * var(--cell) - 12px);
-      width: calc(6 * var(--cell) + 24px);
-      height: calc(6 * var(--cell) + 24px);
-      border: 8px solid;
-      border-image: linear-gradient(135deg, 
-        #FFD700 0%, 
-        #FFA500 25%, 
-        #FFD700 50%, 
-        #FF8C00 75%, 
-        #FFD700 100%) 1;
-      box-shadow: 
-        0 0 20px rgba(255, 215, 0, 0.6),
-        inset 0 0 20px rgba(255, 215, 0, 0.3),
-        0 0 40px rgba(255, 165, 0, 0.4);
-      pointer-events: none;
-      z-index: 15;
-      animation: goldenGlow 3s ease-in-out infinite;
     }
 
     /* Z-INDEX: 0 - Box Hintergrund PNG */
@@ -206,12 +135,10 @@
       border-radius: 50%;
       transform: translate(-50%, -50%);
       background:
-        radial-gradient(circle at 30% 25%, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.0) 40%),
-        radial-gradient(circle at 55% 60%, rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.00) 55%),
-        radial-gradient(circle at 50% 55%, #d4af37, #8B6914 70%);
-      box-shadow: 
-        0 8px 20px rgba(0, 0, 0, 0.5),
-        inset 0 2px 5px rgba(255, 215, 0, 0.4);
+        radial-gradient(circle at 30% 28%, rgba(255,255,255,0.55), rgba(255,255,255,0.0) 45%),
+        radial-gradient(circle at 55% 60%, rgba(0,0,0,0.18), rgba(0,0,0,0.00) 55%),
+        radial-gradient(circle at 50% 55%, #d6b996, #b88d63 70%);
+      box-shadow: 0 5px 10px rgba(0,0,0,0.28);
       z-index: 1;
       pointer-events: none;
     }
@@ -226,68 +153,16 @@
       z-index: 1;
     }
 
-    /* Glitzernde Farbquadrate mit Animation */
-    @keyframes sparkle {
-      0%, 100% {
-        box-shadow: 
-          0 0 10px currentColor,
-          inset 0 0 15px rgba(255, 255, 255, 0.3);
-      }
-      50% {
-        box-shadow: 
-          0 0 25px currentColor,
-          inset 0 0 25px rgba(255, 255, 255, 0.6);
-      }
-    }
-
-    @keyframes shimmer {
-      0% { background-position: -100% 0; }
-      100% { background-position: 200% 0; }
-    }
-
     .colorSq{
       position:absolute;
       width: var(--colorSize);
       height: var(--colorSize);
-      border-radius: 8px;
-      animation: sparkle 2s ease-in-out infinite;
-      overflow: hidden;
+      border-radius: 0;
     }
-
-    /* Glitzer-Overlay für alle Farben */
-    .colorSq::before {
-      content: '';
-      position: absolute;
-      top: -50%;
-      left: -50%;
-      width: 200%;
-      height: 200%;
-      background: linear-gradient(
-        45deg,
-        transparent 30%,
-        rgba(255, 255, 255, 0.5) 50%,
-        transparent 70%
-      );
-      animation: shimmer 3s linear infinite;
-      pointer-events: none;
-    }
-
-    .c-gruen   { 
-      background: linear-gradient(135deg, var(--gruen) 0%, #00cc66 100%);
-      color: var(--gruen);
-    }
-    .c-orange  { 
-      background: linear-gradient(135deg, var(--orange) 0%, #ffaa44 100%);
-      color: var(--orange);
-    }
-    .c-blau    { 
-      background: linear-gradient(135deg, var(--blau) 0%, #0088cc 100%);
-      color: var(--blau);
-    }
-    .c-violett { 
-      background: linear-gradient(135deg, var(--violett) 0%, #cc2299 100%);
-      color: var(--violett);
-    }
+    .c-gruen   { background: var(--gruen); }
+    .c-orange  { background: var(--orange); }
+    .c-blau    { background: var(--blau); }
+    .c-violett { background: var(--violett); }
 
     /* Würfel-Schatten (clip 2B–7G) */
     .cubeShadowLayer{
@@ -414,26 +289,22 @@
       width: calc(3 * var(--cell));
       height: calc(3 * var(--cell));
       box-sizing: border-box;
-      border-radius: 12px;
+      border-radius: 0;
       background:
-        linear-gradient(135deg, 
-          transparent 0%, 
-          rgba(255, 215, 0, 0.15) 50%, 
-          transparent 100%
-        ),
+        radial-gradient(120% 90% at 15% 15%, var(--cube-wood-gold), transparent 55%),
+        radial-gradient(120% 90% at 25% 25%, var(--cube-wood-warm), transparent 60%),
         repeating-linear-gradient(
-          90deg,
-          #8B4513 0px,
-          #8B4513 8px,
-          #5C2E0F 8px,
-          #5C2E0F 16px
+          20deg,
+          rgba(0,0,0,0.02) 0px,
+          rgba(0,0,0,0.02) 17px,
+          rgba(255,255,255,0.02) 17px,
+          rgba(255,255,255,0.02) 30px
         ),
-        linear-gradient(180deg, #8B4513, #5C2E0F);
+        linear-gradient(135deg, rgba(255,255,255,0.16), rgba(0,0,0,0.08)),
+        linear-gradient(180deg, var(--cube-wood-base), var(--cube-wood-deep));
       box-shadow:
-        inset 0 0 0 5px rgba(255, 215, 0, 0.6),
-        inset 0 2px 8px rgba(255, 215, 0, 0.2),
-        inset 0 -2px 8px rgba(0, 0, 0, 0.4),
-        0 8px 20px rgba(0, 0, 0, 0.4);
+        inset 0 0 0 5px var(--w1-innerframe),
+        0 0 0 2px rgba(255,255,255,0.08) inset;
       z-index: 2;
       left: calc(1 * var(--cell));
       top: calc((1 + 2) * var(--cell));
@@ -457,11 +328,11 @@
       width: calc(44px * var(--uiscale));
       height: calc(44px * var(--uiscale));
       border-radius: calc(14px * var(--uiscale));
-      border: 3px solid rgba(255, 215, 0, 0.5);
-      background: linear-gradient(135deg, #ff6b35 0%, #ff8c42 100%);
+      border: 2px solid rgba(0,0,0,0.65);
+      background: rgba(234,215,190,0.96);
       box-shadow:
-        0 4px 15px rgba(255, 165, 0, 0.4),
-        inset 0 1px 3px rgba(255, 255, 255, 0.3);
+        0 10px 18px rgba(0,0,0,0.22),
+        0 0 0 1px rgba(255,255,255,0.18) inset;
       display:flex;
       align-items:center;
       justify-content:center;
@@ -469,21 +340,9 @@
       -webkit-tap-highlight-color: transparent;
       cursor: pointer;
       pointer-events: auto;
-      transition: all 0.3s ease;
     }
-    .squareBtn:active{ 
-      transform: scale(0.95); 
-      box-shadow: 
-        0 2px 8px rgba(255, 165, 0, 0.6),
-        inset 0 1px 3px rgba(0, 0, 0, 0.3);
-    }
-    .squareBtn:hover{
-      box-shadow: 
-        0 6px 20px rgba(255, 165, 0, 0.6),
-        inset 0 1px 3px rgba(255, 255, 255, 0.5);
-      transform: translateY(-2px);
-    }
-    .squareBtn[disabled]{ opacity: 0.6; pointer-events: none; filter: saturate(0.5); }
+    .squareBtn:active{ transform: scale(0.98); filter: brightness(0.98); }
+    .squareBtn[disabled]{ opacity: 1; pointer-events: none; filter: saturate(0.8); }
 
     /* NEU: Kippzahl-Button während Lauf (braun + beige Zahl) */
     .squareBtn.runSelected{
@@ -498,12 +357,12 @@
       text-shadow: 0 1px 0 rgba(0,0,0,0.40);
     }
 
-    /* Weiße Schrift mit Schatten */
+    /* Rot-braune Schrift (wie vorher) */
     .anzahlText{
       font-weight: 1000;
       letter-spacing: 0.06em;
-      color: #ffffff;
-      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+      color: #7a3f2b;
+      text-shadow: 0 1px 0 rgba(255,255,255,0.35);
       font-size: calc(18px * var(--uiscale));
       line-height: 1;
     }
@@ -537,15 +396,13 @@
     .hintTitle{
       position: absolute;
       left: 50%;
-      color: #FFD700;
+      color: rgba(255,255,255,0.96);
       font-weight: 1000;
       letter-spacing: 0.08em;
       text-transform: uppercase;
       text-shadow:
-        0 0 10px rgba(255, 215, 0, 0.8),
-        0 0 20px rgba(255, 165, 0, 0.5),
-        0 2px 0 rgba(0, 0, 0, 0.75),
-        0 10px 22px rgba(0, 0, 0, 0.55);
+        0 2px 0 rgba(0,0,0,0.75),
+        0 10px 22px rgba(0,0,0,0.55);
       white-space: nowrap;
       z-index: 60;
       pointer-events: none;
@@ -558,18 +415,18 @@
       opacity: 0.96;
     }
 
-    /* 2x2 Ziel-Button mit Premium-Design */
+    /* 2x2 Ziel-Button */
     .targetPadBtn{
       position: absolute;
       box-sizing: border-box;
-      border-radius: 16px;
+      border-radius: 0;
       background:
-        radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.2), transparent 70%),
-        linear-gradient(135deg, rgba(139, 69, 19, 0.8), rgba(92, 46, 15, 0.9));
+        linear-gradient(135deg, rgba(255,255,255,0.14), rgba(0,0,0,0.05)),
+        var(--slot-fill);
       box-shadow:
-        0 8px 20px rgba(0, 0, 0, 0.5),
-        inset 0 2px 5px rgba(255, 215, 0, 0.3);
-      border: 4px solid rgba(255, 215, 0, 0.6);
+        inset 0 0 0 6px var(--w1-innerframe),
+        0 10px 18px rgba(0,0,0,0.22);
+      border: none;
       padding: 0;
       cursor: pointer;
       user-select: none;
@@ -580,20 +437,8 @@
       align-items: center;
       justify-content: center;
       overflow: hidden;
-      transition: all 0.3s ease;
     }
-    .targetPadBtn:active{ 
-      transform: scale(0.96); 
-      box-shadow: 
-        0 4px 12px rgba(0, 0, 0, 0.6),
-        inset 0 2px 5px rgba(0, 0, 0, 0.4);
-    }
-    .targetPadBtn:hover{
-      border-color: rgba(255, 215, 0, 0.9);
-      box-shadow: 
-        0 10px 25px rgba(255, 165, 0, 0.5),
-        inset 0 2px 5px rgba(255, 215, 0, 0.5);
-    }
+    .targetPadBtn:active{ transform: translate(-0px, -0px) scale(0.99); filter: brightness(0.98); }
 
     .targetPadCircle{
       width: 47px;
@@ -611,12 +456,10 @@
       align-items: center;
       justify-content: center;
       font-weight: 900;
-      color: #FFD700;
+      color: #111;
       font-size: calc(var(--cell) * 0.92);
       letter-spacing: -0.02em;
-      text-shadow: 
-        0 0 10px rgba(255, 215, 0, 0.8),
-        0 2px 4px rgba(0, 0, 0, 0.8);
+      text-shadow: 0 2px 0 rgba(255,255,255,0.35);
       line-height: 1;
       pointer-events: none;
       opacity: 0;
@@ -626,23 +469,23 @@
       transform: translateX(-0.10em);
     }
 
-    /* Slots mit goldenem Glanz */
+    /* Slots */
     .slot{
       position: absolute;
       width: var(--cell);
       height: var(--cell);
       box-sizing: border-box;
       background:
-        radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.3), transparent 60%),
-        linear-gradient(135deg, #f5e6d3 0%, #d9c3a8 100%);
-      border: var(--slot-border-w) solid rgba(139, 69, 19, 0.4);
-      border-radius: 6px;
+        linear-gradient(135deg, rgba(255,255,255,0.14), rgba(0,0,0,0.05)),
+        var(--slot-fill);
+      border: var(--slot-border-w) solid var(--slot-border);
+      border-radius: 0;
       z-index: 7;
       box-shadow:
-        inset 0 2px 4px rgba(255, 255, 255, 0.5),
-        inset 0 -2px 4px rgba(0, 0, 0, 0.2),
-        0 4px 8px rgba(0, 0, 0, 0.3),
-        0 0 8px rgba(255, 215, 0, 0.2);
+        2px 2px 0 rgba(255,255,255,0.25) inset,
+        -2px -2px 0 rgba(0,0,0,0.15) inset,
+        0 6px 12px rgba(0,0,0,0.35),
+        4px 4px 7px -2px rgba(0,0,0,0.30);
     }
 
     .slot .num{
@@ -660,13 +503,10 @@
       align-items: center;
       justify-content: center;
       font-weight: 900;
-      color: #2a1810;
+      color: #111;
       font-size: calc(var(--cell) * 0.70);
       letter-spacing: -0.02em;
-      text-shadow: 
-        1px 1px 2px rgba(255, 255, 255, 0.8),
-        -1px -1px 2px rgba(0, 0, 0, 0.2),
-        0 0 4px rgba(255, 215, 0, 0.3);
+      text-shadow: 0 2px 0 rgba(255,255,255,0.35);
       transform: rotate(var(--num-rot, 0deg));
       transform-origin: 50% 50%;
       position: relative;
@@ -751,12 +591,10 @@
       transform: translate(-50%, -50%);
       font-weight: 1000;
       letter-spacing: 0.10em;
-      color: #FFD700;
+      color: rgba(234,215,190,0.96);
       text-shadow:
-        0 0 15px rgba(255, 215, 0, 0.9),
-        0 0 30px rgba(255, 165, 0, 0.7),
-        0 2px 0 rgba(0, 0, 0, 0.75),
-        0 8px 18px rgba(0, 0, 0, 0.60);
+        0 2px 0 rgba(0,0,0,0.75),
+        0 8px 18px rgba(0,0,0,0.60);
       user-select: none;
       white-space: nowrap;
       line-height: 1;
@@ -772,11 +610,8 @@
       transform: translate(-50%, -50%) scale(1);
       font-weight: 1000;
       letter-spacing: 0.02em;
-      color: #FFD700;
-      text-shadow: 
-        0 0 20px rgba(255, 215, 0, 1),
-        0 0 40px rgba(255, 165, 0, 0.8),
-        0 -32px 22px rgba(0, 0, 0, 0.26);
+      color: rgba(234,215,190,0.96);
+      text-shadow: 0 -32px 22px rgba(0,0,0,0.26);
       user-select: none;
       white-space: nowrap;
       line-height: 1;
@@ -809,12 +644,10 @@
       font-size: clamp(100px, 14vmin, 180px);
       font-weight: 1000;
       letter-spacing: 0.02em;
-      color: #FFD700;
+      color: rgba(234,215,190,0.96);
       text-shadow:
-        0 0 20px rgba(255, 215, 0, 0.8),
-        0 0 40px rgba(255, 165, 0, 0.6),
-        0 3px 0 rgba(0, 0, 0, 0.85),
-        0 8px 20px rgba(0, 0, 0, 0.70);
+        0 3px 0 rgba(0,0,0,0.85),
+        0 8px 20px rgba(0,0,0,0.70);
       user-select: none;
       white-space: nowrap;
       line-height: 1;

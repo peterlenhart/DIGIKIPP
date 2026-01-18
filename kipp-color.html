@@ -832,45 +832,6 @@
       transform: scale(0.97);
       filter: brightness(0.96);
     }
-
-    /* Sound Toggle Button */
-    .soundToggleBtn{
-      position: absolute;
-      width: calc(var(--cell) * 0.7);
-      height: calc(var(--cell) * 0.7);
-      border-radius: 50%;
-      border: 3px solid rgba(0,0,0,0.4);
-      background: rgba(234,215,190,0.95);
-      box-shadow: 
-        0 4px 12px rgba(0,0,0,0.25),
-        inset 0 1px 2px rgba(255,255,255,0.3);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      user-select: none;
-      pointer-events: auto;
-      z-index: 25;
-      transition: all 0.2s ease;
-    }
-    .soundToggleBtn:active{
-      transform: translate(-50%, -50%) scale(0.9);
-    }
-    .soundToggleBtn:hover{
-      background: rgba(234,215,190,1);
-      box-shadow: 
-        0 6px 16px rgba(0,0,0,0.3),
-        inset 0 1px 2px rgba(255,255,255,0.4);
-    }
-    .soundToggleBtn.muted{
-      background: rgba(180,150,120,0.9);
-      opacity: 0.7;
-    }
-    .soundIcon{
-      font-size: calc(var(--cell) * 0.35);
-      color: #7a3f2b;
-      line-height: 1;
-    }
   </style>
 </head>
 
@@ -889,11 +850,6 @@
         <button class="introBackBtn" id="introBackBtn">← Zurück zur Auswahl</button>
         <button class="introBtn" id="introStartBtn">LOS GEHT'S</button>
       </div>
-
-      <!-- Audio: Würfel-Klackgeräusch -->
-      <audio id="klackSound" preload="auto">
-        <source src="klack_single_trimmed.wav" type="audio/wav">
-      </audio>
 
       <div class="bgPNG" aria-hidden="true"></div>
       <div class="ball" aria-label="Kugel"></div>
@@ -1018,10 +974,6 @@
         <button class="navBtn" id="backBtn" aria-label="Zurück">
           <div class="backIcon"></div>
         </button>
-
-        <button class="soundToggleBtn" id="soundToggleBtn" aria-label="Sound an/aus">
-          <span class="soundIcon" id="soundIcon">🔊</span>
-        </button>
       </div>
 
       <div class="grid" id="grid" aria-hidden="true"></div>
@@ -1042,10 +994,6 @@
     const kippAnzahlBtns = document.getElementById("kippAnzahlBtns");
 
     const backBtn  = document.getElementById("backBtn");
-    const soundToggleBtn = document.getElementById("soundToggleBtn");
-    const soundIcon = document.getElementById("soundIcon");
-    
-    let soundEnabled = true; // Sound ist standardmäßig an
 
     const testTargetBtn = document.getElementById("testTargetBtn");
 
@@ -1183,20 +1131,6 @@
       const row = parseInt(coord, 10);
       const colLetter = coord.replace(String(row), "");
       return { row, col: colMap[colLetter], colLetter };
-    }
-
-    // Würfel-Klackgeräusch abspielen
-    function playKlack(){
-      if(!soundEnabled) return; // Nur abspielen wenn Sound aktiviert
-      
-      const audio = document.getElementById("klackSound");
-      if(audio){
-        audio.currentTime = 0; // Zurücksetzen für schnelle Wiederholung
-        audio.play().catch(err => {
-          // Fehler ignorieren (z.B. wenn Browser Autoplay blockiert)
-          console.log("Klack-Sound konnte nicht abgespielt werden:", err);
-        });
-      }
     }
 
     let currentTarget = null;
@@ -1699,7 +1633,6 @@
 
       showW();
       renderW();
-      playKlack(); // Klack beim Start-Landing
       if(!await waitOrPause("w", myToken, kipFactor * 1)){ runningKipp=false; return; }
 
       const totalSteps = Math.max(1, steps);
@@ -1715,42 +1648,6 @@
         advanceFullCW();
         showW();
         renderW();
-        playKlack(); // Klack beim Landing in Ecke
-        if(!await waitOrPause("w", myToken, kipFactor * stepMul)){ runningKipp=false; return; }
-      }
-
-      runningKipp = false;
-    }
-
-    // Neue Funktion: Kontinuierliche Beschleunigung von startFactor bis endFactor
-    async function runSchauKippSequenceAccelerated(steps, startFactor, endFactor){
-      if(runningKipp) return;
-      runningKipp = true;
-
-      const myToken = ++previewToken;
-      const totalSteps = Math.max(1, steps);
-
-      showW();
-      renderW();
-      playKlack(); // Klack beim Start-Landing
-      if(!await waitOrPause("w", myToken, startFactor * 1)){ runningKipp=false; return; }
-
-      for(let i=0;i<steps;i++){
-        // Kontinuierliche Beschleunigung: von startFactor zu endFactor
-        const progress = (totalSteps <= 1) ? 1 : (i / (totalSteps - 1));
-        const kipFactor = lerp(startFactor, endFactor, progress);
-        
-        const tStep = (totalSteps <= 1) ? 0 : (i / (totalSteps - 1));
-        const stepMul = lerp(1.0, STEP_MAX, tStep);
-
-        showKip();
-        renderKip();
-        if(!await waitOrPause("kip", myToken, kipFactor * stepMul)){ runningKipp=false; return; }
-
-        advanceFullCW();
-        showW();
-        renderW();
-        playKlack(); // Klack beim Landing in Ecke
         if(!await waitOrPause("w", myToken, kipFactor * stepMul)){ runningKipp=false; return; }
       }
 
@@ -1892,11 +1789,9 @@
 
       attemptsForTarget++;
 
-      // KONTINUIERLICHE BESCHLEUNIGUNG:
-      // Start: kipFactor 1.0 (doppelt so schnell wie Vorschau)
-      // Ende: kipFactor 0.25 (sehr schnell)
-      // Jeder Kipp wird schneller!
-      runSchauKippSequenceAccelerated(anzahl, 1.0, 0.25).finally(async () => {
+      // Spieler-Kipps sind SEHR SCHNELL - wie ein Roulettekessel! (kipFactor: 0.25)
+      // Die Zahlen sollen NICHT verfolgbar sein - das ist der Schwierigkeitsgrad!
+      runSchauKippSequence(anzahl, { kipFactor: 0.25 }).finally(async () => {
         clearHitPulse();
         const hit = checkHitAndAnimate();
 
@@ -2095,19 +1990,6 @@
       }
     });
 
-    // Sound Toggle Button
-    soundToggleBtn.addEventListener("click", () => {
-      soundEnabled = !soundEnabled;
-      
-      if(soundEnabled){
-        soundIcon.textContent = "🔊";
-        soundToggleBtn.classList.remove("muted");
-      } else {
-        soundIcon.textContent = "🔇";
-        soundToggleBtn.classList.add("muted");
-      }
-    });
-
     function setScaleToFitWidth(){
       const cols = numVar("--cols") || 8;
       const cell = numVar("--cell") || 142;
@@ -2249,7 +2131,6 @@
       placeTargetPad_12D_13E(cellPx);
       positionBackButton(cellPx);
       positionTestButton(cellPx);
-      positionSoundButton(cellPx);
     }
 
     function positionBackButton(cellPx){
@@ -2276,23 +2157,6 @@
       testTargetBtn.style.transform = "translate(-50%, -50%)";
       testTargetBtn.style.zIndex = "30";
       testTargetBtn.style.pointerEvents = "auto";
-    }
-
-    function positionSoundButton(cellPx){
-      // Position: zwischen Zeile 14-15, zwischen Spalte G-H
-      const row = 14.5; // Mitte zwischen Zeile 14 und 15
-      const col = 7.5;  // Mitte zwischen G (7) und H (8)
-      const visualRow = row + HEADER_ROW_OFFSET;
-
-      const left = (col - 1) * cellPx + cellPx/2;
-      const top  = (visualRow - 1) * cellPx + cellPx/2;
-
-      soundToggleBtn.style.position = "absolute";
-      soundToggleBtn.style.left = left + "px";
-      soundToggleBtn.style.top = top + "px";
-      soundToggleBtn.style.transform = "translate(-50%, -50%)";
-      soundToggleBtn.style.zIndex = "25";
-      soundToggleBtn.style.pointerEvents = "auto";
     }
 
     function placeTargetPad_12D_13E(cellPx){

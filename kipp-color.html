@@ -1654,6 +1654,39 @@
       runningKipp = false;
     }
 
+    // Neue Funktion: Kontinuierliche Beschleunigung von startFactor bis endFactor
+    async function runSchauKippSequenceAccelerated(steps, startFactor, endFactor){
+      if(runningKipp) return;
+      runningKipp = true;
+
+      const myToken = ++previewToken;
+      const totalSteps = Math.max(1, steps);
+
+      showW();
+      renderW();
+      if(!await waitOrPause("w", myToken, startFactor * 1)){ runningKipp=false; return; }
+
+      for(let i=0;i<steps;i++){
+        // Kontinuierliche Beschleunigung: von startFactor zu endFactor
+        const progress = (totalSteps <= 1) ? 1 : (i / (totalSteps - 1));
+        const kipFactor = lerp(startFactor, endFactor, progress);
+        
+        const tStep = (totalSteps <= 1) ? 0 : (i / (totalSteps - 1));
+        const stepMul = lerp(1.0, STEP_MAX, tStep);
+
+        showKip();
+        renderKip();
+        if(!await waitOrPause("kip", myToken, kipFactor * stepMul)){ runningKipp=false; return; }
+
+        advanceFullCW();
+        showW();
+        renderW();
+        if(!await waitOrPause("w", myToken, kipFactor * stepMul)){ runningKipp=false; return; }
+      }
+
+      runningKipp = false;
+    }
+
     // ---------- UI: Kippzahl Buttons ----------
     function buildKippAnzahlButtons(){
       kippAnzahlBtns.innerHTML = "";
@@ -1789,9 +1822,11 @@
 
       attemptsForTarget++;
 
-      // Spieler-Kipps sind SEHR SCHNELL - wie ein Roulettekessel! (kipFactor: 0.25)
-      // Die Zahlen sollen NICHT verfolgbar sein - das ist der Schwierigkeitsgrad!
-      runSchauKippSequence(anzahl, { kipFactor: 0.25 }).finally(async () => {
+      // KONTINUIERLICHE BESCHLEUNIGUNG:
+      // Start: kipFactor 2.0 (wie Vorschau)
+      // Ende: kipFactor 0.25 (sehr schnell)
+      // Jeder Kipp wird schneller!
+      runSchauKippSequenceAccelerated(anzahl, 2.0, 0.25).finally(async () => {
         clearHitPulse();
         const hit = checkHitAndAnimate();
 

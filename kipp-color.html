@@ -440,6 +440,76 @@
     }
     .targetPadBtn:active{ transform: translate(-0px, -0px) scale(0.99); filter: brightness(0.98); }
 
+    /* 8 permanente klickbare Ziel-Slots */
+    .openTargetSlot{
+      position: absolute;
+      box-sizing: border-box;
+      border-radius: 0;
+      background:
+        linear-gradient(135deg, rgba(255,255,255,0.14), rgba(0,0,0,0.05)),
+        var(--slot-fill);
+      box-shadow:
+        inset 0 0 0 6px var(--w1-innerframe),
+        0 10px 18px rgba(0,0,0,0.22);
+      border: none;
+      padding: 0;
+      cursor: default;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+      pointer-events: none;
+      z-index: 75;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      transition: all 0.2s ease;
+    }
+    .openTargetSlot.clickable{
+      cursor: pointer;
+      pointer-events: auto;
+    }
+    .openTargetSlot.clickable:hover{
+      transform: translate(-50%, -50%) scale(1.05);
+      box-shadow:
+        inset 0 0 0 6px var(--w1-innerframe),
+        0 0 25px rgba(255,255,100,0.4),
+        0 12px 20px rgba(0,0,0,0.25);
+    }
+    .openTargetSlot.clickable:active{
+      transform: translate(-50%, -50%) scale(0.98);
+      filter: brightness(0.95);
+    }
+    .openTargetSlot .targetNum{
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 900;
+      color: #111;
+      font-size: calc(var(--cell) * 0.92);
+      letter-spacing: -0.02em;
+      text-shadow: 0 2px 0 rgba(255,255,255,0.35);
+      line-height: 1;
+      opacity: 1;
+      pointer-events: none;
+    }
+    .openTargetSlot .targetNum.twodigit{
+      font-size: calc(var(--cell) * 0.64);
+      letter-spacing: -0.16em !important;
+      transform: translateX(-0.10em);
+    }
+    .openTargetSlot.hit{
+      box-shadow:
+        inset 0 0 0 6px var(--w1-innerframe),
+        0 0 30px rgba(255,255,100,0.7),
+        0 10px 18px rgba(0,0,0,0.22);
+      opacity: 0.6;
+      pointer-events: none !important;
+      cursor: default !important;
+    }
+
+
     .targetPadCircle{
       width: 47px;
       height: 47px;
@@ -467,40 +537,6 @@
     .targetPadNum.twodigit{
       letter-spacing: -0.16em !important;
       transform: translateX(-0.10em);
-    }
-
-    /* 8 offene Kippziele */
-    .openTarget{
-      position: absolute;
-      width: var(--cell);
-      height: var(--cell);
-      box-sizing: border-box;
-      border-radius: 0;
-      border: 4px solid var(--w1-innerframe);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      box-shadow:
-        2px 2px 0 rgba(255,255,255,0.20) inset,
-        -2px -2px 0 rgba(0,0,0,0.12) inset,
-        0 6px 12px rgba(0,0,0,0.30);
-      pointer-events: none;
-      z-index: 5;
-    }
-
-    .openTarget .targetNum{
-      font-size: calc(var(--cell) * 0.64);
-      font-weight: 1000;
-      color: #111;
-      text-shadow: 0 2px 0 rgba(255,255,255,0.30);
-      letter-spacing: -0.04em;
-      line-height: 1;
-      user-select: none;
-    }
-
-    .openTarget .targetNum.twodigit{
-      font-size: calc(var(--cell) * 0.58);
-      letter-spacing: -0.12em;
     }
 
     /* Slots */
@@ -750,75 +786,6 @@
       transform: translateY(-50%);
     }
 
-    /* Mute Button */
-    .muteBtn{
-      position: absolute;
-      width: calc(48px * var(--uiscale));
-      height: calc(48px * var(--uiscale));
-      background: none;
-      border: none;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      user-select: none;
-      -webkit-tap-highlight-color: transparent;
-      pointer-events: auto;
-      z-index: 120;
-      padding: 0;
-    }
-    .muteBtn:active{ transform: scale(0.95); opacity: 0.8; }
-
-    .muteIcon{
-      position: relative;
-      width: calc(36px * var(--uiscale));
-      height: calc(36px * var(--uiscale));
-      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.45));
-    }
-    
-    /* Lautsprecher */
-    .muteIcon::before{
-      content:"";
-      position:absolute;
-      left: 20%;
-      top: 50%;
-      transform: translateY(-50%);
-      width: calc(10px * var(--uiscale));
-      height: calc(14px * var(--uiscale));
-      background: rgba(234,215,190,0.96);
-      border-radius: calc(2px * var(--uiscale)) 0 0 calc(2px * var(--uiscale));
-    }
-    
-    /* Schallwellen (wenn unmuted) */
-    .muteIcon::after{
-      content:"";
-      position:absolute;
-      right: 20%;
-      top: 50%;
-      transform: translateY(-50%);
-      width: calc(12px * var(--uiscale));
-      height: calc(12px * var(--uiscale));
-      border: calc(2.5px * var(--uiscale)) solid rgba(234,215,190,0.96);
-      border-left: none;
-      border-radius: 0 50% 50% 0;
-      opacity: 1;
-      transition: opacity 0.2s ease;
-    }
-    
-    /* Durchgestrichene Wellen (wenn muted) */
-    .muteBtn.muted .muteIcon::after{
-      opacity: 0.3;
-    }
-    
-    .muteBtn.muted .muteIcon{
-      position: relative;
-    }
-    
-    /* X über dem Icon wenn muted */
-    .muteBtn.muted .muteIcon::before{
-      opacity: 0.5;
-    }
-
     @keyframes kippPulseGlow {
       0%   { transform: scale(1);   filter: drop-shadow(0 0 0 rgba(255,255,255,0)); }
       100% { transform: scale(1.09); filter: drop-shadow(0 0 14px rgba(255,255,255,0.95)); }
@@ -1040,9 +1007,6 @@
         </div>
       </div>
 
-      <!-- 8 offene Kippziele -->
-      <div id="openTargetsContainer"></div>
-
       <div class="uiLayer" id="uiLayer" aria-hidden="true">
         <!-- Laufende Score im Spiel -->
         <div class="scoreRun" id="scoreRun">00</div>
@@ -1056,12 +1020,43 @@
         <!-- START / ERGEBNIS: gleicher Maskenplatz -->
         <div class="startBtnWrap" id="startBtnWrap">
           <button id="btnSchauen" class="squareBtn startBtn" type="button">
-            <span class="anzahlText pulse" id="btnSchauenPulse">SCHAUEN &amp; MERKEN</span>
+            <span class="anzahlText pulse" id="btnSchauenPulse">WATCH 'N' MEMO</span>
           </button>
 
           <button id="btnErgebnis" class="squareBtn startBtn hidden" type="button">
             <span class="anzahlText" id="btnErgebnisText">ERGEBNIS</span>
           </button>
+        </div>
+
+        <button class="targetPadBtn hidden" id="targetPadBtn" type="button" aria-label="Ziel erzeugen">
+          <div class="targetPadCircle" id="targetPadCircle"></div>
+          <div class="targetPadNum" id="targetPadNum"></div>
+        </button>
+
+        <!-- 8 permanente Ziel-Slots -->
+        <div class="openTargetSlot" id="target_0" data-index="0">
+          <div class="targetNum"></div>
+        </div>
+        <div class="openTargetSlot" id="target_1" data-index="1">
+          <div class="targetNum"></div>
+        </div>
+        <div class="openTargetSlot" id="target_2" data-index="2">
+          <div class="targetNum"></div>
+        </div>
+        <div class="openTargetSlot" id="target_3" data-index="3">
+          <div class="targetNum"></div>
+        </div>
+        <div class="openTargetSlot" id="target_4" data-index="4">
+          <div class="targetNum"></div>
+        </div>
+        <div class="openTargetSlot" id="target_5" data-index="5">
+          <div class="targetNum"></div>
+        </div>
+        <div class="openTargetSlot" id="target_6" data-index="6">
+          <div class="targetNum"></div>
+        </div>
+        <div class="openTargetSlot" id="target_7" data-index="7">
+          <div class="targetNum"></div>
         </div>
 
         <div id="kippAnzahlView" class="hidden">
@@ -1075,20 +1070,11 @@
         <button class="navBtn" id="backBtn" aria-label="Zurück">
           <div class="backIcon"></div>
         </button>
-
-        <button class="muteBtn" id="muteBtn" aria-label="Musik ein/aus">
-          <div class="muteIcon"></div>
-        </button>
       </div>
 
       <div class="grid" id="grid" aria-hidden="true"></div>
     </div>
   </div>
-
-  <!-- Hintergrundmusik -->
-  <audio id="bgMusic" loop preload="auto">
-    <source src="KIPP_COLOR_Untermalung.mp3" type="audio/mpeg">
-  </audio>
 
   <script>
     const colorsEl = document.getElementById("colors");
@@ -1105,15 +1091,11 @@
 
     const backBtn  = document.getElementById("backBtn");
 
-    const muteBtn  = document.getElementById("muteBtn");
-    const bgMusic  = document.getElementById("bgMusic");
-
     const testTargetBtn = document.getElementById("testTargetBtn");
 
-    // targetPadBtn entfernt - wird durch 8 offene Kippziele ersetzt
-    // const targetPadBtn    = document.getElementById("targetPadBtn");
-    // const targetPadCircle = document.getElementById("targetPadCircle");
-    // const targetPadNum    = document.getElementById("targetPadNum");
+    const targetPadBtn    = document.getElementById("targetPadBtn");
+    const targetPadCircle = document.getElementById("targetPadCircle");
+    const targetPadNum    = document.getElementById("targetPadNum");
 
     const shadowQ0 = document.getElementById("shadowQ0");
     const shadowQ1 = document.getElementById("shadowQ1");
@@ -1252,7 +1234,10 @@
     let targetRevealed = false;
     let started = false;
 
-    let uiMode = "START"; // START | TARGET | COUNT | END
+    let btnSchauenState = "WATCH"; // "WATCH" | "READY" | "SELECT"
+    let selectedTargetIndex = null;
+
+    let uiMode = "START"; // START | SELECT | COUNT | END
 
     // =========================
     // Versuche pro Ziel  (GEÄNDERT: nur 1 Versuch)
@@ -1271,6 +1256,107 @@
       if(runEl)   runEl.textContent   = s;
       if(finalEl) finalEl.textContent = s;
     }
+
+    // =========================
+    // 8 permanente offene Ziele
+    // =========================
+    let openTargets = []; // Array mit 8 Zielen: {num, color, hit}
+
+    function buildOpenTargets(){
+      openTargets = [];
+      const usedPairs = new Set();
+      
+      // Erstelle 8 einzigartige Ziele
+      for(let i = 0; i < 8; i++){
+        let target = null;
+        let attempts = 0;
+        
+        // Finde ein einzigartiges Ziel
+        while(!target && attempts < 100){
+          const num = Math.floor(Math.random() * 12) + 1; // 1-12
+          const color = allColors[Math.floor(Math.random() * allColors.length)];
+          const key = `${num}|${color}`;
+          
+          if(!usedPairs.has(key)){
+            target = { num, color, hit: false };
+            usedPairs.add(key);
+          }
+          attempts++;
+        }
+        
+        if(target) openTargets.push(target);
+      }
+      
+      // Rendere die 8 Ziele
+      renderOpenTargets();
+    }
+
+    function renderOpenTargets(){
+      for(let i = 0; i < 8; i++){
+        const slotEl = document.getElementById(`target_${i}`);
+        const numEl = slotEl.querySelector('.targetNum');
+        const target = openTargets[i];
+        
+        if(!target) continue;
+        
+        // Setze Farbe
+        slotEl.style.background =
+          `linear-gradient(135deg, rgba(255,255,255,0.14), rgba(0,0,0,0.05)), var(--${target.color})`;
+        
+        // Setze Zahl
+        const text = (target.num === 9 || target.num === 6) ? `${target.num}.` : String(target.num);
+        numEl.textContent = text;
+        
+        // Setze twodigit Klasse
+        numEl.classList.remove("twodigit");
+        if(target.num >= 10) numEl.classList.add("twodigit");
+        
+        // Setze Hit-Status
+        if(target.hit){
+          slotEl.classList.add("hit");
+        } else {
+          slotEl.classList.remove("hit");
+        }
+      }
+    }
+
+    function makeTargetsClickable(){
+      for(let i = 0; i < 8; i++){
+        const slotEl = document.getElementById(`target_${i}`);
+        const target = openTargets[i];
+        if(target && !target.hit){
+          slotEl.classList.add("clickable", "pulse");
+        }
+      }
+    }
+
+    function makeTargetsUnclickable(){
+      for(let i = 0; i < 8; i++){
+        const slotEl = document.getElementById(`target_${i}`);
+        slotEl.classList.remove("clickable", "pulse");
+      }
+    }
+
+    function checkOpenTargetsForHit(){
+      const target = openTargets[selectedTargetIndex];
+      if(!target || target.hit) return false;
+      
+      const visibleNums = getVisibleNumbersSet();
+      const forbidden = getForbiddenPairsForCurrentState();
+      
+      const key = `${target.num}|${target.color}`;
+      if(!forbidden.has(key) && visibleNums.has(target.num)){
+        // TREFFER!
+        target.hit = true;
+        hitsCount++;
+        updateScore();
+        renderOpenTargets();
+        return true;
+      }
+      
+      return false;
+    }
+
 
     const ordinals = {
       1:"Erstes",2:"Zweites",3:"Drittes",4:"Viertes",5:"Fünftes",6:"Sechstes",
@@ -1627,19 +1713,6 @@
 
     const FIXED_SPEED = 3;
 
-    // BEAT INTERVAL für Endlos-Loop (600ms = 100 BPM)
-    const BEAT_INTERVAL = 600; // justierbar!
-    const MUSIC_VOLUME_LOUD = 0.5;
-    const MUSIC_VOLUME_QUIET = 0.2;
-
-    // Sound-Synchronisations-Timing (aktuell deaktiviert)
-    const SOUND_SYNC_TIMING = {
-      enabled: false,
-      kipMs: 400,   // Kipp-Animation selbst
-      wMs: 823,     // Hold danach (Total: 1223ms pro Zyklus)
-      totalPerKipp: 1223
-    };
-
     // =========================================================
     // TIMING-PATCH (isoliert):
     // Target-Min = 0.55  (Kippziel 12 => Zeiten 55% der Basis)
@@ -1661,16 +1734,6 @@
     }
 
     function getTiming(){
-      // Sound-Sync-Modus: Feste Timing-Werte für perfekte Audio-Synchronisation
-      if(SOUND_SYNC_TIMING.enabled){
-        return { 
-          holdMs: SOUND_SYNC_TIMING.wMs, 
-          kipMs: SOUND_SYNC_TIMING.kipMs, 
-          wMs: SOUND_SYNC_TIMING.wMs 
-        };
-      }
-
-      // Normales dynamisches Timing
       const v = FIXED_SPEED;
 
       const baseHold = Math.max(520, Math.round(2400 - v * 450));
@@ -1742,123 +1805,9 @@
     let previewToken = 0;
     let endRestartMode = false;
 
-    // Endlos-Loop Variablen
-    let endlessLoopInterval = null;
-    let isEndlessLoopRunning = false;
-    let readyButtonShown = false;
-
-    // 8 offene Kippziele
-    let openTargets = [];
-
     function cancelPreview(){
       previewToken++;
       runningKipp = false;
-    }
-
-    // =========================================================
-    // 8 OFFENE KIPPZIELE
-    // =========================================================
-    function generateOpenTargets(){
-      openTargets = [];
-      const colors = ["c-gruen", "c-orange", "c-blau", "c-violett"];
-      
-      // Positionen: zwischen AB (1.5), CD (3.5), EF (5.5), GH (7.5)
-      // Zeilen: 12 und 13 (+ HEADER_ROW_OFFSET)
-      const positions = [
-        { row: 12, col: 1.5 },
-        { row: 12, col: 3.5 },
-        { row: 12, col: 5.5 },
-        { row: 12, col: 7.5 },
-        { row: 13, col: 1.5 },
-        { row: 13, col: 3.5 },
-        { row: 13, col: 5.5 },
-        { row: 13, col: 7.5 }
-      ];
-
-      positions.forEach(pos => {
-        const colorClass = colors[Math.floor(Math.random() * colors.length)];
-        const num = Math.floor(Math.random() * 12) + 1;
-        openTargets.push({
-          row: pos.row,
-          col: pos.col,
-          color: colorClass,
-          num: num
-        });
-      });
-    }
-
-    function renderOpenTargets(){
-      const container = document.getElementById("openTargetsContainer");
-      if(!container) return;
-      
-      container.innerHTML = "";
-      const cellPx = numVar("--cell") || 142;
-
-      openTargets.forEach(target => {
-        const visualRow = target.row + HEADER_ROW_OFFSET;
-        const left = (target.col - 1) * cellPx;
-        let top = (visualRow - 1) * cellPx;
-        
-        // Erste Zeile (row 12) um halbe Zelle nach oben
-        if(target.row === 12){
-          top -= 71;
-        }
-
-        const d = document.createElement("div");
-        d.className = `openTarget ${target.color}`;
-        d.style.left = left + "px";
-        d.style.top = top + "px";
-        
-        // Entferne "c-" Präfix für CSS-Variable (c-gruen → gruen)
-        const colorName = target.color.replace("c-", "");
-        d.style.background = `linear-gradient(135deg, rgba(255,255,255,0.14), rgba(0,0,0,0.05)), var(--${colorName})`;
-
-        const numEl = document.createElement("span");
-        numEl.className = target.num >= 10 ? "targetNum twodigit" : "targetNum";
-        numEl.textContent = target.num;
-        d.appendChild(numEl);
-
-        container.appendChild(d);
-      });
-    }
-
-    // =========================================================
-    // ENDLOS-LOOP
-    // =========================================================
-    function startEndlessLoop(){
-      if(isEndlessLoopRunning) return;
-      
-      stopEndlessLoop(); // Sicherheit
-      isEndlessLoopRunning = true;
-      let kippStep = 0; // 0=Face, 1-3=Kipp-Steps
-      
-      endlessLoopInterval = setInterval(() => {
-        if(kippStep === 0){
-          // Zeige Face
-          showW();
-          renderW();
-          kippStep = 1;
-        } else {
-          // Zeige Kipp-Step
-          showKip();
-          renderKip();
-          kippStep++;
-          
-          if(kippStep > 3){
-            // Nach 3 Kipp-Steps: Full-Rotation
-            advanceFullCW();
-            kippStep = 0;
-          }
-        }
-      }, BEAT_INTERVAL / 4); // 4 Schritte pro Beat
-    }
-
-    function stopEndlessLoop(){
-      if(endlessLoopInterval){
-        clearInterval(endlessLoopInterval);
-        endlessLoopInterval = null;
-      }
-      isEndlessLoopRunning = false;
     }
 
     async function waitOrPause(type, myToken, factor = 1){
@@ -1884,22 +1833,13 @@
 
       showW();
       renderW();
-      
-      // Initial Wait nur wenn NICHT im Sound-Sync-Modus
-      if(!SOUND_SYNC_TIMING.enabled){
-        if(!await waitOrPause("w", myToken, 1)){ runningKipp=false; return; }
-      } else {
-        // Sound-Sync-Modus: 500ms warten bis der erste Klack im Audio kommt
-        await sleep(500);
-      }
+      if(!await waitOrPause("w", myToken, 1)){ runningKipp=false; return; }
 
       const totalSteps = Math.max(1, steps);
 
       for(let i=0;i<steps;i++){
-        // Im Sound-Sync-Modus: konstante Geschwindigkeit (stepMul = 1.0)
-        // Sonst: progressive Verlangsamung
         const tStep = (totalSteps <= 1) ? 0 : (i / (totalSteps - 1));
-        const stepMul = SOUND_SYNC_TIMING.enabled ? 1.0 : lerp(1.0, STEP_MAX, tStep);
+        const stepMul = lerp(1.0, STEP_MAX, tStep);
 
         showKip();
         renderKip();
@@ -1933,7 +1873,7 @@
     function setAnzahlButtonsLocked(locked){
       kippAnzahlBtns.querySelectorAll("button").forEach(b => b.disabled = locked);
       testTargetBtn.disabled = locked;
-      // targetPadBtn.disabled = locked; // nicht mehr benötigt
+      targetPadBtn.disabled = locked;
     }
 
     function markRunSelected(btn){
@@ -1949,7 +1889,7 @@
       attemptsForTarget = 0;
       currentTarget = null;
       targetRevealed = false;
-      // resetTargetPadUI(); // nicht mehr benötigt
+      resetTargetPadUI();
       clearHitPulse();
       showTargetSelectView();
     }
@@ -1983,7 +1923,7 @@
       btnErgebnis.classList.remove("hidden");
 
       kippAnzahlView.classList.add("hidden");
-      // targetPadBtn.classList.add("hidden"); // nicht mehr benötigt
+      targetPadBtn.classList.add("hidden");
 
       showHint("SCHLUSS KIPPRUNDE", false);
 
@@ -2035,92 +1975,41 @@
     // GEÄNDERT: Nach dem Kipp immer Ziel beendet (nur 1 Versuch)
     // =========================
     function handleAnzahlClick(anzahl, clickedBtn){
+      if(!currentTarget) return;
       if(runningKipp) return;
 
       markRunSelected(clickedBtn);
       setAnzahlButtonsLocked(true);
 
-      // Musik wird lauter
-      bgMusic.volume = MUSIC_VOLUME_LOUD;
+      runSchauKippSequence(anzahl, { kipFactor: 1 }).finally(async () => {
+        clearHitPulse();
+        const hit = checkOpenTargetsForHit();
 
-      // Warte auf nächsten Beat-Sync
-      const syncDelay = BEAT_INTERVAL - (Date.now() % BEAT_INTERVAL);
-      
-      setTimeout(() => {
-        runSchauKippSequence(anzahl, { kipFactor: 1 }).finally(async () => {
-          clearHitPulse();
-          
-          // Check: Hat Spieler eines der 8 Ziele getroffen?
-          const hit = checkHitAgainstOpenTargets();
+        clearRunSelected();
 
-          clearRunSelected();
-
-          if(hit){
-            // Treffer: kurzer Moment
-            await sleep(500);
-          }
-
-          // Zurück zur Endlos-Loop + BEREIT? Button
-          readyButtonShown = true;
-          btnSchauenPulse.textContent = "BEREIT?";
-          btnSchauenPulse.classList.remove("pulse");
-          startBtnWrap.classList.remove("hidden");
-          btnSchauen.classList.remove("hidden");
-          hideTargetSelectView();
-          
-          bgMusic.volume = MUSIC_VOLUME_QUIET;
-          startEndlessLoop();
-          setAnzahlButtonsLocked(false);
-        });
-      }, syncDelay);
-    }
-
-    function checkHitAgainstOpenTargets(){
-      // Prüfe Würfel-Mitte gegen alle 8 offenen Ziele
-      const visibleInfos = getVisibleSlotInfos();
-      let hitFound = false;
-
-      for(let i = openTargets.length - 1; i >= 0; i--){
-        const target = openTargets[i];
+        // Check ob alle 8 Ziele getroffen wurden
+        const allHit = openTargets.every(t => t.hit);
         
-        for(const info of visibleInfos){
-          if(info.num === target.num && info.color === target.color){
-            // TREFFER!
-            hitFound = true;
-            
-            // Speichere getroffen Ziel
-            lockedColorsByNumber.set(target.num, target.color.replace("c-", ""));
-            
-            // Entferne aus offenen Zielen
-            openTargets.splice(i, 1);
-            
-            // Render aktualisieren
-            renderOpenTargets();
-            renderW();
-            
-            // Pulse-Animation
-            const slotEl = Array.from(document.querySelectorAll('.slot')).find(el => {
-              const span = el.querySelector('.num > span');
-              return span && span.textContent && parseInt(span.textContent) === target.num;
-            });
-            if(slotEl){
-              slotEl.classList.add("kippPulse");
-              const span = slotEl.querySelector(".num > span");
-              if(span) span.classList.add("kippPulse");
-            }
-            
-            break; // Nur ein Treffer pro Durchgang
-          }
+        if(allHit){
+          await sleep(700);
+          showEndResultView();
+          return;
         }
-        
-        if(hitFound) break;
-      }
 
-      return hitFound;
+        // Treffer: kurze Pause
+        if(hit){
+          await sleep(500);
+        }
+
+        // Zurück zu WATCH 'N' MEMO
+        setAnzahlButtonsLocked(false);
+        selectedTargetIndex = null;
+        currentTarget = null;
+        showStartView();
+        renderW();
+      });
     }
 
-    // resetTargetPadUI und applyTargetToPad nicht mehr benötigt (8 offene Kippziele)
-    /*
     function resetTargetPadUI(){
       targetPadBtn.style.background =
         `linear-gradient(135deg, rgba(255,255,255,0.14), rgba(0,0,0,0.05)), var(--slot-fill)`;
@@ -2146,7 +2035,6 @@
 
       targetPadNum.style.opacity = "1";
     }
-    */
 
     function showStartView(){
       uiMode = "START";
@@ -2155,46 +2043,48 @@
       btnSchauen.classList.remove("hidden");
       btnErgebnis.classList.add("hidden");
 
+      btnSchauenPulse.textContent = "WATCH 'N' MEMO";
       btnSchauenPulse.classList.add("pulse");
+      btnSchauenState = "WATCH";
 
       showHint("SCHAUKIPP-RUNDE", false);
 
       kippAnzahlView.classList.add("hidden");
-      // targetPadBtn.classList.add("hidden"); // nicht mehr benötigt
-      // targetPadBtn.classList.remove("pulse");
-      // targetPadBtn.disabled = true;
+      
+      // Ziele nicht klickbar
+      makeTargetsUnclickable();
 
       targetRevealed = false;
       started = false;
+      selectedTargetIndex = null;
       currentTarget = null;
       attemptsForTarget = 0;
 
-      // resetTargetPadUI(); // nicht mehr benötigt
+      resetTargetPadUI();
       clearHitPulse();
 
       positionUI();
     }
 
     function showTargetSelectView(){
-      // Direkt zur KIPPANZAHL-Auswahl (kein targetPadBtn mehr)
-      uiMode = "COUNT";
-      showHint("KIPPANZAHL", false);
+      uiMode = "SELECT";
+      showHint("KIPPZIEL WÄHLEN", false);
 
       startBtnWrap.classList.add("hidden");
-      
-      kippAnzahlView.classList.remove("hidden");
-      buildKippAnzahlButtons();
+      kippAnzahlView.classList.add("hidden");
 
-      testTargetBtn.classList.add("hidden");
-      testTargetBtn.disabled = true;
+      // 8 Ziele klickbar machen und pulsieren lassen
+      makeTargetsClickable();
 
+      targetRevealed = false;
       clearHitPulse();
+
       positionUI();
     }
 
     function showKippCountView(){
       uiMode = "COUNT";
-      showHint("KIPP-ANZAHL", false);
+      showHint("KIPP COUNT", false);
 
       startBtnWrap.classList.add("hidden");
       targetPadBtn.classList.remove("pulse");
@@ -2211,8 +2101,6 @@
       positionUI();
     }
 
-    // targetPadBtn Event-Handler nicht mehr benötigt (8 offene Kippziele)
-    /*
     targetPadBtn.addEventListener("click", () => {
       if(targetRevealed) return;
 
@@ -2232,36 +2120,59 @@
       showKippCountView();
       checkHitAndAnimate();
     });
-    */
 
     btnSchauen.addEventListener("click", async () => {
       if(runningKipp) return;
 
-      // **NEUER FLOW ohne Preview-Kipps**
-      if(!readyButtonShown){
-        // PHASE 1: "SCHAUEN & MERKEN" geklickt
-        // → Loop läuft WEITER (nicht stoppen!)
-        // → Button-Text ändern zu "BEREIT?"
+      if(btnSchauenState === "WATCH"){
+        // WATCH 'N' MEMO → READY?
+        btnSchauenPulse.textContent = "READY?";
+        btnSchauenPulse.classList.remove("pulse");
+        btnSchauenState = "READY";
         
-        readyButtonShown = true;
-        btnSchauenPulse.textContent = "BEREIT?";
-        btnSchauenPulse.classList.remove("pulse"); // Nicht mehr pulsieren
+        started = true;
+        cancelPreview();
+        rotIndex = 0;
+        faceIndex = 0;
+        setRotationSnap();
+        showW();
+        renderW();
+
+        targetRevealed = false;
+        attemptsForTarget = 0;
+        selectedTargetIndex = null;
+
+        resetTargetPadUI();
+        clearHitPulse();
         
-        // Spieler kann jetzt SO LANGE beobachten wie er will!
-        
-      } else {
-        // PHASE 2: "BEREIT?" geklickt
-        // → JETZT stoppen wir den Loop
-        stopEndlessLoop();
-        
-        // → Musik wird leiser
-        bgMusic.volume = MUSIC_VOLUME_QUIET;
-        
-        // → Zeige KIPPANZAHL Buttons
+      } else if(btnSchauenState === "READY"){
+        // READY? → KIPPZIEL WÄHLEN anzeigen
         hideStartUI();
         showTargetSelectView();
       }
     });
+
+    // Click Handler für die 8 Ziel-Slots
+    for(let i = 0; i < 8; i++){
+      const slotEl = document.getElementById(`target_${i}`);
+      slotEl.addEventListener("click", () => {
+        if(!slotEl.classList.contains("clickable")) return;
+        
+        const target = openTargets[i];
+        if(!target || target.hit) return;
+        
+        // Ziel wurde gewählt
+        selectedTargetIndex = i;
+        currentTarget = target;
+        
+        // Alle Ziele nicht mehr klickbar
+        makeTargetsUnclickable();
+        
+        // Zeige KIPP COUNT
+        showKippCountView();
+      });
+    }
+
 
     btnErgebnis.addEventListener("click", () => {
       runErgebnisPresentation();
@@ -2397,7 +2308,7 @@
       const row11CenterY   = row11VisualTop + (cellPx / 2);
       const between10and11 = row11VisualTop;
 
-      const kippBtnsCenterY = between10and11 - 71; // Halbe Zelle nach oben
+      const kippBtnsCenterY = between10and11;
 
       kippAnzahlBtns.style.top = kippBtnsCenterY + "px";
       kippAnzahlBtns.style.left = "50%";
@@ -2407,20 +2318,51 @@
       const btnH = 44 * uiscale;
       startBtnWrap.style.top = (between10and11 - (btnH / 2)) + "px";
 
-      if(uiMode === "TARGET"){
+      if(uiMode === "SELECT"){
         hintTitle.style.top = row11CenterY + "px";
       } else if(uiMode === "START" || uiMode === "COUNT" || uiMode === "END"){
         const row9VisualTop  = (((9 + HEADER_ROW_OFFSET) - 1) * cellPx);
         const row10VisualTop = (((10 + HEADER_ROW_OFFSET) - 1) * cellPx);
         const midBetween9and10 = (row9VisualTop + row10VisualTop) / 2;
-        hintTitle.style.top = (midBetween9and10 + 40 - 71 + 35) + "px"; // -71 nach oben, +35 nach unten
+        hintTitle.style.top = (midBetween9and10 + 40) + "px";
       } else {
         hintTitle.style.top = row11CenterY + "px";
       }
 
-      // placeTargetPad_12D_13E(cellPx); // nicht mehr benötigt
+      positionOpenTargets(cellPx);
+      placeTargetPad_12D_13E(cellPx);
       positionBackButton(cellPx);
       positionTestButton(cellPx);
+    }
+
+    function positionOpenTargets(cellPx){
+      const colPairs = [
+        {col: 1.5},  // AB
+        {col: 3.5},  // CD
+        {col: 5.5},  // EF
+        {col: 7.5}   // GH
+      ];
+      const rows = [12, 13];
+      
+      let index = 0;
+      for(const row of rows){
+        for(const pair of colPairs){
+          const slotEl = document.getElementById(`target_${index}`);
+          if(!slotEl) continue;
+          
+          const visualRow = row + HEADER_ROW_OFFSET;
+          const left = (pair.col - 1) * cellPx + cellPx/2;
+          const top = (visualRow - 1) * cellPx + cellPx/2;
+          
+          slotEl.style.left = left + "px";
+          slotEl.style.top = top + "px";
+          slotEl.style.width = cellPx + "px";
+          slotEl.style.height = cellPx + "px";
+          slotEl.style.transform = "translate(-50%, -50%)";
+          
+          index++;
+        }
+      }
     }
 
     function positionBackButton(cellPx){
@@ -2449,8 +2391,6 @@
       testTargetBtn.style.pointerEvents = "auto";
     }
 
-    // placeTargetPad_12D_13E nicht mehr benötigt (8 offene Kippziele)
-    /*
     function placeTargetPad_12D_13E(cellPx){
       const row = 12;
       const col = 4; // D
@@ -2464,7 +2404,6 @@
       targetPadBtn.style.width  = (2 * cellPx) + "px";
       targetPadBtn.style.height = (2 * cellPx) + "px";
     }
-    */
 
     function rebuild(){
       const { cell, scale } = setScaleToFitWidth();
@@ -2475,7 +2414,6 @@
       document.documentElement.style.setProperty("--gridH", gridH + "px");
 
       rebuildColors();
-      renderOpenTargets(); // 8 Kippziele neu positionieren
       positionUI();
       updateShadowVisibility();
 
@@ -2485,14 +2423,14 @@
 
     function initPlayState(){
       cancelPreview();
-      stopEndlessLoop();
 
       resetTargetDeck();
       currentTarget = null;
       targetRevealed = false;
       started = false;
       attemptsForTarget = 0;
-      readyButtonShown = false;
+      selectedTargetIndex = null;
+      btnSchauenState = "WATCH";
 
       resetLockedColors();
       hitsCount = 0;
@@ -2502,12 +2440,12 @@
       const scoreEl = document.getElementById("scoreDisplay");
       if(scoreEl){
         scoreEl.classList.remove("finalVisible", "scorePulse");
+        // Inline-Opacity entfernen, damit CSS-Klasse finalVisible wirken kann
         scoreEl.style.removeProperty("opacity");
       }
 
-      // 8 Kippziele generieren
-      generateOpenTargets();
-      renderOpenTargets();
+      resetTargetPadUI();
+      buildOpenTargets();
 
       reroll12_keepAssigned();
       showW();
@@ -2515,15 +2453,8 @@
 
       btnErgebnis.onclick = null;
 
-      // Button-Text zurücksetzen
-      btnSchauenPulse.textContent = "SCHAUEN & MERKEN";
-      btnSchauenPulse.classList.add("pulse");
-
       showStartView();
       updateShadowVisibility();
-      
-      // Endlos-Loop starten
-      startEndlessLoop();
     }
 
     window.addEventListener("load", () => {
@@ -2549,52 +2480,11 @@
       setTimeout(() => {
         introOverlay.remove();
       }, 400);
-      
-      // Hintergrundmusik starten (LOUD, da Endlos-Loop läuft)
-      bgMusic.volume = MUSIC_VOLUME_LOUD;
-      bgMusic.play().catch(err => {
-        console.log("Audio autoplay verhindert:", err);
-      });
     });
 
     introBackBtn.addEventListener("click", () => {
       window.location.href = "index.html";
     });
-
-    // Mute-Button Handler
-    let isMuted = false;
-    muteBtn.addEventListener("click", () => {
-      isMuted = !isMuted;
-      if(isMuted){
-        bgMusic.pause();
-        muteBtn.classList.add("muted");
-      } else {
-        bgMusic.play().catch(err => console.log("Play error:", err));
-        muteBtn.classList.remove("muted");
-      }
-    });
-
-    // Mute-Button positionieren (oben rechts, wie scoreRun)
-    function positionMuteButton(cellPx){
-      const col = 7;   // Links vom Score (Spalte G)
-      const leftCell = (col - 1) * cellPx;
-      const centerX = leftCell + (cellPx / 2);
-
-      const headerY = 1.0 * cellPx;
-      const centerY = headerY;
-
-      muteBtn.style.left = centerX + "px";
-      muteBtn.style.top  = centerY + "px";
-      muteBtn.style.transform = "translate(-50%, -50%)";
-    }
-
-    // In positionUI() Funktion einbauen
-    const originalPositionUI = positionUI;
-    positionUI = function(){
-      originalPositionUI();
-      const cellPx = numVar("--cell") || 142;
-      positionMuteButton(cellPx);
-    };
   </script>
 </body>
 </html>

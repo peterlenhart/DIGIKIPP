@@ -1743,6 +1743,9 @@
       // Initial Wait nur wenn NICHT im Sound-Sync-Modus
       if(!SOUND_SYNC_TIMING.enabled){
         if(!await waitOrPause("w", myToken, 1)){ runningKipp=false; return; }
+      } else {
+        // Sound-Sync-Modus: 500ms warten bis der erste Klack im Audio kommt
+        await sleep(500);
       }
 
       const totalSteps = Math.max(1, steps);

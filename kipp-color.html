@@ -1055,7 +1055,12 @@
 
   <!-- Hintergrundmusik -->
   <audio id="bgMusic" loop preload="auto">
-    <source src="Denkraum.mp3" type="audio/mpeg">
+    <source src="color_background_loop.mp3" type="audio/mpeg">
+  </audio>
+
+  <!-- Kipp-Sound -->
+  <audio id="kippSound" preload="auto">
+    <source src="6kipps.mp3" type="audio/mpeg">
   </audio>
 
   <script>
@@ -1075,6 +1080,7 @@
 
     const muteBtn  = document.getElementById("muteBtn");
     const bgMusic  = document.getElementById("bgMusic");
+    const kippSound = document.getElementById("kippSound");
 
     const testTargetBtn = document.getElementById("testTargetBtn");
 
@@ -1594,6 +1600,15 @@
 
     const FIXED_SPEED = 3;
 
+    // Sound-Synchronisations-Timing für 6kipps.mp3
+    // Audio ist 7.34s für 6 Klacks = 1223ms pro Klack
+    const SOUND_SYNC_TIMING = {
+      enabled: false,
+      kipMs: 400,   // Kipp-Animation selbst
+      wMs: 823,     // Hold danach (Total: 1223ms pro Zyklus)
+      totalPerKipp: 1223
+    };
+
     // =========================================================
     // TIMING-PATCH (isoliert):
     // Target-Min = 0.55  (Kippziel 12 => Zeiten 55% der Basis)
@@ -1615,6 +1630,16 @@
     }
 
     function getTiming(){
+      // Sound-Sync-Modus: Feste Timing-Werte für perfekte Audio-Synchronisation
+      if(SOUND_SYNC_TIMING.enabled){
+        return { 
+          holdMs: SOUND_SYNC_TIMING.wMs, 
+          kipMs: SOUND_SYNC_TIMING.kipMs, 
+          wMs: SOUND_SYNC_TIMING.wMs 
+        };
+      }
+
+      // Normales dynamisches Timing
       const v = FIXED_SPEED;
 
       const baseHold = Math.max(520, Math.round(2400 - v * 450));
@@ -1714,13 +1739,19 @@
 
       showW();
       renderW();
-      if(!await waitOrPause("w", myToken, 1)){ runningKipp=false; return; }
+      
+      // Initial Wait nur wenn NICHT im Sound-Sync-Modus
+      if(!SOUND_SYNC_TIMING.enabled){
+        if(!await waitOrPause("w", myToken, 1)){ runningKipp=false; return; }
+      }
 
       const totalSteps = Math.max(1, steps);
 
       for(let i=0;i<steps;i++){
+        // Im Sound-Sync-Modus: konstante Geschwindigkeit (stepMul = 1.0)
+        // Sonst: progressive Verlangsamung
         const tStep = (totalSteps <= 1) ? 0 : (i / (totalSteps - 1));
-        const stepMul = lerp(1.0, STEP_MAX, tStep);
+        const stepMul = SOUND_SYNC_TIMING.enabled ? 1.0 : lerp(1.0, STEP_MAX, tStep);
 
         showKip();
         renderKip();
@@ -1864,7 +1895,18 @@
 
       attemptsForTarget++;
 
+      // Sound-Sync aktivieren und Kipp-Sound starten
+      SOUND_SYNC_TIMING.enabled = true;
+      kippSound.currentTime = 0;
+      kippSound.volume = 0.6;
+      kippSound.play().catch(err => console.log("Kipp-Sound error:", err));
+
       runSchauKippSequence(anzahl, { kipFactor: 1 }).finally(async () => {
+        // Sound-Sync deaktivieren und Sound stoppen
+        SOUND_SYNC_TIMING.enabled = false;
+        kippSound.pause();
+        kippSound.currentTime = 0;
+
         clearHitPulse();
         const hit = checkHitAndAnimate();
 

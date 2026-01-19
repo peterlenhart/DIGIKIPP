@@ -1764,6 +1764,12 @@
         showW();
         renderW();
         if(!await waitOrPause("w", myToken, stepMul)){ runningKipp=false; return; }
+        
+        // WICHTIG: Sound nach dem LETZTEN Kipp sofort stoppen
+        if(SOUND_SYNC_TIMING.enabled && i === steps - 1){
+          kippSound.pause();
+          kippSound.currentTime = 0;
+        }
       }
 
       runningKipp = false;
@@ -1871,7 +1877,17 @@
       if(stepsToQ0 === 0) stepsToQ0 = 4;   // Wenn schon Q0, mindestens eine volle Runde
       if(stepsToQ0 < 3) stepsToQ0 += 4;    // Mindestens 3 Kips
 
+      // Sound-Sync aktivieren und Kipp-Sound starten (für Ergebnis-Kipps)
+      SOUND_SYNC_TIMING.enabled = true;
+      kippSound.currentTime = 0;
+      kippSound.volume = 0.6;
+      kippSound.playbackRate = 0.5; // Halbe Geschwindigkeit für kipFactor: 2
+      kippSound.play().catch(err => console.log("Kipp-Sound error:", err));
+
       await runSchauKippSequence(stepsToQ0, { kipFactor: 2 });
+      
+      // Sound-Sync deaktivieren nach Ergebnis
+      SOUND_SYNC_TIMING.enabled = false;
 
       // Score-Endanzeige in Zeile 6 D–E einblenden, pulsierend
       const scoreEl = document.getElementById("scoreDisplay");
@@ -1902,13 +1918,12 @@
       SOUND_SYNC_TIMING.enabled = true;
       kippSound.currentTime = 0;
       kippSound.volume = 0.6;
+      kippSound.playbackRate = 1.0; // Normale Geschwindigkeit für kipFactor: 1
       kippSound.play().catch(err => console.log("Kipp-Sound error:", err));
 
       runSchauKippSequence(anzahl, { kipFactor: 1 }).finally(async () => {
-        // Sound-Sync deaktivieren und Sound stoppen
+        // Sound-Sync deaktivieren (Sound wurde bereits in Loop gestoppt)
         SOUND_SYNC_TIMING.enabled = false;
-        kippSound.pause();
-        kippSound.currentTime = 0;
 
         clearHitPulse();
         const hit = checkHitAndAnimate();
@@ -2080,7 +2095,17 @@
       resetTargetPadUI();
       clearHitPulse();
 
+      // Sound-Sync aktivieren und Kipp-Sound starten (für Vorschau)
+      SOUND_SYNC_TIMING.enabled = true;
+      kippSound.currentTime = 0;
+      kippSound.volume = 0.6;
+      kippSound.playbackRate = 0.5; // Halbe Geschwindigkeit für kipFactor: 2
+      kippSound.play().catch(err => console.log("Kipp-Sound error:", err));
+
       await runSchauKippSequence(4, { kipFactor: 2 });
+      
+      // Sound-Sync deaktivieren nach Vorschau
+      SOUND_SYNC_TIMING.enabled = false;
 
       showTargetSelectView();
     });

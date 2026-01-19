@@ -1808,7 +1808,10 @@
         d.className = `openTarget ${target.color}`;
         d.style.left = left + "px";
         d.style.top = top + "px";
-        d.style.background = `linear-gradient(135deg, rgba(255,255,255,0.14), rgba(0,0,0,0.05)), var(--${target.color})`;
+        
+        // Entferne "c-" Präfix für CSS-Variable (c-gruen → gruen)
+        const colorName = target.color.replace("c-", "");
+        d.style.background = `linear-gradient(135deg, rgba(255,255,255,0.14), rgba(0,0,0,0.05)), var(--${colorName})`;
 
         const numEl = document.createElement("span");
         numEl.className = target.num >= 10 ? "targetNum twodigit" : "targetNum";
@@ -2410,7 +2413,7 @@
         const row9VisualTop  = (((9 + HEADER_ROW_OFFSET) - 1) * cellPx);
         const row10VisualTop = (((10 + HEADER_ROW_OFFSET) - 1) * cellPx);
         const midBetween9and10 = (row9VisualTop + row10VisualTop) / 2;
-        hintTitle.style.top = (midBetween9and10 + 40 - 71) + "px"; // Halbe Zelle nach oben
+        hintTitle.style.top = (midBetween9and10 + 40 - 71 + 35) + "px"; // -71 nach oben, +35 nach unten
       } else {
         hintTitle.style.top = row11CenterY + "px";
       }

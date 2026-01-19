@@ -1797,7 +1797,12 @@
       openTargets.forEach(target => {
         const visualRow = target.row + HEADER_ROW_OFFSET;
         const left = (target.col - 1) * cellPx;
-        const top = (visualRow - 1) * cellPx;
+        let top = (visualRow - 1) * cellPx;
+        
+        // Erste Zeile (row 12) um halbe Zelle nach oben
+        if(target.row === 12){
+          top -= 71;
+        }
 
         const d = document.createElement("div");
         d.className = `openTarget ${target.color}`;
@@ -2389,7 +2394,7 @@
       const row11CenterY   = row11VisualTop + (cellPx / 2);
       const between10and11 = row11VisualTop;
 
-      const kippBtnsCenterY = between10and11;
+      const kippBtnsCenterY = between10and11 - 71; // Halbe Zelle nach oben
 
       kippAnzahlBtns.style.top = kippBtnsCenterY + "px";
       kippAnzahlBtns.style.left = "50%";
@@ -2405,7 +2410,7 @@
         const row9VisualTop  = (((9 + HEADER_ROW_OFFSET) - 1) * cellPx);
         const row10VisualTop = (((10 + HEADER_ROW_OFFSET) - 1) * cellPx);
         const midBetween9and10 = (row9VisualTop + row10VisualTop) / 2;
-        hintTitle.style.top = (midBetween9and10 + 40) + "px";
+        hintTitle.style.top = (midBetween9and10 + 40 - 71) + "px"; // Halbe Zelle nach oben
       } else {
         hintTitle.style.top = row11CenterY + "px";
       }

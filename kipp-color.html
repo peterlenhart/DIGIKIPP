@@ -1090,11 +1090,6 @@
     <source src="KIPP_COLOR_Untermalung.mp3" type="audio/mpeg">
   </audio>
 
-  <!-- Kipp-Sound -->
-  <audio id="kippSound" preload="auto">
-    <source src="6kipps.mp3" type="audio/mpeg">
-  </audio>
-
   <script>
     const colorsEl = document.getElementById("colors");
 
@@ -1112,7 +1107,6 @@
 
     const muteBtn  = document.getElementById("muteBtn");
     const bgMusic  = document.getElementById("bgMusic");
-    const kippSound = document.getElementById("kippSound");
 
     const testTargetBtn = document.getElementById("testTargetBtn");
 
@@ -1638,8 +1632,7 @@
     const MUSIC_VOLUME_LOUD = 0.5;
     const MUSIC_VOLUME_QUIET = 0.2;
 
-    // Sound-Synchronisations-Timing für 6kipps.mp3
-    // Audio ist 7.34s für 6 Klacks = 1223ms pro Klack
+    // Sound-Synchronisations-Timing (aktuell deaktiviert)
     const SOUND_SYNC_TIMING = {
       enabled: false,
       kipMs: 400,   // Kipp-Animation selbst
@@ -1908,12 +1901,6 @@
         showW();
         renderW();
         if(!await waitOrPause("w", myToken, stepMul)){ runningKipp=false; return; }
-        
-        // WICHTIG: Sound nach dem LETZTEN Kipp sofort stoppen
-        if(SOUND_SYNC_TIMING.enabled && i === steps - 1){
-          kippSound.pause();
-          kippSound.currentTime = 0;
-        }
       }
 
       runningKipp = false;
@@ -2021,17 +2008,7 @@
       if(stepsToQ0 === 0) stepsToQ0 = 4;   // Wenn schon Q0, mindestens eine volle Runde
       if(stepsToQ0 < 3) stepsToQ0 += 4;    // Mindestens 3 Kips
 
-      // Sound-Sync aktivieren und Kipp-Sound starten (für Ergebnis-Kipps)
-      SOUND_SYNC_TIMING.enabled = true;
-      kippSound.currentTime = 0;
-      kippSound.volume = 0.6;
-      kippSound.playbackRate = 0.5; // Halbe Geschwindigkeit für kipFactor: 2
-      kippSound.play().catch(err => console.log("Kipp-Sound error:", err));
-
       await runSchauKippSequence(stepsToQ0, { kipFactor: 2 });
-      
-      // Sound-Sync deaktivieren nach Ergebnis
-      SOUND_SYNC_TIMING.enabled = false;
 
       // Score-Endanzeige in Zeile 6 D–E einblenden, pulsierend
       const scoreEl = document.getElementById("scoreDisplay");

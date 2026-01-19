@@ -469,6 +469,40 @@
       transform: translateX(-0.10em);
     }
 
+    /* 8 offene Kippziele */
+    .openTarget{
+      position: absolute;
+      width: var(--cell);
+      height: var(--cell);
+      box-sizing: border-box;
+      border-radius: 0;
+      border: 4px solid var(--w1-innerframe);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow:
+        2px 2px 0 rgba(255,255,255,0.20) inset,
+        -2px -2px 0 rgba(0,0,0,0.12) inset,
+        0 6px 12px rgba(0,0,0,0.30);
+      pointer-events: none;
+      z-index: 5;
+    }
+
+    .openTarget .targetNum{
+      font-size: calc(var(--cell) * 0.64);
+      font-weight: 1000;
+      color: #111;
+      text-shadow: 0 2px 0 rgba(255,255,255,0.30);
+      letter-spacing: -0.04em;
+      line-height: 1;
+      user-select: none;
+    }
+
+    .openTarget .targetNum.twodigit{
+      font-size: calc(var(--cell) * 0.58);
+      letter-spacing: -0.12em;
+    }
+
     /* Slots */
     .slot{
       position: absolute;
@@ -1006,6 +1040,9 @@
         </div>
       </div>
 
+      <!-- 8 offene Kippziele -->
+      <div id="openTargetsContainer"></div>
+
       <div class="uiLayer" id="uiLayer" aria-hidden="true">
         <!-- Laufende Score im Spiel -->
         <div class="scoreRun" id="scoreRun">00</div>
@@ -1026,11 +1063,6 @@
             <span class="anzahlText" id="btnErgebnisText">ERGEBNIS</span>
           </button>
         </div>
-
-        <button class="targetPadBtn hidden" id="targetPadBtn" type="button" aria-label="Ziel erzeugen">
-          <div class="targetPadCircle" id="targetPadCircle"></div>
-          <div class="targetPadNum" id="targetPadNum"></div>
-        </button>
 
         <div id="kippAnzahlView" class="hidden">
           <div class="kippAnzahlBtns" id="kippAnzahlBtns"></div>
@@ -1055,7 +1087,7 @@
 
   <!-- Hintergrundmusik -->
   <audio id="bgMusic" loop preload="auto">
-    <source src="color_background_loop.mp3" type="audio/mpeg">
+    <source src="KIPP_COLOR_Untermalung.mp3" type="audio/mpeg">
   </audio>
 
   <!-- Kipp-Sound -->
@@ -1084,9 +1116,10 @@
 
     const testTargetBtn = document.getElementById("testTargetBtn");
 
-    const targetPadBtn    = document.getElementById("targetPadBtn");
-    const targetPadCircle = document.getElementById("targetPadCircle");
-    const targetPadNum    = document.getElementById("targetPadNum");
+    // targetPadBtn entfernt - wird durch 8 offene Kippziele ersetzt
+    // const targetPadBtn    = document.getElementById("targetPadBtn");
+    // const targetPadCircle = document.getElementById("targetPadCircle");
+    // const targetPadNum    = document.getElementById("targetPadNum");
 
     const shadowQ0 = document.getElementById("shadowQ0");
     const shadowQ1 = document.getElementById("shadowQ1");
@@ -1600,6 +1633,11 @@
 
     const FIXED_SPEED = 3;
 
+    // BEAT INTERVAL für Endlos-Loop (600ms = 100 BPM)
+    const BEAT_INTERVAL = 600; // justierbar!
+    const MUSIC_VOLUME_LOUD = 0.5;
+    const MUSIC_VOLUME_QUIET = 0.2;
+
     // Sound-Synchronisations-Timing für 6kipps.mp3
     // Audio ist 7.34s für 6 Klacks = 1223ms pro Klack
     const SOUND_SYNC_TIMING = {
@@ -1711,9 +1749,115 @@
     let previewToken = 0;
     let endRestartMode = false;
 
+    // Endlos-Loop Variablen
+    let endlessLoopInterval = null;
+    let isEndlessLoopRunning = false;
+    let readyButtonShown = false;
+
+    // 8 offene Kippziele
+    let openTargets = [];
+
     function cancelPreview(){
       previewToken++;
       runningKipp = false;
+    }
+
+    // =========================================================
+    // 8 OFFENE KIPPZIELE
+    // =========================================================
+    function generateOpenTargets(){
+      openTargets = [];
+      const colors = ["c-gruen", "c-orange", "c-blau", "c-violett"];
+      
+      // Positionen: zwischen AB (1.5), CD (3.5), EF (5.5), GH (7.5)
+      // Zeilen: 12 und 13 (+ HEADER_ROW_OFFSET)
+      const positions = [
+        { row: 12, col: 1.5 },
+        { row: 12, col: 3.5 },
+        { row: 12, col: 5.5 },
+        { row: 12, col: 7.5 },
+        { row: 13, col: 1.5 },
+        { row: 13, col: 3.5 },
+        { row: 13, col: 5.5 },
+        { row: 13, col: 7.5 }
+      ];
+
+      positions.forEach(pos => {
+        const colorClass = colors[Math.floor(Math.random() * colors.length)];
+        const num = Math.floor(Math.random() * 12) + 1;
+        openTargets.push({
+          row: pos.row,
+          col: pos.col,
+          color: colorClass,
+          num: num
+        });
+      });
+    }
+
+    function renderOpenTargets(){
+      const container = document.getElementById("openTargetsContainer");
+      if(!container) return;
+      
+      container.innerHTML = "";
+      const cellPx = numVar("--cell") || 142;
+
+      openTargets.forEach(target => {
+        const visualRow = target.row + HEADER_ROW_OFFSET;
+        const left = (target.col - 1) * cellPx;
+        const top = (visualRow - 1) * cellPx;
+
+        const d = document.createElement("div");
+        d.className = `openTarget ${target.color}`;
+        d.style.left = left + "px";
+        d.style.top = top + "px";
+        d.style.background = `linear-gradient(135deg, rgba(255,255,255,0.14), rgba(0,0,0,0.05)), var(--${target.color})`;
+
+        const numEl = document.createElement("span");
+        numEl.className = target.num >= 10 ? "targetNum twodigit" : "targetNum";
+        numEl.textContent = target.num;
+        d.appendChild(numEl);
+
+        container.appendChild(d);
+      });
+    }
+
+    // =========================================================
+    // ENDLOS-LOOP
+    // =========================================================
+    function startEndlessLoop(){
+      if(isEndlessLoopRunning) return;
+      
+      stopEndlessLoop(); // Sicherheit
+      isEndlessLoopRunning = true;
+      let kippStep = 0; // 0=Face, 1-3=Kipp-Steps
+      
+      endlessLoopInterval = setInterval(() => {
+        if(kippStep === 0){
+          // Zeige Face
+          showW();
+          renderW();
+          kippStep = 1;
+        } else {
+          // Zeige Kipp-Step
+          showKip();
+          renderKip();
+          kippStep++;
+          
+          if(kippStep > 3){
+            // Nach 3 Kipp-Steps: Full-Rotation
+            advanceFullCW();
+            kippStep = 0;
+          }
+        }
+      }, BEAT_INTERVAL / 4); // 4 Schritte pro Beat
+    }
+
+    function stopEndlessLoop(){
+      if(endlessLoopInterval){
+        clearInterval(endlessLoopInterval);
+        endlessLoopInterval = null;
+      }
+      isEndlessLoopRunning = false;
     }
 
     async function waitOrPause(type, myToken, factor = 1){
@@ -1794,7 +1938,7 @@
     function setAnzahlButtonsLocked(locked){
       kippAnzahlBtns.querySelectorAll("button").forEach(b => b.disabled = locked);
       testTargetBtn.disabled = locked;
-      targetPadBtn.disabled = locked;
+      // targetPadBtn.disabled = locked; // nicht mehr benötigt
     }
 
     function markRunSelected(btn){
@@ -1810,7 +1954,7 @@
       attemptsForTarget = 0;
       currentTarget = null;
       targetRevealed = false;
-      resetTargetPadUI();
+      // resetTargetPadUI(); // nicht mehr benötigt
       clearHitPulse();
       showTargetSelectView();
     }
@@ -1844,7 +1988,7 @@
       btnErgebnis.classList.remove("hidden");
 
       kippAnzahlView.classList.add("hidden");
-      targetPadBtn.classList.add("hidden");
+      // targetPadBtn.classList.add("hidden"); // nicht mehr benötigt
 
       showHint("SCHLUSS KIPPRUNDE", false);
 
@@ -1906,54 +2050,92 @@
     // GEÄNDERT: Nach dem Kipp immer Ziel beendet (nur 1 Versuch)
     // =========================
     function handleAnzahlClick(anzahl, clickedBtn){
-      if(!currentTarget) return;
       if(runningKipp) return;
 
       markRunSelected(clickedBtn);
       setAnzahlButtonsLocked(true);
 
-      attemptsForTarget++;
+      // Musik wird lauter
+      bgMusic.volume = MUSIC_VOLUME_LOUD;
 
-      // Sound-Sync aktivieren und Kipp-Sound starten
-      SOUND_SYNC_TIMING.enabled = true;
-      kippSound.currentTime = 0;
-      kippSound.volume = 0.6;
-      kippSound.playbackRate = 1.0; // Normale Geschwindigkeit für kipFactor: 1
-      kippSound.play().catch(err => console.log("Kipp-Sound error:", err));
+      // Warte auf nächsten Beat-Sync
+      const syncDelay = BEAT_INTERVAL - (Date.now() % BEAT_INTERVAL);
+      
+      setTimeout(() => {
+        runSchauKippSequence(anzahl, { kipFactor: 1 }).finally(async () => {
+          clearHitPulse();
+          
+          // Check: Hat Spieler eines der 8 Ziele getroffen?
+          const hit = checkHitAgainstOpenTargets();
 
-      runSchauKippSequence(anzahl, { kipFactor: 1 }).finally(async () => {
-        // Sound-Sync deaktivieren (Sound wurde bereits in Loop gestoppt)
-        SOUND_SYNC_TIMING.enabled = false;
+          clearRunSelected();
 
-        clearHitPulse();
-        const hit = checkHitAndAnimate();
+          if(hit){
+            // Treffer: kurzer Moment
+            await sleep(500);
+          }
 
-        clearRunSelected();
-
-        const isLastTarget = (drawsCount >= MAX_TARGETS);
-        const isTargetFinished = true; // immer (nur 1 Versuch)
-
-        if(isLastTarget && isTargetFinished){
-          await sleep(700);
-          showEndResultView();
-          return;
-        }
-
-        // Treffer: kurzer Moment, dann neues Ziel
-        if(hit){
-          await sleep(900);
-          resetToNewTargetChoice();
+          // Zurück zur Endlos-Loop + BEREIT? Button
+          readyButtonShown = true;
+          btnSchauenPulse.textContent = "BEREIT?";
+          btnSchauenPulse.classList.remove("pulse");
+          startBtnWrap.classList.remove("hidden");
+          btnSchauen.classList.remove("hidden");
+          hideTargetSelectView();
+          
+          bgMusic.volume = MUSIC_VOLUME_QUIET;
+          startEndlessLoop();
           setAnzahlButtonsLocked(false);
-          renderW();
-          return;
-        }
-
-        // Fehlversuch: sofort neues Ziel (kein Punkt)
-        resetToNewTargetChoice();
-        setAnzahlButtonsLocked(false);
-      });
+        });
+      }, syncDelay);
     }
 
+    function checkHitAgainstOpenTargets(){
+      // Prüfe Würfel-Mitte gegen alle 8 offenen Ziele
+      const visibleInfos = getVisibleSlotInfos();
+      let hitFound = false;
+
+      for(let i = openTargets.length - 1; i >= 0; i--){
+        const target = openTargets[i];
+        
+        for(const info of visibleInfos){
+          if(info.num === target.num && info.color === target.color){
+            // TREFFER!
+            hitFound = true;
+            
+            // Speichere getroffen Ziel
+            lockedColorsByNumber.set(target.num, target.color.replace("c-", ""));
+            
+            // Entferne aus offenen Zielen
+            openTargets.splice(i, 1);
+            
+            // Render aktualisieren
+            renderOpenTargets();
+            renderW();
+            
+            // Pulse-Animation
+            const slotEl = Array.from(document.querySelectorAll('.slot')).find(el => {
+              const span = el.querySelector('.num > span');
+              return span && span.textContent && parseInt(span.textContent) === target.num;
+            });
+            if(slotEl){
+              slotEl.classList.add("kippPulse");
+              const span = slotEl.querySelector(".num > span");
+              if(span) span.classList.add("kippPulse");
+            }
+            
+            break; // Nur ein Treffer pro Durchgang
+          }
+        }
+        
+        if(hitFound) break;
+      }
+
+      return hitFound;
+    }
+
+    // resetTargetPadUI und applyTargetToPad nicht mehr benötigt (8 offene Kippziele)
+    /*
     function resetTargetPadUI(){
       targetPadBtn.style.background =
         `linear-gradient(135deg, rgba(255,255,255,0.14), rgba(0,0,0,0.05)), var(--slot-fill)`;
@@ -1979,6 +2161,7 @@
 
       targetPadNum.style.opacity = "1";
     }
+    */
 
     function showStartView(){
       uiMode = "START";
@@ -1992,42 +2175,35 @@
       showHint("SCHAUKIPP-RUNDE", false);
 
       kippAnzahlView.classList.add("hidden");
-      targetPadBtn.classList.add("hidden");
-      targetPadBtn.classList.remove("pulse");
-      targetPadBtn.disabled = true;
+      // targetPadBtn.classList.add("hidden"); // nicht mehr benötigt
+      // targetPadBtn.classList.remove("pulse");
+      // targetPadBtn.disabled = true;
 
       targetRevealed = false;
       started = false;
       currentTarget = null;
       attemptsForTarget = 0;
 
-      resetTargetPadUI();
+      // resetTargetPadUI(); // nicht mehr benötigt
       clearHitPulse();
 
       positionUI();
     }
 
     function showTargetSelectView(){
-      if(drawsCount >= MAX_TARGETS){
-        showEndResultView();
-        return;
-      }
-
-      uiMode = "TARGET";
-      // KIPPZIEL-Hinweise jetzt in normaler Größe wie SCHAUKIPP-RUNDE / KIPP-ANZAHL
-      showHint(getTargetHintText());
+      // Direkt zur KIPPANZAHL-Auswahl (kein targetPadBtn mehr)
+      uiMode = "COUNT";
+      showHint("KIPPANZAHL", false);
 
       startBtnWrap.classList.add("hidden");
-      kippAnzahlView.classList.add("hidden");
+      
+      kippAnzahlView.classList.remove("hidden");
+      buildKippAnzahlButtons();
 
-      targetPadBtn.classList.remove("hidden");
-      targetPadBtn.classList.add("pulse");
-      targetPadBtn.disabled = false;
+      testTargetBtn.classList.add("hidden");
+      testTargetBtn.disabled = true;
 
-      targetRevealed = false;
-      resetTargetPadUI();
       clearHitPulse();
-
       positionUI();
     }
 
@@ -2050,6 +2226,8 @@
       positionUI();
     }
 
+    // targetPadBtn Event-Handler nicht mehr benötigt (8 offene Kippziele)
+    /*
     targetPadBtn.addEventListener("click", () => {
       if(targetRevealed) return;
 
@@ -2069,45 +2247,35 @@
       showKippCountView();
       checkHitAndAnimate();
     });
+    */
 
     btnSchauen.addEventListener("click", async () => {
       if(runningKipp) return;
 
-      started = true;
-
-      cancelPreview();
-      rotIndex = 0;
-      faceIndex = 0;
-      setRotationSnap();
-      showW();
-      renderW();
-
-      hideStartUI();
-
-      kippAnzahlView.classList.add("hidden");
-      targetPadBtn.classList.add("hidden");
-      targetPadBtn.disabled = true;
-
-      targetRevealed = false;
-      currentTarget = null;
-      attemptsForTarget = 0;
-
-      resetTargetPadUI();
-      clearHitPulse();
-
-      // Sound-Sync aktivieren und Kipp-Sound starten (für Vorschau)
-      SOUND_SYNC_TIMING.enabled = true;
-      kippSound.currentTime = 0;
-      kippSound.volume = 0.6;
-      kippSound.playbackRate = 0.5; // Halbe Geschwindigkeit für kipFactor: 2
-      kippSound.play().catch(err => console.log("Kipp-Sound error:", err));
-
-      await runSchauKippSequence(4, { kipFactor: 2 });
-      
-      // Sound-Sync deaktivieren nach Vorschau
-      SOUND_SYNC_TIMING.enabled = false;
-
-      showTargetSelectView();
+      // **NEUER FLOW ohne Preview-Kipps**
+      if(!readyButtonShown){
+        // PHASE 1: "SCHAUEN & MERKEN" geklickt
+        // → Loop läuft WEITER (nicht stoppen!)
+        // → Button-Text ändern zu "BEREIT?"
+        
+        readyButtonShown = true;
+        btnSchauenPulse.textContent = "BEREIT?";
+        btnSchauenPulse.classList.remove("pulse"); // Nicht mehr pulsieren
+        
+        // Spieler kann jetzt SO LANGE beobachten wie er will!
+        
+      } else {
+        // PHASE 2: "BEREIT?" geklickt
+        // → JETZT stoppen wir den Loop
+        stopEndlessLoop();
+        
+        // → Musik wird leiser
+        bgMusic.volume = MUSIC_VOLUME_QUIET;
+        
+        // → Zeige KIPPANZAHL Buttons
+        hideStartUI();
+        showTargetSelectView();
+      }
     });
 
     btnErgebnis.addEventListener("click", () => {
@@ -2265,7 +2433,7 @@
         hintTitle.style.top = row11CenterY + "px";
       }
 
-      placeTargetPad_12D_13E(cellPx);
+      // placeTargetPad_12D_13E(cellPx); // nicht mehr benötigt
       positionBackButton(cellPx);
       positionTestButton(cellPx);
     }
@@ -2296,6 +2464,8 @@
       testTargetBtn.style.pointerEvents = "auto";
     }
 
+    // placeTargetPad_12D_13E nicht mehr benötigt (8 offene Kippziele)
+    /*
     function placeTargetPad_12D_13E(cellPx){
       const row = 12;
       const col = 4; // D
@@ -2309,6 +2479,7 @@
       targetPadBtn.style.width  = (2 * cellPx) + "px";
       targetPadBtn.style.height = (2 * cellPx) + "px";
     }
+    */
 
     function rebuild(){
       const { cell, scale } = setScaleToFitWidth();
@@ -2319,6 +2490,7 @@
       document.documentElement.style.setProperty("--gridH", gridH + "px");
 
       rebuildColors();
+      renderOpenTargets(); // 8 Kippziele neu positionieren
       positionUI();
       updateShadowVisibility();
 
@@ -2328,12 +2500,14 @@
 
     function initPlayState(){
       cancelPreview();
+      stopEndlessLoop();
 
       resetTargetDeck();
       currentTarget = null;
       targetRevealed = false;
       started = false;
       attemptsForTarget = 0;
+      readyButtonShown = false;
 
       resetLockedColors();
       hitsCount = 0;
@@ -2343,11 +2517,12 @@
       const scoreEl = document.getElementById("scoreDisplay");
       if(scoreEl){
         scoreEl.classList.remove("finalVisible", "scorePulse");
-        // Inline-Opacity entfernen, damit CSS-Klasse finalVisible wirken kann
         scoreEl.style.removeProperty("opacity");
       }
 
-      resetTargetPadUI();
+      // 8 Kippziele generieren
+      generateOpenTargets();
+      renderOpenTargets();
 
       reroll12_keepAssigned();
       showW();
@@ -2355,8 +2530,15 @@
 
       btnErgebnis.onclick = null;
 
+      // Button-Text zurücksetzen
+      btnSchauenPulse.textContent = "SCHAUEN & MERKEN";
+      btnSchauenPulse.classList.add("pulse");
+
       showStartView();
       updateShadowVisibility();
+      
+      // Endlos-Loop starten
+      startEndlessLoop();
     }
 
     window.addEventListener("load", () => {
@@ -2383,8 +2565,8 @@
         introOverlay.remove();
       }, 400);
       
-      // Hintergrundmusik starten
-      bgMusic.volume = 0.4; // Leise Hintergrundmusik
+      // Hintergrundmusik starten (LOUD, da Endlos-Loop läuft)
+      bgMusic.volume = MUSIC_VOLUME_LOUD;
       bgMusic.play().catch(err => {
         console.log("Audio autoplay verhindert:", err);
       });

@@ -716,6 +716,75 @@
       transform: translateY(-50%);
     }
 
+    /* Mute Button */
+    .muteBtn{
+      position: absolute;
+      width: calc(48px * var(--uiscale));
+      height: calc(48px * var(--uiscale));
+      background: none;
+      border: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+      pointer-events: auto;
+      z-index: 120;
+      padding: 0;
+    }
+    .muteBtn:active{ transform: scale(0.95); opacity: 0.8; }
+
+    .muteIcon{
+      position: relative;
+      width: calc(36px * var(--uiscale));
+      height: calc(36px * var(--uiscale));
+      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.45));
+    }
+    
+    /* Lautsprecher */
+    .muteIcon::before{
+      content:"";
+      position:absolute;
+      left: 20%;
+      top: 50%;
+      transform: translateY(-50%);
+      width: calc(10px * var(--uiscale));
+      height: calc(14px * var(--uiscale));
+      background: rgba(234,215,190,0.96);
+      border-radius: calc(2px * var(--uiscale)) 0 0 calc(2px * var(--uiscale));
+    }
+    
+    /* Schallwellen (wenn unmuted) */
+    .muteIcon::after{
+      content:"";
+      position:absolute;
+      right: 20%;
+      top: 50%;
+      transform: translateY(-50%);
+      width: calc(12px * var(--uiscale));
+      height: calc(12px * var(--uiscale));
+      border: calc(2.5px * var(--uiscale)) solid rgba(234,215,190,0.96);
+      border-left: none;
+      border-radius: 0 50% 50% 0;
+      opacity: 1;
+      transition: opacity 0.2s ease;
+    }
+    
+    /* Durchgestrichene Wellen (wenn muted) */
+    .muteBtn.muted .muteIcon::after{
+      opacity: 0.3;
+    }
+    
+    .muteBtn.muted .muteIcon{
+      position: relative;
+    }
+    
+    /* X über dem Icon wenn muted */
+    .muteBtn.muted .muteIcon::before{
+      opacity: 0.5;
+    }
+
     @keyframes kippPulseGlow {
       0%   { transform: scale(1);   filter: drop-shadow(0 0 0 rgba(255,255,255,0)); }
       100% { transform: scale(1.09); filter: drop-shadow(0 0 14px rgba(255,255,255,0.95)); }
@@ -974,11 +1043,20 @@
         <button class="navBtn" id="backBtn" aria-label="Zurück">
           <div class="backIcon"></div>
         </button>
+
+        <button class="muteBtn" id="muteBtn" aria-label="Musik ein/aus">
+          <div class="muteIcon"></div>
+        </button>
       </div>
 
       <div class="grid" id="grid" aria-hidden="true"></div>
     </div>
   </div>
+
+  <!-- Hintergrundmusik -->
+  <audio id="bgMusic" loop preload="auto">
+    <source src="Denkraum.mp3" type="audio/mpeg">
+  </audio>
 
   <script>
     const colorsEl = document.getElementById("colors");
@@ -994,6 +1072,9 @@
     const kippAnzahlBtns = document.getElementById("kippAnzahlBtns");
 
     const backBtn  = document.getElementById("backBtn");
+
+    const muteBtn  = document.getElementById("muteBtn");
+    const bgMusic  = document.getElementById("bgMusic");
 
     const testTargetBtn = document.getElementById("testTargetBtn");
 
@@ -2231,11 +2312,52 @@
       setTimeout(() => {
         introOverlay.remove();
       }, 400);
+      
+      // Hintergrundmusik starten
+      bgMusic.volume = 0.4; // Leise Hintergrundmusik
+      bgMusic.play().catch(err => {
+        console.log("Audio autoplay verhindert:", err);
+      });
     });
 
     introBackBtn.addEventListener("click", () => {
       window.location.href = "index.html";
     });
+
+    // Mute-Button Handler
+    let isMuted = false;
+    muteBtn.addEventListener("click", () => {
+      isMuted = !isMuted;
+      if(isMuted){
+        bgMusic.pause();
+        muteBtn.classList.add("muted");
+      } else {
+        bgMusic.play().catch(err => console.log("Play error:", err));
+        muteBtn.classList.remove("muted");
+      }
+    });
+
+    // Mute-Button positionieren (oben rechts, wie scoreRun)
+    function positionMuteButton(cellPx){
+      const col = 7;   // Links vom Score (Spalte G)
+      const leftCell = (col - 1) * cellPx;
+      const centerX = leftCell + (cellPx / 2);
+
+      const headerY = 1.0 * cellPx;
+      const centerY = headerY;
+
+      muteBtn.style.left = centerX + "px";
+      muteBtn.style.top  = centerY + "px";
+      muteBtn.style.transform = "translate(-50%, -50%)";
+    }
+
+    // In positionUI() Funktion einbauen
+    const originalPositionUI = positionUI;
+    positionUI = function(){
+      originalPositionUI();
+      const cellPx = numVar("--cell") || 142;
+      positionMuteButton(cellPx);
+    };
   </script>
 </body>
 </html>

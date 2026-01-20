@@ -352,17 +352,14 @@
     .squareBtn:active{ transform: scale(0.98); filter: brightness(0.98); }
     .squareBtn[disabled]{ opacity: 1; pointer-events: none; filter: saturate(0.8); }
 
-    /* Icon Button (Mute etc.) */
+    /* Icon Button (Mute etc.) - nur Icon, kein Button-Hintergrund */
     .iconBtn{
       position: absolute;
-      width: calc(48px * var(--uiscale));
-      height: calc(48px * var(--uiscale));
-      border-radius: 50%;
-      border: 2px solid rgba(0,0,0,0.65);
-      background: rgba(234,215,190,0.96);
-      box-shadow:
-        0 8px 16px rgba(0,0,0,0.22),
-        0 0 0 1px rgba(255,255,255,0.18) inset;
+      width: auto;
+      height: auto;
+      border: none;
+      background: transparent;
+      box-shadow: none;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -370,12 +367,21 @@
       -webkit-tap-highlight-color: transparent;
       cursor: pointer;
       pointer-events: auto;
-      color: var(--btn-text);
+      color: var(--ui-text);
+      text-shadow: 
+        0 2px 4px rgba(0,0,0,0.4),
+        0 1px 2px rgba(0,0,0,0.6);
       transform: translate(-50%, -50%);
       z-index: 20;
+      padding: calc(8px * var(--uiscale));
     }
-    .iconBtn:active{ transform: translate(-50%, -50%) scale(0.95); filter: brightness(0.98); }
-    .iconBtn svg{ display: block; }
+    .iconBtn:active{ transform: translate(-50%, -50%) scale(0.92); }
+    .iconBtn svg{ 
+      display: block;
+      width: calc(52px * var(--uiscale));
+      height: calc(52px * var(--uiscale));
+      filter: drop-shadow(0 2px 3px rgba(0,0,0,0.35));
+    }
 
     /* NEU: Kippzahl-Button während Lauf (braun + beige Zahl) */
     .squareBtn.runSelected{
@@ -1708,14 +1714,11 @@
         showW();
         renderW();
         
-        // Spiele Kipp-Sound bei jedem Vollbild-Würfel nach kurzer Verzögerung
+        // Spiele Kipp-Sound SOFORT beim Vollbild-Würfel (0.4 Sek früher als vorher)
         if(playSound && !audioMuted){
-          // Kurze Verzögerung (200ms), damit der Sound nicht zu früh kommt
-          setTimeout(() => {
-            kippSound.currentTime = 0;
-            kippSound.volume = 0.4;
-            kippSound.play().catch(err => console.log("Kipp sound failed:", err));
-          }, 200);
+          kippSound.currentTime = 0;
+          kippSound.volume = 0.4;
+          kippSound.play().catch(err => console.log("Kipp sound failed:", err));
         }
         
         if(!await waitOrPause("w", myToken, stepMul)){ runningKipp=false; return; }
@@ -2145,7 +2148,7 @@
 
     function positionMuteButton(cellPx){
       const headerY = 1.0 * cellPx;
-      const col = 7;   // zwischen Score (H) und rechtem Rand
+      const col = 8;   // Spalte H
       const left = (col - 1) * cellPx + cellPx / 2;
       
       muteBtn.style.left = left + "px";

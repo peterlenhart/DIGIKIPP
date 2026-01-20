@@ -1058,6 +1058,23 @@
     const soundOffIcon = document.getElementById("soundOffIcon");
     let audioMuted = false;
 
+    // Background-Music Loop mit sanftem Fade-Out/Fade-In
+    bgMusic.addEventListener('timeupdate', function() {
+      const fadeOutDuration = 1.5; // Fade-Out über 1.5 Sekunden
+      const fadeInDuration = 1.0;  // Fade-In über 1 Sekunde
+      const timeLeft = bgMusic.duration - bgMusic.currentTime;
+      
+      // Fade-Out kurz vor dem Ende
+      if (timeLeft <= fadeOutDuration && timeLeft > 0) {
+        bgMusic.volume = Math.max(0, (timeLeft / fadeOutDuration) * 0.3);
+      }
+      
+      // Beim Neustart: Fade-In
+      if (bgMusic.currentTime < fadeInDuration) {
+        bgMusic.volume = Math.min(0.3, (bgMusic.currentTime / fadeInDuration) * 0.3);
+      }
+    });
+
     const targetPadBtn    = document.getElementById("targetPadBtn");
     const targetPadCircle = document.getElementById("targetPadCircle");
     const targetPadNum    = document.getElementById("targetPadNum");

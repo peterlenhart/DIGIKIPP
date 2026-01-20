@@ -1712,14 +1712,15 @@
 
         showKip();
         renderKip();
-        if(!await waitOrPause("kip", myToken, kipFactor * stepMul)){ runningKipp=false; return; }
-
-        // VERSION 3: Sound VOR advanceFullCW (noch früher!)
+        
+        // Sound 0,3 Sekunden früher - direkt nach renderKip!
         if(playSound && !audioMuted){
           kippSound.currentTime = 0;
           kippSound.volume = 0.4;
           kippSound.play().catch(err => console.log("Kipp sound failed:", err));
         }
+        
+        if(!await waitOrPause("kip", myToken, kipFactor * stepMul)){ runningKipp=false; return; }
 
         advanceFullCW();
         showW();

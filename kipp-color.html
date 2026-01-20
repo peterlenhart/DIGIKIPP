@@ -17,12 +17,13 @@
   <!-- Theme Color -->
   <meta name="theme-color" content="#4a2418">
   
+  <!-- Howler.js für professionelles Game Audio (Industry Standard) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/howler/2.2.4/howler.min.js"></script>
+  
   <!-- Audio Elemente -->
   <audio id="kippSound" preload="auto">
     <source src="1kipp.mp3?v=3" type="audio/mpeg">
   </audio>
-  
-  <!-- Background Music wird über Web Audio API geladen -->
 
   <style>
     :root{
@@ -1049,12 +1050,10 @@
 
     const testTargetBtn = document.getElementById("testTargetBtn");
 
-    // === WEB AUDIO API für echtes Gapless Looping ===
-    let audioContext = null;
-    let bgMusicBuffer = null;
-    let bgMusicSource = null;
-    let bgMusicGain = null;
-    let bgMusicPlaying = false;
+    // === HOWLER.JS - INDUSTRY STANDARD FÜR MOBILE GAME AUDIO ===
+    // Garantiertes Gapless Looping, automatische Mobile-Browser-Optimierung
+    let bgMusic = null;
+    let bgMusicLoaded = false;
     
     const kippSound = document.getElementById("kippSound");
     const muteBtn = document.getElementById("muteBtn");
@@ -1062,72 +1061,73 @@
     const soundOffIcon = document.getElementById("soundOffIcon");
     let audioMuted = false;
 
-    // Lade Background Music via Web Audio API
-    async function loadBackgroundMusic() {
-      try {
-        console.log("🎵 Loading background music...");
+    // Initialisiere Background Music mit Howler.js
+    function loadBackgroundMusic() {
+      return new Promise((resolve) => {
+        console.log("🎵 Howler.js: Initializing background music...");
         
-        // AudioContext erstellen
-        audioContext = new (window.AudioContext || window.webkitAudioContext)();
-        
-        // Audio-Datei laden
-        const response = await fetch('bgloop.mp3?v=9');
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
-        const arrayBuffer = await response.arrayBuffer();
-        console.log("✅ File loaded, size:", arrayBuffer.byteLength);
-        
-        // Decode Audio
-        bgMusicBuffer = await audioContext.decodeAudioData(arrayBuffer);
-        console.log("✅ Audio decoded, duration:", bgMusicBuffer.duration, "seconds");
-        
-        // Gain Node für Lautstärke
-        bgMusicGain = audioContext.createGain();
-        bgMusicGain.gain.value = 0.3;
-        bgMusicGain.connect(audioContext.destination);
-        
-        return true;
-      } catch (error) {
-        console.error("❌ Error loading background music:", error);
-        return false;
-      }
+        bgMusic = new Howl({
+          src: ['bgloop.mp3'],
+          loop: true,              // Endlosschleife
+          volume: 0.3,            // 30% Lautstärke
+          html5: false,           // Web Audio API für bestes Gapless Looping
+          preload: true,          // Vorladen
+          
+          onload: function() {
+            console.log("✅ Howler.js: Background music loaded and ready!");
+            console.log("   Duration:", bgMusic.duration(), "seconds");
+            bgMusicLoaded = true;
+            resolve(true);
+          },
+          
+          onloaderror: function(id, error) {
+            console.error("❌ Howler.js: Load error:", error);
+            console.error("   Tried to load: bgloop.mp3");
+            console.error("   Make sure the file exists in the same directory!");
+            resolve(false);
+          },
+          
+          onplayerror: function(id, error) {
+            console.error("❌ Howler.js: Play error:", error);
+            // Mobile Browser benötigen User-Interaction - versuche erneut
+            bgMusic.once('unlock', function() {
+              console.log("🔓 Audio unlocked, retrying play...");
+              bgMusic.play();
+            });
+          },
+          
+          onplay: function() {
+            console.log("▶️ Howler.js: Background music playing (looping endlessly)");
+          },
+          
+          onstop: function() {
+            console.log("⏹️ Howler.js: Background music stopped");
+          },
+          
+          onend: function() {
+            // Sollte nie aufgerufen werden weil loop:true
+            console.log("🔄 Howler.js: Loop restart (this shouldn't happen with loop:true)");
+          }
+        });
+      });
     }
 
-    // Starte Gapless Loop
+    // Starte Background Music
     function startBackgroundMusic() {
-      if (!bgMusicBuffer || bgMusicPlaying || audioMuted) return;
-      
-      console.log("▶️ Starting background music loop");
-      bgMusicPlaying = true;
-      playBackgroundLoop();
-    }
-
-    function playBackgroundLoop() {
-      if (!bgMusicPlaying || audioMuted) return;
-      
-      // Neuen Source Node erstellen
-      bgMusicSource = audioContext.createBufferSource();
-      bgMusicSource.buffer = bgMusicBuffer;
-      bgMusicSource.connect(bgMusicGain);
-      
-      // Loop aktivieren - Web Audio API macht echtes Gapless Looping!
-      bgMusicSource.loop = true;
-      
-      // Starten
-      bgMusicSource.start(0);
-      
-      console.log("🔄 Background music looping");
-    }
-
-    function stopBackgroundMusic() {
-      if (bgMusicSource) {
-        bgMusicSource.stop();
-        bgMusicSource = null;
+      if (!bgMusic || !bgMusicLoaded || audioMuted) {
+        console.log("⚠️ Cannot start: bgMusic=", !!bgMusic, "loaded=", bgMusicLoaded, "muted=", audioMuted);
+        return;
       }
-      bgMusicPlaying = false;
-      console.log("⏹️ Background music stopped");
+      
+      console.log("🎮 Starting background music loop...");
+      bgMusic.play();
+    }
+
+    // Stoppe Background Music
+    function stopBackgroundMusic() {
+      if (bgMusic) {
+        bgMusic.stop();
+      }
     }
 
     const targetPadBtn    = document.getElementById("targetPadBtn");
@@ -2396,7 +2396,7 @@
         soundOnIcon.style.display = "none";
         soundOffIcon.style.display = "block";
       } else {
-        if(bgMusicBuffer) {
+        if(bgMusic && bgMusicLoaded) {
           startBackgroundMusic();
         }
         soundOnIcon.style.display = "block";
@@ -2411,11 +2411,14 @@
 
     introStartBtn.addEventListener("click", async () => {
       // Lade und starte Background Music
-      if(!audioMuted && !bgMusicBuffer){
+      if(!audioMuted && !bgMusicLoaded){
         const loaded = await loadBackgroundMusic();
         if(loaded) {
           startBackgroundMusic();
         }
+      } else if(!audioMuted && bgMusicLoaded) {
+        // Musik ist schon geladen, nur starten
+        startBackgroundMusic();
       }
       
       introOverlay.classList.add("hidden");

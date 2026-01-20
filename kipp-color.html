@@ -440,64 +440,6 @@
     }
     .targetPadBtn:active{ transform: translate(-0px, -0px) scale(0.99); filter: brightness(0.98); }
 
-    /* 8 permanente Ziel-Slots */
-    .openTargetSlot{
-      position: absolute;
-      box-sizing: border-box;
-      border-radius: 0;
-      background:
-        linear-gradient(135deg, rgba(255,255,255,0.14), rgba(0,0,0,0.05)),
-        var(--slot-fill);
-      box-shadow:
-        inset 0 0 0 6px var(--w1-innerframe),
-        0 10px 18px rgba(0,0,0,0.22);
-      border: none;
-      padding: 0;
-      user-select: none;
-      pointer-events: none;
-      z-index: 75;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      overflow: hidden;
-      cursor: pointer;
-      transition: all 0.15s ease;
-    }
-    .openTargetSlot.selectable{
-      pointer-events: auto;
-    }
-    .openTargetSlot.selectable:active{
-      transform: translate(-50%, -50%) scale(0.96);
-      filter: brightness(0.95);
-    }
-    .openTargetSlot.selected{
-      box-shadow:
-        inset 0 0 0 6px var(--w1-innerframe),
-        0 0 30px rgba(255,220,50,0.8),
-        0 10px 18px rgba(0,0,0,0.22);
-    }
-    .openTargetSlot .targetNum{
-      position: absolute;
-      inset: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: 900;
-      color: #111;
-      font-size: calc(var(--cell) * 0.92);
-      opacity: 1;
-      pointer-events: none;
-    }
-    .openTargetSlot .targetNum.twodigit{ font-size: calc(var(--cell) * 0.64); }
-    .openTargetSlot.hit{
-      box-shadow:
-        inset 0 0 0 6px var(--w1-innerframe),
-        0 0 30px rgba(100,255,100,0.6),
-        0 10px 18px rgba(0,0,0,0.22);
-      pointer-events: none !important;
-    }
-
-
     .targetPadCircle{
       width: 47px;
       height: 47px;
@@ -1008,7 +950,7 @@
         <!-- START / ERGEBNIS: gleicher Maskenplatz -->
         <div class="startBtnWrap" id="startBtnWrap">
           <button id="btnSchauen" class="squareBtn startBtn" type="button">
-            <span class="anzahlText pulse" id="btnSchauenPulse">WATCH 'N' MEMO</span>
+            <span class="anzahlText pulse" id="btnSchauenPulse">SCHAUEN &amp; MERKEN</span>
           </button>
 
           <button id="btnErgebnis" class="squareBtn startBtn hidden" type="button">
@@ -1020,32 +962,6 @@
           <div class="targetPadCircle" id="targetPadCircle"></div>
           <div class="targetPadNum" id="targetPadNum"></div>
         </button>
-
-        <!-- 8 permanente Ziel-Slots -->
-        <div class="openTargetSlot" id="target_0" data-row="12" data-colpair="AB">
-          <div class="targetNum"></div>
-        </div>
-        <div class="openTargetSlot" id="target_1" data-row="12" data-colpair="CD">
-          <div class="targetNum"></div>
-        </div>
-        <div class="openTargetSlot" id="target_2" data-row="12" data-colpair="EF">
-          <div class="targetNum"></div>
-        </div>
-        <div class="openTargetSlot" id="target_3" data-row="12" data-colpair="GH">
-          <div class="targetNum"></div>
-        </div>
-        <div class="openTargetSlot" id="target_4" data-row="13" data-colpair="AB">
-          <div class="targetNum"></div>
-        </div>
-        <div class="openTargetSlot" id="target_5" data-row="13" data-colpair="CD">
-          <div class="targetNum"></div>
-        </div>
-        <div class="openTargetSlot" id="target_6" data-row="13" data-colpair="EF">
-          <div class="targetNum"></div>
-        </div>
-        <div class="openTargetSlot" id="target_7" data-row="13" data-colpair="GH">
-          <div class="targetNum"></div>
-        </div>
 
         <div id="kippAnzahlView" class="hidden">
           <div class="kippAnzahlBtns" id="kippAnzahlBtns"></div>
@@ -1221,10 +1137,8 @@
 
     let targetRevealed = false;
     let started = false;
-    let btnSchauenState = "WATCH"; // "WATCH" | "READY"
-    let selectedGoal = null; // Welches der 8 Ziele wurde gewählt?
 
-    let uiMode = "START"; // START | GOAL_SELECT | COUNT | END
+    let uiMode = "START"; // START | TARGET | COUNT | END
 
     // =========================
     // Versuche pro Ziel  (GEÄNDERT: nur 1 Versuch)
@@ -1443,136 +1357,6 @@
       drawsCount = 0;
       targetTimeMul = 1;
     }
-
-    // =========================
-    // 8 permanente offene Ziele
-    // =========================
-    let openTargets = []; // Array mit 8 Zielen: {num, color, hit}
-
-    function buildOpenTargets(){
-      openTargets = [];
-      const usedPairs = new Set();
-      
-      // Erstelle 8 einzigartige Ziele
-      for(let i = 0; i < 8; i++){
-        let target = null;
-        let attempts = 0;
-        
-        // Finde ein einzigartiges Ziel
-        while(!target && attempts < 100){
-          const num = Math.floor(Math.random() * 12) + 1; // 1-12
-          const color = allColors[Math.floor(Math.random() * allColors.length)];
-          const key = `${num}|${color}`;
-          
-          if(!usedPairs.has(key)){
-            target = { num, color, hit: false };
-            usedPairs.add(key);
-          }
-          attempts++;
-        }
-        
-        if(target) openTargets.push(target);
-      }
-      
-      // Rendere die 8 Ziele
-      renderOpenTargets();
-      
-      // Registriere Click Handler
-      setupGoalClickHandlers();
-    }
-
-    function setupGoalClickHandlers(){
-      for(let i = 0; i < 8; i++){
-        const slotEl = document.getElementById(`target_${i}`);
-        if(!slotEl) continue;
-        
-        // Entferne alte Handler
-        const newSlot = slotEl.cloneNode(true);
-        slotEl.parentNode.replaceChild(newSlot, slotEl);
-        
-        // Füge neuen Handler hinzu
-        newSlot.addEventListener("click", () => handleGoalClick(i));
-      }
-    }
-
-    function handleGoalClick(goalIndex){
-      if(uiMode !== "GOAL_SELECT") return;
-      
-      const target = openTargets[goalIndex];
-      if(!target || target.hit) return; // Bereits getroffen
-      
-      selectedGoal = goalIndex;
-      
-      // Entferne pulse und selectable von allen
-      for(let i = 0; i < 8; i++){
-        const slotEl = document.getElementById(`target_${i}`);
-        if(!slotEl) continue;
-        slotEl.classList.remove("pulse", "selectable", "selected");
-      }
-      
-      // Markiere gewähltes Ziel
-      const selectedSlot = document.getElementById(`target_${goalIndex}`);
-      if(selectedSlot){
-        selectedSlot.classList.add("selected");
-      }
-      
-      // Nach kurzer Pause zu KIPP COUNT
-      setTimeout(() => {
-        showKippCountView();
-      }, 300);
-    }
-
-    function renderOpenTargets(){
-      for(let i = 0; i < 8; i++){
-        const slotEl = document.getElementById(`target_${i}`);
-        const numEl = slotEl.querySelector('.targetNum');
-        const target = openTargets[i];
-        
-        if(!target) continue;
-        
-        // Setze Farbe
-        slotEl.style.background =
-          `linear-gradient(135deg, rgba(255,255,255,0.14), rgba(0,0,0,0.05)), var(--${target.color})`;
-        
-        // Setze Zahl
-        const text = (target.num === 9 || target.num === 6) ? `${target.num}.` : String(target.num);
-        numEl.textContent = text;
-        
-        // Setze twodigit Klasse
-        numEl.classList.remove("twodigit");
-        if(target.num >= 10) numEl.classList.add("twodigit");
-        
-        // Setze Hit-Status
-        if(target.hit){
-          slotEl.classList.add("hit");
-        } else {
-          slotEl.classList.remove("hit");
-        }
-      }
-    }
-
-    function checkOpenTargetsForHit(){
-      if(selectedGoal === null) return false;
-      
-      const target = openTargets[selectedGoal];
-      if(!target || target.hit) return false;
-      
-      const visibleNums = getVisibleNumbersSet();
-      const forbidden = getForbiddenPairsForCurrentState();
-      
-      const key = `${target.num}|${target.color}`;
-      if(!forbidden.has(key) && visibleNums.has(target.num)){
-        // TREFFER!
-        target.hit = true;
-        hitsCount++;
-        updateScore();
-        renderOpenTargets();
-        return true;
-      }
-      
-      return false;
-    }
-
 
     function pickRandom(arr){
       return arr[Math.floor(Math.random() * arr.length)];
@@ -1991,35 +1775,41 @@
     // GEÄNDERT: Nach dem Kipp immer Ziel beendet (nur 1 Versuch)
     // =========================
     function handleAnzahlClick(anzahl, clickedBtn){
+      if(!currentTarget) return;
       if(runningKipp) return;
 
       markRunSelected(clickedBtn);
       setAnzahlButtonsLocked(true);
 
+      attemptsForTarget++;
+
       runSchauKippSequence(anzahl, { kipFactor: 1 }).finally(async () => {
         clearHitPulse();
-        const hit = checkOpenTargetsForHit();
+        const hit = checkHitAndAnimate();
 
         clearRunSelected();
 
-        // Check ob alle 8 Ziele getroffen wurden
-        const allHit = openTargets.every(t => t.hit);
-        
-        if(allHit){
+        const isLastTarget = (drawsCount >= MAX_TARGETS);
+        const isTargetFinished = true; // immer (nur 1 Versuch)
+
+        if(isLastTarget && isTargetFinished){
           await sleep(700);
           showEndResultView();
           return;
         }
 
-        // Treffer: kurze Pause
+        // Treffer: kurzer Moment, dann neues Ziel
         if(hit){
-          await sleep(500);
+          await sleep(900);
+          resetToNewTargetChoice();
+          setAnzahlButtonsLocked(false);
+          renderW();
+          return;
         }
 
-        // Zurück zu WATCH 'N' MEMO
+        // Fehlversuch: sofort neues Ziel (kein Punkt)
+        resetToNewTargetChoice();
         setAnzahlButtonsLocked(false);
-        showStartView();
-        renderW();
       });
     }
 
@@ -2056,9 +1846,7 @@
       btnSchauen.classList.remove("hidden");
       btnErgebnis.classList.add("hidden");
 
-      btnSchauenPulse.textContent = "WATCH 'N' MEMO";
       btnSchauenPulse.classList.add("pulse");
-      btnSchauenState = "WATCH";
 
       showHint("SCHAUKIPP-RUNDE", false);
 
@@ -2071,15 +1859,6 @@
       started = false;
       currentTarget = null;
       attemptsForTarget = 0;
-      selectedGoal = null;
-
-      // Reset alle Ziel-Klassen
-      for(let i = 0; i < 8; i++){
-        const slotEl = document.getElementById(`target_${i}`);
-        if(slotEl){
-          slotEl.classList.remove("pulse", "selectable", "selected");
-        }
-      }
 
       resetTargetPadUI();
       clearHitPulse();
@@ -2111,34 +1890,12 @@
       positionUI();
     }
 
-    function showGoalSelectView(){
-      uiMode = "GOAL_SELECT";
-      showHint("KIPPZIEL WÄHLEN", false);
-
-      startBtnWrap.classList.add("hidden");
-      kippAnzahlView.classList.add("hidden");
-
-      selectedGoal = null;
-
-      // Alle 8 Ziele selectable machen und pulsieren
-      for(let i = 0; i < 8; i++){
-        const slotEl = document.getElementById(`target_${i}`);
-        if(!slotEl) continue;
-        const target = openTargets[i];
-        if(!target || target.hit) continue; // Bereits getroffene Ziele nicht wählbar
-        
-        slotEl.classList.add("selectable", "pulse");
-        slotEl.classList.remove("selected");
-      }
-
-      positionUI();
-    }
-
     function showKippCountView(){
       uiMode = "COUNT";
-      showHint("KIPP COUNT", false);
+      showHint("KIPP-ANZAHL", false);
 
       startBtnWrap.classList.add("hidden");
+      targetPadBtn.classList.remove("pulse");
 
       kippAnzahlView.classList.remove("hidden");
       buildKippAnzahlButtons();
@@ -2147,6 +1904,7 @@
       testTargetBtn.disabled = true;
 
       clearHitPulse();
+      checkHitAndAnimate();
 
       positionUI();
     }
@@ -2174,32 +1932,31 @@
     btnSchauen.addEventListener("click", async () => {
       if(runningKipp) return;
 
-      if(btnSchauenState === "WATCH"){
-        // WATCH 'N' MEMO → READY?
-        btnSchauenPulse.textContent = "READY?";
-        btnSchauenPulse.classList.remove("pulse");
-        btnSchauenState = "READY";
-        
-        started = true;
-        cancelPreview();
-        rotIndex = 0;
-        faceIndex = 0;
-        setRotationSnap();
-        showW();
-        renderW();
+      started = true;
 
-        targetRevealed = false;
-        currentTarget = null;
-        attemptsForTarget = 0;
+      cancelPreview();
+      rotIndex = 0;
+      faceIndex = 0;
+      setRotationSnap();
+      showW();
+      renderW();
 
-        resetTargetPadUI();
-        clearHitPulse();
-        
-      } else if(btnSchauenState === "READY"){
-        // READY? → KIPPZIEL WÄHLEN
-        hideStartUI();
-        showGoalSelectView();
-      }
+      hideStartUI();
+
+      kippAnzahlView.classList.add("hidden");
+      targetPadBtn.classList.add("hidden");
+      targetPadBtn.disabled = true;
+
+      targetRevealed = false;
+      currentTarget = null;
+      attemptsForTarget = 0;
+
+      resetTargetPadUI();
+      clearHitPulse();
+
+      await runSchauKippSequence(4, { kipFactor: 2 });
+
+      showTargetSelectView();
     });
 
     btnErgebnis.addEventListener("click", () => {
@@ -2348,7 +2105,7 @@
 
       if(uiMode === "TARGET"){
         hintTitle.style.top = row11CenterY + "px";
-      } else if(uiMode === "START" || uiMode === "GOAL_SELECT" || uiMode === "COUNT" || uiMode === "END"){
+      } else if(uiMode === "START" || uiMode === "COUNT" || uiMode === "END"){
         const row9VisualTop  = (((9 + HEADER_ROW_OFFSET) - 1) * cellPx);
         const row10VisualTop = (((10 + HEADER_ROW_OFFSET) - 1) * cellPx);
         const midBetween9and10 = (row9VisualTop + row10VisualTop) / 2;
@@ -2357,40 +2114,9 @@
         hintTitle.style.top = row11CenterY + "px";
       }
 
-      positionOpenTargets(cellPx);
       placeTargetPad_12D_13E(cellPx);
       positionBackButton(cellPx);
       positionTestButton(cellPx);
-    }
-
-    function positionOpenTargets(cellPx){
-      const colPairs = [
-        {name: "AB", col: 1.5},
-        {name: "CD", col: 3.5},
-        {name: "EF", col: 5.5},
-        {name: "GH", col: 7.5}
-      ];
-      const rows = [12, 13];
-      
-      let index = 0;
-      for(const row of rows){
-        for(const pair of colPairs){
-          const slotEl = document.getElementById(`target_${index}`);
-          if(!slotEl) continue;
-          
-          const visualRow = row + HEADER_ROW_OFFSET;
-          const left = (pair.col - 1) * cellPx + cellPx/2;
-          const top = (visualRow - 1) * cellPx + cellPx/2;
-          
-          slotEl.style.left = left + "px";
-          slotEl.style.top = top + "px";
-          slotEl.style.width = cellPx + "px";
-          slotEl.style.height = cellPx + "px";
-          slotEl.style.transform = "translate(-50%, -50%)";
-          
-          index++;
-        }
-      }
     }
 
     function positionBackButton(cellPx){
@@ -2457,8 +2183,6 @@
       targetRevealed = false;
       started = false;
       attemptsForTarget = 0;
-      btnSchauenState = "WATCH";
-      selectedGoal = null;
 
       resetLockedColors();
       hitsCount = 0;
@@ -2473,7 +2197,6 @@
       }
 
       resetTargetPadUI();
-      buildOpenTargets();
 
       reroll12_keepAssigned();
       showW();

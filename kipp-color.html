@@ -17,9 +17,12 @@
   <!-- Theme Color -->
   <meta name="theme-color" content="#4a2418">
   
-  <!-- Audio Elemente -->
-  <audio id="bgMusic" preload="auto">
-    <source src="synapsocircle_loop.mp3?v=3" type="audio/mpeg">
+  <!-- Audio Elemente - Zwei Tracks für nahtloses Loop -->
+  <audio id="bgMusic1" preload="auto">
+    <source src="synapsocircle_clean.mp3?v=5" type="audio/mpeg">
+  </audio>
+  <audio id="bgMusic2" preload="auto">
+    <source src="synapsocircle_clean.mp3?v=5" type="audio/mpeg">
   </audio>
   <audio id="kippSound" preload="auto">
     <source src="1kipp.mp3?v=3" type="audio/mpeg">
@@ -1051,45 +1054,48 @@
     const testTargetBtn = document.getElementById("testTargetBtn");
 
     // Audio Elements
-    const bgMusic = document.getElementById("bgMusic");
+    const bgMusic1 = document.getElementById("bgMusic1");
+    const bgMusic2 = document.getElementById("bgMusic2");
     const kippSound = document.getElementById("kippSound");
     const muteBtn = document.getElementById("muteBtn");
     const soundOnIcon = document.getElementById("soundOnIcon");
     const soundOffIcon = document.getElementById("soundOffIcon");
     let audioMuted = false;
-    let bgMusicStarted = false;
+    let currentTrack = 1; // 1 oder 2
+    const bgVolume = 0.3;
 
-    // Aggressiver Loop-Mechanismus - startet neu kurz vor dem Ende
-    bgMusic.addEventListener('timeupdate', () => {
-      if(audioMuted || !bgMusicStarted) return;
+    // Gapless Playback System - kein Crossfade, nur nahtloses Aneinanderfügen
+    bgMusic1.addEventListener('timeupdate', () => {
+      if(audioMuted || currentTrack !== 1) return;
       
-      const duration = bgMusic.duration;
-      const currentTime = bgMusic.currentTime;
+      const timeLeft = bgMusic1.duration - bgMusic1.currentTime;
       
-      // Wenn weniger als 0.5 Sekunden bis zum Ende, starte von vorne
-      if(duration && currentTime > 0 && (duration - currentTime) < 0.5){
-        console.log("Loop restart at:", currentTime);
-        bgMusic.currentTime = 0;
-        bgMusic.play().catch(err => console.log("Loop restart failed:", err));
+      // 0.05 Sekunden vor Ende → starte Track 2
+      if(timeLeft <= 0.05 && timeLeft > 0){
+        bgMusic2.currentTime = 0;
+        bgMusic2.volume = bgVolume;
+        bgMusic2.play().then(() => {
+          currentTrack = 2;
+          console.log("Switched to Track 2");
+        }).catch(err => console.log("Track 2 start failed:", err));
       }
     });
 
-    // Fallback: ended-Event
-    bgMusic.addEventListener('ended', () => {
-      console.log("Audio ended event triggered");
-      if(!audioMuted){
-        bgMusic.currentTime = 0;
-        bgMusic.play().catch(err => console.log("Ended restart failed:", err));
+    bgMusic2.addEventListener('timeupdate', () => {
+      if(audioMuted || currentTrack !== 2) return;
+      
+      const timeLeft = bgMusic2.duration - bgMusic2.currentTime;
+      
+      // 0.05 Sekunden vor Ende → starte Track 1
+      if(timeLeft <= 0.05 && timeLeft > 0){
+        bgMusic1.currentTime = 0;
+        bgMusic1.volume = bgVolume;
+        bgMusic1.play().then(() => {
+          currentTrack = 1;
+          console.log("Switched to Track 1");
+        }).catch(err => console.log("Track 1 start failed:", err));
       }
     });
-
-    // Zusätzlicher Watchdog: prüft ob Audio unerwartet stoppt
-    setInterval(() => {
-      if(bgMusicStarted && !audioMuted && bgMusic.paused){
-        console.log("Audio paused unexpectedly at:", bgMusic.currentTime, "- restarting");
-        bgMusic.play().catch(err => console.log("Watchdog restart failed:", err));
-      }
-    }, 500);
 
     const targetPadBtn    = document.getElementById("targetPadBtn");
     const targetPadCircle = document.getElementById("targetPadCircle");
@@ -2353,15 +2359,17 @@
       audioMuted = !audioMuted;
       
       if(audioMuted){
-        bgMusic.pause();
-        bgMusicStarted = false;
+        bgMusic1.pause();
+        bgMusic2.pause();
         soundOnIcon.style.display = "none";
         soundOffIcon.style.display = "block";
       } else {
-        bgMusic.play().then(() => {
-          bgMusicStarted = true;
-          console.log("Background music resumed");
-        }).catch(err => console.log("Audio play failed:", err));
+        // Starte den aktuellen Track
+        if(currentTrack === 1){
+          bgMusic1.play().catch(err => console.log("Track 1 resume failed:", err));
+        } else {
+          bgMusic2.play().catch(err => console.log("Track 2 resume failed:", err));
+        }
         soundOnIcon.style.display = "block";
         soundOffIcon.style.display = "none";
       }
@@ -2373,13 +2381,13 @@
     const introBackBtn = document.getElementById("introBackBtn");
 
     introStartBtn.addEventListener("click", () => {
-      // Starte Hintergrundmusik nur wenn nicht gemutet
+      // Starte Track 1
       if(!audioMuted){
-        bgMusic.volume = 0.3;
-        bgMusic.play().then(() => {
-          bgMusicStarted = true;
-          console.log("Background music started successfully");
-        }).catch(err => console.log("Audio play failed:", err));
+        bgMusic1.volume = bgVolume;
+        bgMusic1.play().then(() => {
+          currentTrack = 1;
+          console.log("Background music started (Track 1)");
+        }).catch(err => console.log("Track 1 start failed:", err));
       }
       
       introOverlay.classList.add("hidden");

@@ -1715,15 +1715,16 @@
         if(!await waitOrPause("kip", myToken, kipFactor * stepMul)){ runningKipp=false; return; }
 
         advanceFullCW();
-        showW();
-        renderW();
         
-        // Spiele Kipp-Sound HIER - synchron zum Vollbild!
+        // VERSION 2: Sound VOR showW (früher)
         if(playSound && !audioMuted){
           kippSound.currentTime = 0;
           kippSound.volume = 0.4;
           kippSound.play().catch(err => console.log("Kipp sound failed:", err));
         }
+        
+        showW();
+        renderW();
         
         if(!await waitOrPause("w", myToken, stepMul)){ runningKipp=false; return; }
       }

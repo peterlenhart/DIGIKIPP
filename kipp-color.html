@@ -18,11 +18,11 @@
   <meta name="theme-color" content="#4a2418">
   
   <!-- Audio Elemente -->
-  <audio id="bgMusic" loop preload="auto">
-    <source src="synapsocircle_loop.mp3" type="audio/mpeg">
+  <audio id="bgMusic" preload="auto">
+    <source src="synapsocircle_loop.mp3?v=2" type="audio/mpeg">
   </audio>
   <audio id="kippSound" preload="auto">
-    <source src="1kipp.mp3" type="audio/mpeg">
+    <source src="1kipp.mp3?v=2" type="audio/mpeg">
   </audio>
 
   <style>
@@ -1057,6 +1057,22 @@
     const soundOnIcon = document.getElementById("soundOnIcon");
     const soundOffIcon = document.getElementById("soundOffIcon");
     let audioMuted = false;
+
+    // Manueller Loop-Handler für robuste Endlosschleife
+    bgMusic.addEventListener('ended', () => {
+      if(!audioMuted){
+        bgMusic.currentTime = 0;
+        bgMusic.play().catch(err => console.log("Loop restart failed:", err));
+      }
+    });
+
+    // Zusätzlicher Sicherheits-Check alle 100ms
+    setInterval(() => {
+      if(!audioMuted && bgMusic.paused && bgMusic.currentTime > 0){
+        console.log("Audio paused unexpectedly, restarting...");
+        bgMusic.play().catch(err => console.log("Auto-restart failed:", err));
+      }
+    }, 100);
 
     const targetPadBtn    = document.getElementById("targetPadBtn");
     const targetPadCircle = document.getElementById("targetPadCircle");

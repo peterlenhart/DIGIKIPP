@@ -352,6 +352,31 @@
     .squareBtn:active{ transform: scale(0.98); filter: brightness(0.98); }
     .squareBtn[disabled]{ opacity: 1; pointer-events: none; filter: saturate(0.8); }
 
+    /* Icon Button (Mute etc.) */
+    .iconBtn{
+      position: absolute;
+      width: calc(48px * var(--uiscale));
+      height: calc(48px * var(--uiscale));
+      border-radius: 50%;
+      border: 2px solid rgba(0,0,0,0.65);
+      background: rgba(234,215,190,0.96);
+      box-shadow:
+        0 8px 16px rgba(0,0,0,0.22),
+        0 0 0 1px rgba(255,255,255,0.18) inset;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+      cursor: pointer;
+      pointer-events: auto;
+      color: var(--btn-text);
+      transform: translate(-50%, -50%);
+      z-index: 20;
+    }
+    .iconBtn:active{ transform: translate(-50%, -50%) scale(0.95); filter: brightness(0.98); }
+    .iconBtn svg{ display: block; }
+
     /* NEU: Kippzahl-Button während Lauf (braun + beige Zahl) */
     .squareBtn.runSelected{
       background: var(--ui-panel-bg) !important;
@@ -951,6 +976,20 @@
         <!-- End-Score in 6D–E -->
         <div class="scoreDisplay" id="scoreDisplay">00</div>
 
+        <!-- Mute Button -->
+        <button id="muteBtn" class="iconBtn" type="button" aria-label="Audio">
+          <svg id="soundOnIcon" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+            <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+            <path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path>
+          </svg>
+          <svg id="soundOffIcon" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none;">
+            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+            <line x1="23" y1="9" x2="17" y2="15"></line>
+            <line x1="17" y1="9" x2="23" y2="15"></line>
+          </svg>
+        </button>
+
         <div class="titleLeft" id="titleLeft">DIGIKIPP</div>
 
         <div class="hintTitle" id="hintTitle">SCHAUKIPP-RUNDE</div>
@@ -1008,6 +1047,10 @@
     // Audio Elements
     const bgMusic = document.getElementById("bgMusic");
     const kippSound = document.getElementById("kippSound");
+    const muteBtn = document.getElementById("muteBtn");
+    const soundOnIcon = document.getElementById("soundOnIcon");
+    const soundOffIcon = document.getElementById("soundOffIcon");
+    let audioMuted = false;
 
     const targetPadBtn    = document.getElementById("targetPadBtn");
     const targetPadCircle = document.getElementById("targetPadCircle");
@@ -1647,12 +1690,7 @@
       showW();
       renderW();
       
-      // Spiele Kipp-Sound beim ersten Vollbild-Würfel (wenn playSound aktiviert)
-      if(playSound){
-        kippSound.currentTime = 0;
-        kippSound.volume = 0.4;
-        kippSound.play().catch(err => console.log("Kipp sound failed:", err));
-      }
+      // KEIN Sound beim allerersten Vollbild - erst nach der Einblendung
       
       if(!await waitOrPause("w", myToken, 1)){ runningKipp=false; return; }
 
@@ -1670,11 +1708,14 @@
         showW();
         renderW();
         
-        // Spiele Kipp-Sound bei jedem Vollbild-Würfel (wenn playSound aktiviert)
-        if(playSound){
-          kippSound.currentTime = 0;
-          kippSound.volume = 0.4;
-          kippSound.play().catch(err => console.log("Kipp sound failed:", err));
+        // Spiele Kipp-Sound bei jedem Vollbild-Würfel nach kurzer Verzögerung
+        if(playSound && !audioMuted){
+          // Kurze Verzögerung (200ms), damit der Sound nicht zu früh kommt
+          setTimeout(() => {
+            kippSound.currentTime = 0;
+            kippSound.volume = 0.4;
+            kippSound.play().catch(err => console.log("Kipp sound failed:", err));
+          }, 200);
         }
         
         if(!await waitOrPause("w", myToken, stepMul)){ runningKipp=false; return; }
@@ -2102,6 +2143,15 @@
       score.style.fontSize = fontSize + "px";
     }
 
+    function positionMuteButton(cellPx){
+      const headerY = 1.0 * cellPx;
+      const col = 7;   // zwischen Score (H) und rechtem Rand
+      const left = (col - 1) * cellPx + cellPx / 2;
+      
+      muteBtn.style.left = left + "px";
+      muteBtn.style.top = headerY + "px";
+    }
+
     function positionUI(){
       const cellPx = numVar("--cell") || 142;
 
@@ -2112,6 +2162,9 @@
 
       // End-Score in 6D–E positionieren
       positionScoreDisplay(cellPx);
+      
+      // Mute-Button positionieren
+      positionMuteButton(cellPx);
 
       const title = document.getElementById("titleLeft");
       title.style.left = "50%";
@@ -2250,15 +2303,32 @@
       e.preventDefault();
     }, { passive:false });
 
+    // Mute Button Handler
+    muteBtn.addEventListener("click", () => {
+      audioMuted = !audioMuted;
+      
+      if(audioMuted){
+        bgMusic.pause();
+        soundOnIcon.style.display = "none";
+        soundOffIcon.style.display = "block";
+      } else {
+        bgMusic.play().catch(err => console.log("Audio play failed:", err));
+        soundOnIcon.style.display = "block";
+        soundOffIcon.style.display = "none";
+      }
+    });
+
     // Intro Overlay Handler
     const introOverlay = document.getElementById("introOverlay");
     const introStartBtn = document.getElementById("introStartBtn");
     const introBackBtn = document.getElementById("introBackBtn");
 
     introStartBtn.addEventListener("click", () => {
-      // Starte Hintergrundmusik
-      bgMusic.volume = 0.3; // Leise Hintergrundmusik
-      bgMusic.play().catch(err => console.log("Audio play failed:", err));
+      // Starte Hintergrundmusik nur wenn nicht gemutet
+      if(!audioMuted){
+        bgMusic.volume = 0.3;
+        bgMusic.play().catch(err => console.log("Audio play failed:", err));
+      }
       
       introOverlay.classList.add("hidden");
       setTimeout(() => {

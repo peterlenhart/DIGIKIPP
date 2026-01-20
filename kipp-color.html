@@ -17,16 +17,12 @@
   <!-- Theme Color -->
   <meta name="theme-color" content="#4a2418">
   
-  <!-- Audio Elemente - Zwei Tracks für nahtloses Loop -->
-  <audio id="bgMusic1" preload="auto">
-    <source src="bgloop.mp3?v=8" type="audio/mpeg">
-  </audio>
-  <audio id="bgMusic2" preload="auto">
-    <source src="bgloop.mp3?v=8" type="audio/mpeg">
-  </audio>
+  <!-- Audio Elemente -->
   <audio id="kippSound" preload="auto">
     <source src="1kipp.mp3?v=3" type="audio/mpeg">
   </audio>
+  
+  <!-- Background Music wird über Web Audio API geladen -->
 
   <style>
     :root{
@@ -1053,124 +1049,86 @@
 
     const testTargetBtn = document.getElementById("testTargetBtn");
 
-    // Audio Elements
-    const bgMusic1 = document.getElementById("bgMusic1");
-    const bgMusic2 = document.getElementById("bgMusic2");
+    // === WEB AUDIO API für echtes Gapless Looping ===
+    let audioContext = null;
+    let bgMusicBuffer = null;
+    let bgMusicSource = null;
+    let bgMusicGain = null;
+    let bgMusicPlaying = false;
+    
     const kippSound = document.getElementById("kippSound");
     const muteBtn = document.getElementById("muteBtn");
     const soundOnIcon = document.getElementById("soundOnIcon");
     const soundOffIcon = document.getElementById("soundOffIcon");
     let audioMuted = false;
-    let currentTrack = 1; // 1 oder 2
-    let nextTrackReady = false;
-    const bgVolume = 0.3;
 
-    // Preload beide Tracks
-    bgMusic1.load();
-    bgMusic2.load();
-
-    // Check ob Audio korrekt geladen wurde
-    bgMusic1.addEventListener('loadedmetadata', () => {
-      console.log(`🔵 Track1 loaded: ${bgMusic1.duration}s`);
-      if(isNaN(bgMusic1.duration)){
-        console.error("❌ Track1: Duration is NaN! Audio file problem!");
+    // Lade Background Music via Web Audio API
+    async function loadBackgroundMusic() {
+      try {
+        console.log("🎵 Loading background music...");
+        
+        // AudioContext erstellen
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        
+        // Audio-Datei laden
+        const response = await fetch('bgloop.mp3?v=9');
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const arrayBuffer = await response.arrayBuffer();
+        console.log("✅ File loaded, size:", arrayBuffer.byteLength);
+        
+        // Decode Audio
+        bgMusicBuffer = await audioContext.decodeAudioData(arrayBuffer);
+        console.log("✅ Audio decoded, duration:", bgMusicBuffer.duration, "seconds");
+        
+        // Gain Node für Lautstärke
+        bgMusicGain = audioContext.createGain();
+        bgMusicGain.gain.value = 0.3;
+        bgMusicGain.connect(audioContext.destination);
+        
+        return true;
+      } catch (error) {
+        console.error("❌ Error loading background music:", error);
+        return false;
       }
-    });
-    
-    bgMusic2.addEventListener('loadedmetadata', () => {
-      console.log(`🔴 Track2 loaded: ${bgMusic2.duration}s`);
-      if(isNaN(bgMusic2.duration)){
-        console.error("❌ Track2: Duration is NaN! Audio file problem!");
+    }
+
+    // Starte Gapless Loop
+    function startBackgroundMusic() {
+      if (!bgMusicBuffer || bgMusicPlaying || audioMuted) return;
+      
+      console.log("▶️ Starting background music loop");
+      bgMusicPlaying = true;
+      playBackgroundLoop();
+    }
+
+    function playBackgroundLoop() {
+      if (!bgMusicPlaying || audioMuted) return;
+      
+      // Neuen Source Node erstellen
+      bgMusicSource = audioContext.createBufferSource();
+      bgMusicSource.buffer = bgMusicBuffer;
+      bgMusicSource.connect(bgMusicGain);
+      
+      // Loop aktivieren - Web Audio API macht echtes Gapless Looping!
+      bgMusicSource.loop = true;
+      
+      // Starten
+      bgMusicSource.start(0);
+      
+      console.log("🔄 Background music looping");
+    }
+
+    function stopBackgroundMusic() {
+      if (bgMusicSource) {
+        bgMusicSource.stop();
+        bgMusicSource = null;
       }
-    });
-
-    // Error & Stalled Handling
-    bgMusic1.addEventListener('error', (e) => {
-      console.error("❌ Track1 error:", e);
-      console.error("Error code:", bgMusic1.error ? bgMusic1.error.code : "unknown");
-    });
-    
-    bgMusic2.addEventListener('error', (e) => {
-      console.error("❌ Track2 error:", e);
-      console.error("Error code:", bgMusic2.error ? bgMusic2.error.code : "unknown");
-    });
-
-    bgMusic1.addEventListener('stalled', () => {
-      console.warn("⚠️ Track1 stalled - trying to reload...");
-      bgMusic1.load();
-    });
-    
-    bgMusic2.addEventListener('stalled', () => {
-      console.warn("⚠️ Track2 stalled - trying to reload...");
-      bgMusic2.load();
-    });
-
-    // DEBUGGING: Alle Events loggen
-    ['loadedmetadata', 'canplay', 'play', 'playing', 'pause', 'ended', 'error', 'stalled', 'waiting'].forEach(event => {
-      bgMusic1.addEventListener(event, () => console.log(`🔵 Track1: ${event}`));
-      bgMusic2.addEventListener(event, () => console.log(`🔴 Track2: ${event}`));
-    });
-
-    // Gapless Playback mit sehr viel Logging
-    bgMusic1.addEventListener('timeupdate', () => {
-      if(audioMuted || currentTrack !== 1) return;
-      
-      const timeLeft = bgMusic1.duration - bgMusic1.currentTime;
-      const current = bgMusic1.currentTime.toFixed(1);
-      const duration = bgMusic1.duration.toFixed(1);
-      
-      // Log jede Sekunde
-      if(Math.floor(bgMusic1.currentTime) !== Math.floor(bgMusic1.currentTime - 0.25)){
-        console.log(`🔵 Track1: ${current}s / ${duration}s (${timeLeft.toFixed(1)}s left)`);
-      }
-      
-      // 1 Sekunde vor Ende → starte Track 2
-      if(timeLeft <= 1.0 && !nextTrackReady){
-        nextTrackReady = true;
-        console.log(">>> STARTING TRACK 2 in 1 second!");
-        bgMusic2.currentTime = 0;
-        bgMusic2.volume = bgVolume;
-        bgMusic2.play().then(() => {
-          console.log("✅ Track 2 playing!");
-        }).catch(err => console.error("❌ Track 2 failed:", err));
-      }
-    });
-
-    bgMusic1.addEventListener('ended', () => {
-      console.log("!!! Track 1 ENDED !!!");
-      currentTrack = 2;
-      nextTrackReady = false;
-    });
-
-    bgMusic2.addEventListener('timeupdate', () => {
-      if(audioMuted || currentTrack !== 2) return;
-      
-      const timeLeft = bgMusic2.duration - bgMusic2.currentTime;
-      const current = bgMusic2.currentTime.toFixed(1);
-      const duration = bgMusic2.duration.toFixed(1);
-      
-      // Log jede Sekunde
-      if(Math.floor(bgMusic2.currentTime) !== Math.floor(bgMusic2.currentTime - 0.25)){
-        console.log(`🔴 Track2: ${current}s / ${duration}s (${timeLeft.toFixed(1)}s left)`);
-      }
-      
-      // 1 Sekunde vor Ende → starte Track 1
-      if(timeLeft <= 1.0 && !nextTrackReady){
-        nextTrackReady = true;
-        console.log(">>> STARTING TRACK 1 in 1 second!");
-        bgMusic1.currentTime = 0;
-        bgMusic1.volume = bgVolume;
-        bgMusic1.play().then(() => {
-          console.log("✅ Track 1 playing!");
-        }).catch(err => console.error("❌ Track 1 failed:", err));
-      }
-    });
-
-    bgMusic2.addEventListener('ended', () => {
-      console.log("!!! Track 2 ENDED !!!");
-      currentTrack = 1;
-      nextTrackReady = false;
-    });
+      bgMusicPlaying = false;
+      console.log("⏹️ Background music stopped");
+    }
 
     const targetPadBtn    = document.getElementById("targetPadBtn");
     const targetPadCircle = document.getElementById("targetPadCircle");
@@ -2434,16 +2392,12 @@
       audioMuted = !audioMuted;
       
       if(audioMuted){
-        bgMusic1.pause();
-        bgMusic2.pause();
+        stopBackgroundMusic();
         soundOnIcon.style.display = "none";
         soundOffIcon.style.display = "block";
       } else {
-        // Starte den aktuellen Track
-        if(currentTrack === 1){
-          bgMusic1.play().catch(err => console.log("Track 1 resume failed:", err));
-        } else {
-          bgMusic2.play().catch(err => console.log("Track 2 resume failed:", err));
+        if(bgMusicBuffer) {
+          startBackgroundMusic();
         }
         soundOnIcon.style.display = "block";
         soundOffIcon.style.display = "none";
@@ -2455,14 +2409,13 @@
     const introStartBtn = document.getElementById("introStartBtn");
     const introBackBtn = document.getElementById("introBackBtn");
 
-    introStartBtn.addEventListener("click", () => {
-      // Starte Track 1
-      if(!audioMuted){
-        bgMusic1.volume = bgVolume;
-        bgMusic1.play().then(() => {
-          currentTrack = 1;
-          console.log("Background music started (Track 1)");
-        }).catch(err => console.log("Track 1 start failed:", err));
+    introStartBtn.addEventListener("click", async () => {
+      // Lade und starte Background Music
+      if(!audioMuted && !bgMusicBuffer){
+        const loaded = await loadBackgroundMusic();
+        if(loaded) {
+          startBackgroundMusic();
+        }
       }
       
       introOverlay.classList.add("hidden");

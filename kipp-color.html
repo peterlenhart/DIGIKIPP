@@ -2347,6 +2347,14 @@
         bgLoop.play().catch(err => console.log("Background-Loop start failed:", err));
       }
       
+      // Audio-Priming: Spiele kippSound einmal stumm ab, damit es danach sofort bereit ist
+      kippSound.volume = 0;
+      kippSound.play().then(() => {
+        kippSound.pause();
+        kippSound.currentTime = 0;
+        kippSound.volume = 0.4; // Zurück auf normale Lautstärke
+      }).catch(err => console.log("Audio priming failed:", err));
+      
       introOverlay.classList.add("hidden");
       setTimeout(() => {
         introOverlay.remove();

@@ -16,6 +16,14 @@
   
   <!-- Theme Color -->
   <meta name="theme-color" content="#4a2418">
+  
+  <!-- Audio Elemente -->
+  <audio id="bgMusic" loop preload="auto">
+    <source src="synapsocircle.mp3" type="audio/mpeg">
+  </audio>
+  <audio id="kippSound" preload="auto">
+    <source src="1kipp.mp3" type="audio/mpeg">
+  </audio>
 
   <style>
     :root{
@@ -997,6 +1005,10 @@
 
     const testTargetBtn = document.getElementById("testTargetBtn");
 
+    // Audio Elements
+    const bgMusic = document.getElementById("bgMusic");
+    const kippSound = document.getElementById("kippSound");
+
     const targetPadBtn    = document.getElementById("targetPadBtn");
     const targetPadCircle = document.getElementById("targetPadCircle");
     const targetPadNum    = document.getElementById("targetPadNum");
@@ -1629,10 +1641,19 @@
       runningKipp = true;
 
       const kipFactor = (opts && opts.kipFactor) ? opts.kipFactor : 1;
+      const playSound = (opts && opts.playSound) ? opts.playSound : false;
       const myToken = ++previewToken;
 
       showW();
       renderW();
+      
+      // Spiele Kipp-Sound beim ersten Vollbild-Würfel (wenn playSound aktiviert)
+      if(playSound){
+        kippSound.currentTime = 0;
+        kippSound.volume = 0.4;
+        kippSound.play().catch(err => console.log("Kipp sound failed:", err));
+      }
+      
       if(!await waitOrPause("w", myToken, 1)){ runningKipp=false; return; }
 
       const totalSteps = Math.max(1, steps);
@@ -1648,6 +1669,14 @@
         advanceFullCW();
         showW();
         renderW();
+        
+        // Spiele Kipp-Sound bei jedem Vollbild-Würfel (wenn playSound aktiviert)
+        if(playSound){
+          kippSound.currentTime = 0;
+          kippSound.volume = 0.4;
+          kippSound.play().catch(err => console.log("Kipp sound failed:", err));
+        }
+        
         if(!await waitOrPause("w", myToken, stepMul)){ runningKipp=false; return; }
       }
 
@@ -1783,7 +1812,7 @@
 
       attemptsForTarget++;
 
-      runSchauKippSequence(anzahl, { kipFactor: 1 }).finally(async () => {
+      runSchauKippSequence(anzahl, { kipFactor: 1, playSound: true }).finally(async () => {
         clearHitPulse();
         const hit = checkHitAndAnimate();
 
@@ -2227,6 +2256,10 @@
     const introBackBtn = document.getElementById("introBackBtn");
 
     introStartBtn.addEventListener("click", () => {
+      // Starte Hintergrundmusik
+      bgMusic.volume = 0.3; // Leise Hintergrundmusik
+      bgMusic.play().catch(err => console.log("Audio play failed:", err));
+      
       introOverlay.classList.add("hidden");
       setTimeout(() => {
         introOverlay.remove();

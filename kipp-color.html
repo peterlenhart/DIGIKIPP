@@ -18,7 +18,10 @@
   <meta name="theme-color" content="#4a2418">
   
   <!-- Audio Elemente -->
-  <audio id="bgMusic" loop preload="auto">
+  <audio id="bgMusic1" preload="auto">
+    <source src="synapsocircle.mp3" type="audio/mpeg">
+  </audio>
+  <audio id="bgMusic2" preload="auto">
     <source src="synapsocircle.mp3" type="audio/mpeg">
   </audio>
   <audio id="kippSound" preload="auto">
@@ -1051,29 +1054,67 @@
     const testTargetBtn = document.getElementById("testTargetBtn");
 
     // Audio Elements
-    const bgMusic = document.getElementById("bgMusic");
+    const bgMusic1 = document.getElementById("bgMusic1");
+    const bgMusic2 = document.getElementById("bgMusic2");
     const kippSound = document.getElementById("kippSound");
     const muteBtn = document.getElementById("muteBtn");
     const soundOnIcon = document.getElementById("soundOnIcon");
     const soundOffIcon = document.getElementById("soundOffIcon");
     let audioMuted = false;
 
-    // Background-Music Loop mit sanftem Fade-Out/Fade-In
-    bgMusic.addEventListener('timeupdate', function() {
-      const fadeOutDuration = 1.5; // Fade-Out über 1.5 Sekunden
-      const fadeInDuration = 1.0;  // Fade-In über 1 Sekunde
-      const timeLeft = bgMusic.duration - bgMusic.currentTime;
-      
-      // Fade-Out kurz vor dem Ende
-      if (timeLeft <= fadeOutDuration && timeLeft > 0) {
-        bgMusic.volume = Math.max(0, (timeLeft / fadeOutDuration) * 0.3);
-      }
-      
-      // Beim Neustart: Fade-In
-      if (bgMusic.currentTime < fadeInDuration) {
-        bgMusic.volume = Math.min(0.3, (bgMusic.currentTime / fadeInDuration) * 0.3);
-      }
-    });
+    // Crossfade Background Music System
+    let currentBgTrack = 1; // 1 oder 2
+    const bgVolume = 0.3;
+    const crossfadeDuration = 2000; // 2 Sekunden Crossfade
+
+    function setupCrossfadeLoop() {
+      bgMusic1.volume = bgVolume;
+      bgMusic2.volume = 0;
+
+      // Wenn Track 1 fast zu Ende ist, starte Track 2 mit Crossfade
+      bgMusic1.addEventListener('timeupdate', () => {
+        const timeLeft = bgMusic1.duration - bgMusic1.currentTime;
+        const crossfadeTime = crossfadeDuration / 1000;
+        
+        if (timeLeft <= crossfadeTime && timeLeft > 0 && currentBgTrack === 1) {
+          // Starte Track 2
+          bgMusic2.currentTime = 0;
+          bgMusic2.play().catch(err => console.log("BG2 play failed:", err));
+          
+          // Crossfade: Track 1 fade out, Track 2 fade in
+          const fadeProgress = 1 - (timeLeft / crossfadeTime);
+          bgMusic1.volume = Math.max(0, bgVolume * (1 - fadeProgress));
+          bgMusic2.volume = Math.min(bgVolume, bgVolume * fadeProgress);
+          
+          if (timeLeft <= 0.1) {
+            currentBgTrack = 2;
+          }
+        }
+      });
+
+      // Wenn Track 2 fast zu Ende ist, starte Track 1 mit Crossfade
+      bgMusic2.addEventListener('timeupdate', () => {
+        const timeLeft = bgMusic2.duration - bgMusic2.currentTime;
+        const crossfadeTime = crossfadeDuration / 1000;
+        
+        if (timeLeft <= crossfadeTime && timeLeft > 0 && currentBgTrack === 2) {
+          // Starte Track 1
+          bgMusic1.currentTime = 0;
+          bgMusic1.play().catch(err => console.log("BG1 play failed:", err));
+          
+          // Crossfade: Track 2 fade out, Track 1 fade in
+          const fadeProgress = 1 - (timeLeft / crossfadeTime);
+          bgMusic2.volume = Math.max(0, bgVolume * (1 - fadeProgress));
+          bgMusic1.volume = Math.min(bgVolume, bgVolume * fadeProgress);
+          
+          if (timeLeft <= 0.1) {
+            currentBgTrack = 1;
+          }
+        }
+      });
+    }
+
+    setupCrossfadeLoop();
 
     const targetPadBtn    = document.getElementById("targetPadBtn");
     const targetPadCircle = document.getElementById("targetPadCircle");
@@ -2337,11 +2378,17 @@
       audioMuted = !audioMuted;
       
       if(audioMuted){
-        bgMusic.pause();
+        bgMusic1.pause();
+        bgMusic2.pause();
         soundOnIcon.style.display = "none";
         soundOffIcon.style.display = "block";
       } else {
-        bgMusic.play().catch(err => console.log("Audio play failed:", err));
+        // Starte nur den aktuellen Track
+        if(currentBgTrack === 1){
+          bgMusic1.play().catch(err => console.log("Audio play failed:", err));
+        } else {
+          bgMusic2.play().catch(err => console.log("Audio play failed:", err));
+        }
         soundOnIcon.style.display = "block";
         soundOffIcon.style.display = "none";
       }
@@ -2353,10 +2400,11 @@
     const introBackBtn = document.getElementById("introBackBtn");
 
     introStartBtn.addEventListener("click", () => {
-      // Starte Hintergrundmusik nur wenn nicht gemutet
+      // Starte Hintergrundmusik nur wenn nicht gemutet (Track 1 zuerst)
       if(!audioMuted){
-        bgMusic.volume = 0.3;
-        bgMusic.play().catch(err => console.log("Audio play failed:", err));
+        bgMusic1.volume = bgVolume;
+        bgMusic1.play().catch(err => console.log("Audio play failed:", err));
+        currentBgTrack = 1;
       }
       
       introOverlay.classList.add("hidden");

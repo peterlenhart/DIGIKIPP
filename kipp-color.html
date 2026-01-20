@@ -1711,20 +1711,19 @@
         const stepMul = lerp(1.0, STEP_MAX, tStep);
 
         showKip();
-        
-        // Spiele Kipp-Sound HIER - noch früher (direkt nach showKip, vor renderKip)
-        if(playSound && !audioMuted){
-          kippSound.currentTime = 0;
-          kippSound.volume = 0.4;
-          kippSound.play().catch(err => console.log("Kipp sound failed:", err));
-        }
-        
         renderKip();
         if(!await waitOrPause("kip", myToken, kipFactor * stepMul)){ runningKipp=false; return; }
 
         advanceFullCW();
         showW();
         renderW();
+        
+        // Spiele Kipp-Sound HIER - synchron zum Vollbild!
+        if(playSound && !audioMuted){
+          kippSound.currentTime = 0;
+          kippSound.volume = 0.4;
+          kippSound.play().catch(err => console.log("Kipp sound failed:", err));
+        }
         
         if(!await waitOrPause("w", myToken, stepMul)){ runningKipp=false; return; }
       }

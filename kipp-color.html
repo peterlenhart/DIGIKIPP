@@ -378,8 +378,8 @@
     .iconBtn:active{ transform: translate(-50%, -50%) scale(0.92); }
     .iconBtn svg{ 
       display: block;
-      width: calc(52px * var(--uiscale));
-      height: calc(52px * var(--uiscale));
+      width: calc(44px * var(--uiscale));
+      height: calc(44px * var(--uiscale));
       filter: drop-shadow(0 2px 3px rgba(0,0,0,0.35));
     }
 
@@ -1711,15 +1711,16 @@
         if(!await waitOrPause("kip", myToken, kipFactor * stepMul)){ runningKipp=false; return; }
 
         advanceFullCW();
-        showW();
-        renderW();
         
-        // Spiele Kipp-Sound SOFORT beim Vollbild-Würfel (0.4 Sek früher als vorher)
+        // Spiele Kipp-Sound HIER - 0,2s früher (direkt nach advanceFullCW, bevor showW)
         if(playSound && !audioMuted){
           kippSound.currentTime = 0;
           kippSound.volume = 0.4;
           kippSound.play().catch(err => console.log("Kipp sound failed:", err));
         }
+        
+        showW();
+        renderW();
         
         if(!await waitOrPause("w", myToken, stepMul)){ runningKipp=false; return; }
       }
@@ -2147,12 +2148,19 @@
     }
 
     function positionMuteButton(cellPx){
-      const headerY = 1.0 * cellPx;
-      const col = 8;   // Spalte H
-      const left = (col - 1) * cellPx + cellPx / 2;
+      // Zelle 8H: Zeile 8, Spalte H (8)
+      const row = 8;
+      const col = 8;  // Spalte H
+      const visualRow = row + HEADER_ROW_OFFSET;
       
-      muteBtn.style.left = left + "px";
-      muteBtn.style.top = headerY + "px";
+      const leftCell = (col - 1) * cellPx;
+      const topCell = (visualRow - 1) * cellPx;
+      
+      const centerX = leftCell + cellPx / 2;
+      const centerY = topCell + cellPx / 2;
+      
+      muteBtn.style.left = centerX + "px";
+      muteBtn.style.top = centerY + "px";
     }
 
     function positionUI(){

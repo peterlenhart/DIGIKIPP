@@ -378,8 +378,8 @@
     .iconBtn:active{ transform: translate(-50%, -50%) scale(0.92); }
     .iconBtn svg{ 
       display: block;
-      width: calc(44px * var(--uiscale));
-      height: calc(44px * var(--uiscale));
+      width: calc(40px * var(--uiscale));
+      height: calc(40px * var(--uiscale));
       filter: drop-shadow(0 2px 3px rgba(0,0,0,0.35));
     }
 
@@ -1707,18 +1707,18 @@
         const stepMul = lerp(1.0, STEP_MAX, tStep);
 
         showKip();
-        renderKip();
-        if(!await waitOrPause("kip", myToken, kipFactor * stepMul)){ runningKipp=false; return; }
-
-        advanceFullCW();
         
-        // Spiele Kipp-Sound HIER - 0,2s früher (direkt nach advanceFullCW, bevor showW)
+        // Spiele Kipp-Sound HIER - noch früher (direkt nach showKip, vor renderKip)
         if(playSound && !audioMuted){
           kippSound.currentTime = 0;
           kippSound.volume = 0.4;
           kippSound.play().catch(err => console.log("Kipp sound failed:", err));
         }
         
+        renderKip();
+        if(!await waitOrPause("kip", myToken, kipFactor * stepMul)){ runningKipp=false; return; }
+
+        advanceFullCW();
         showW();
         renderW();
         
@@ -2159,7 +2159,8 @@
       const centerX = leftCell + cellPx / 2;
       const centerY = topCell + cellPx / 2;
       
-      muteBtn.style.left = centerX + "px";
+      // 40px nach links verschieben
+      muteBtn.style.left = (centerX - 40) + "px";
       muteBtn.style.top = centerY + "px";
     }
 

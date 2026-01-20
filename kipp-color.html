@@ -19,10 +19,10 @@
   
   <!-- Audio Elemente -->
   <audio id="bgMusic" preload="auto">
-    <source src="synapsocircle_loop.mp3?v=2" type="audio/mpeg">
+    <source src="synapsocircle_loop.mp3?v=3" type="audio/mpeg">
   </audio>
   <audio id="kippSound" preload="auto">
-    <source src="1kipp.mp3?v=2" type="audio/mpeg">
+    <source src="1kipp.mp3?v=3" type="audio/mpeg">
   </audio>
 
   <style>
@@ -1057,22 +1057,39 @@
     const soundOnIcon = document.getElementById("soundOnIcon");
     const soundOffIcon = document.getElementById("soundOffIcon");
     let audioMuted = false;
+    let bgMusicStarted = false;
 
-    // Manueller Loop-Handler für robuste Endlosschleife
-    bgMusic.addEventListener('ended', () => {
-      if(!audioMuted){
+    // Aggressiver Loop-Mechanismus - startet neu kurz vor dem Ende
+    bgMusic.addEventListener('timeupdate', () => {
+      if(audioMuted || !bgMusicStarted) return;
+      
+      const duration = bgMusic.duration;
+      const currentTime = bgMusic.currentTime;
+      
+      // Wenn weniger als 0.5 Sekunden bis zum Ende, starte von vorne
+      if(duration && currentTime > 0 && (duration - currentTime) < 0.5){
+        console.log("Loop restart at:", currentTime);
         bgMusic.currentTime = 0;
         bgMusic.play().catch(err => console.log("Loop restart failed:", err));
       }
     });
 
-    // Zusätzlicher Sicherheits-Check alle 100ms
-    setInterval(() => {
-      if(!audioMuted && bgMusic.paused && bgMusic.currentTime > 0){
-        console.log("Audio paused unexpectedly, restarting...");
-        bgMusic.play().catch(err => console.log("Auto-restart failed:", err));
+    // Fallback: ended-Event
+    bgMusic.addEventListener('ended', () => {
+      console.log("Audio ended event triggered");
+      if(!audioMuted){
+        bgMusic.currentTime = 0;
+        bgMusic.play().catch(err => console.log("Ended restart failed:", err));
       }
-    }, 100);
+    });
+
+    // Zusätzlicher Watchdog: prüft ob Audio unerwartet stoppt
+    setInterval(() => {
+      if(bgMusicStarted && !audioMuted && bgMusic.paused){
+        console.log("Audio paused unexpectedly at:", bgMusic.currentTime, "- restarting");
+        bgMusic.play().catch(err => console.log("Watchdog restart failed:", err));
+      }
+    }, 500);
 
     const targetPadBtn    = document.getElementById("targetPadBtn");
     const targetPadCircle = document.getElementById("targetPadCircle");
@@ -2337,10 +2354,14 @@
       
       if(audioMuted){
         bgMusic.pause();
+        bgMusicStarted = false;
         soundOnIcon.style.display = "none";
         soundOffIcon.style.display = "block";
       } else {
-        bgMusic.play().catch(err => console.log("Audio play failed:", err));
+        bgMusic.play().then(() => {
+          bgMusicStarted = true;
+          console.log("Background music resumed");
+        }).catch(err => console.log("Audio play failed:", err));
         soundOnIcon.style.display = "block";
         soundOffIcon.style.display = "none";
       }
@@ -2355,7 +2376,10 @@
       // Starte Hintergrundmusik nur wenn nicht gemutet
       if(!audioMuted){
         bgMusic.volume = 0.3;
-        bgMusic.play().catch(err => console.log("Audio play failed:", err));
+        bgMusic.play().then(() => {
+          bgMusicStarted = true;
+          console.log("Background music started successfully");
+        }).catch(err => console.log("Audio play failed:", err));
       }
       
       introOverlay.classList.add("hidden");

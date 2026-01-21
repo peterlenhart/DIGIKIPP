@@ -874,7 +874,7 @@
       gap:calc(7px * var(--uiscale));
       overflow-x:auto;
       padding:calc(4px * var(--uiscale)) calc(6px * var(--uiscale));
-      max-width:calc(6 * var(--cell)); /* bewusst enger, damit links/rechts abgeschnitten wird */
+      max-width:calc(4.5 * var(--cell)); /* schmaler für erzwungenes Scrollen bei 12 Items */
       scrollbar-width:none;
     }
     .scrollBand::-webkit-scrollbar{
@@ -892,6 +892,8 @@
     }
 
     .scrollItem{
+      flex-shrink: 0;
+      width: calc(var(--cell) * 0.85);
       min-width: calc(var(--cell) * 0.85);
       height:    calc(var(--cell) * 0.85);
       border-radius: calc(0.20 * var(--cell));

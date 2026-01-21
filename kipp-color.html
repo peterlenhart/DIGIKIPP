@@ -2162,7 +2162,7 @@
 
       scrollBandWrap.classList.add("hidden");
       kippAnzahlView.classList.add("hidden");
-      targetPadBtn.classList.add("hidden");
+      // Zielpad bleibt sichtbar während der 4 Kipps
       targetPadBtn.disabled = true;
 
       resetTargetPadUI();
@@ -2334,18 +2334,20 @@
       kippAnzahlBtns.style.left = "50%";
       kippAnzahlBtns.style.transform = "translate(-50%, -50%)";
       
-      // Scrollband an gleicher Position
-      if(scrollBandWrap){
-        scrollBandWrap.style.top = between10and11 + "px";
-      }
-
       const uiscale = numVar("--uiscale") || 1;
       const btnH = 44 * uiscale;
-      startBtnWrap.style.top = (between10and11 - (btnH / 2)) + "px";
+      const buttonY = between10and11 - (btnH / 2);
+      startBtnWrap.style.top = buttonY + "px";
+      
+      // Scrollband an gleicher Y-Position wie SCHAUEN & MERKEN Button
+      if(scrollBandWrap){
+        scrollBandWrap.style.top = buttonY + "px";
+      }
 
       if(uiMode === "TARGET"){
         hintTitle.style.top = row11CenterY + "px";
       } else if(uiMode === "START" || uiMode === "SCHAUEN" || uiMode === "COUNT" || uiMode === "END"){
+        // KIPP ANZAHL und BEREIT ZUM SCHAUEN an gleicher Position
         const row9VisualTop  = (((9 + HEADER_ROW_OFFSET) - 1) * cellPx);
         const row10VisualTop = (((10 + HEADER_ROW_OFFSET) - 1) * cellPx);
         const midBetween9and10 = (row9VisualTop + row10VisualTop) / 2;

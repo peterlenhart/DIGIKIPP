@@ -847,7 +847,6 @@
       filter: brightness(0.98);
     }
 
-    /* Scrollband für Kipp-Anzahl 0-11 */
     .scrollBandWrap{
       position:absolute;
       left:50%;
@@ -858,7 +857,7 @@
       pointer-events:none;
       z-index:50;
       padding: calc(4px * var(--uiscale)) calc(8px * var(--uiscale));
-      background: rgba(234,215,190,0.55);
+      background: rgba(234,215,190,0.55); /* beige Streifen */
       border-radius: calc(18px * var(--uiscale));
       box-shadow: 0 6px 12px rgba(0,0,0,0.25);
     }
@@ -866,7 +865,7 @@
       display: none;
     }
     .scrollBandWrap.locked{
-      opacity:0.4;
+      opacity:0.4; /* inaktiv, aber sichtbar */
     }
 
     .scrollBand{
@@ -875,13 +874,14 @@
       gap:calc(7px * var(--uiscale));
       overflow-x:auto;
       padding:calc(4px * var(--uiscale)) calc(6px * var(--uiscale));
-      max-width: calc(6 * var(--cell));
+      max-width:calc(6 * var(--cell)); /* bewusst enger, damit links/rechts abgeschnitten wird */
       scrollbar-width:none;
     }
     .scrollBand::-webkit-scrollbar{
       display:none;
     }
 
+    /* Pendel-Animation West–Ost */
     @keyframes scrollWiggle{
       0%   { transform: translateX(-10px); }
       100% { transform: translateX(10px); }
@@ -910,7 +910,7 @@
       user-select:none;
       -webkit-tap-highlight-color:transparent;
       cursor:pointer;
-      font-size: calc(var(--cell) * 0.55);
+      font-size: calc(var(--cell) * 0.55); /* große Zahlen, fast flächendeckend */
     }
     .scrollItem:active{
       transform:scale(0.98);

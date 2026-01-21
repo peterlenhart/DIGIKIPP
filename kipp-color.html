@@ -876,22 +876,10 @@
       overflow-x:auto;
       padding:calc(4px * var(--uiscale)) calc(6px * var(--uiscale));
       max-width: calc(6 * var(--cell));
-      scrollbar-width:thin;
-      scrollbar-color: rgba(122, 74, 52, 0.7) rgba(234,215,190,0.3);
+      scrollbar-width:none;
     }
     .scrollBand::-webkit-scrollbar{
-      height: 8px;
-    }
-    .scrollBand::-webkit-scrollbar-track{
-      background: rgba(234,215,190,0.3);
-      border-radius: 4px;
-    }
-    .scrollBand::-webkit-scrollbar-thumb{
-      background: rgba(122, 74, 52, 0.7);
-      border-radius: 4px;
-    }
-    .scrollBand::-webkit-scrollbar-thumb:hover{
-      background: rgba(122, 74, 52, 0.9);
+      display:none;
     }
 
     @keyframes scrollWiggle{
@@ -904,7 +892,6 @@
     }
 
     .scrollItem{
-      flex-shrink: 0;
       min-width: calc(var(--cell) * 0.85);
       height:    calc(var(--cell) * 0.85);
       border-radius: calc(0.20 * var(--cell));
@@ -1299,6 +1286,7 @@
     let started = false;
 
     let uiMode = "START"; // START | TARGET | COUNT | END
+    let gameHasStarted = false; // Flag: Wurde überhaupt schon gespielt?
 
     // =========================
     // Versuche pro Ziel  (GEÄNDERT: nur 1 Versuch)
@@ -2143,6 +2131,8 @@
       currentTarget = generateTarget_Strict();
       if(!currentTarget) return;
 
+      gameHasStarted = true; // Spiel hat begonnen sobald erstes Target gezogen
+
       attemptsForTarget = 0;
 
       applyTargetToPad(currentTarget);
@@ -2192,14 +2182,15 @@
     });
 
     // Intelligente Navigation: 
-    // - In SCHAUKIPP-RUNDE (uiMode === "START") → zurück zur Startseite
-    // - In allen anderen Phasen → zurück zur SCHAUKIPP-RUNDE
+    // Zurück-Button Logik:
+    // - Vor dem ersten Target-Zug → zurück zur Spielauswahl
+    // - Nach dem ersten Target-Zug → zurück zum Spielbeginn
     backBtn.addEventListener("click", () => {
-      if (uiMode === "START") {
-        // In SCHAUKIPP-RUNDE → zurück zur Startseite
+      if (!gameHasStarted) {
+        // Noch kein Target gezogen → zurück zur Auswahl
         window.location.href = "index.html";
       } else {
-        // Im Spiel (TARGET, COUNT, END) → Reset zur SCHAUKIPP-RUNDE
+        // Im Spiel → Reset zum Spielbeginn
         initPlayState();
       }
     });
@@ -2438,6 +2429,7 @@
       targetRevealed = false;
       started = false;
       attemptsForTarget = 0;
+      gameHasStarted = false; // Reset: Zurück-Button führt wieder zur Auswahl
 
       resetLockedColors();
       hitsCount = 0;

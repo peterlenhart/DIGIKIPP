@@ -1794,21 +1794,18 @@
         showKip();
         renderKip();
         
-        // Sound abspielen (mit optionaler Verzögerung) - immer, unabhängig von Mute
-        if(playSound){
-          const delay = (opts && opts.soundDelay) ? opts.soundDelay : 0;
-          setTimeout(() => {
-            kippSound.currentTime = 0;
-            kippSound.volume = 0.4;
-            kippSound.play().catch(err => console.log("Kipp sound failed:", err));
-          }, delay);
-        }
-        
         if(!await waitOrPause("kip", myToken, kipFactor * stepMul)){ runningKipp=false; return; }
 
         advanceFullCW();
         showW();
         renderW();
+        
+        // Sound EXAKT beim vollflächigen Würfel - "in einem Paket"
+        if(playSound){
+          kippSound.currentTime = 0;
+          kippSound.volume = 0.4;
+          kippSound.play().catch(err => console.log("Kipp sound failed:", err));
+        }
         
         if(!await waitOrPause("w", myToken, stepMul)){ runningKipp=false; return; }
       }

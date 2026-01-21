@@ -875,7 +875,7 @@
       gap:calc(7px * var(--uiscale));
       overflow-x:auto;
       padding:calc(4px * var(--uiscale)) calc(6px * var(--uiscale));
-      max-width: calc(11 * var(--cell));
+      max-width: calc(6 * var(--cell));
       scrollbar-width:none;
     }
     .scrollBand::-webkit-scrollbar{
@@ -1979,7 +1979,7 @@
         const isTargetFinished = true;
 
         if(isLastTarget && isTargetFinished){
-          await sleep(700);
+          await sleep(900);
           showEndResultView();
           return;
         }

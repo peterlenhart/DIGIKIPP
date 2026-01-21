@@ -875,7 +875,7 @@
       gap:calc(7px * var(--uiscale));
       overflow-x:auto;
       padding:calc(4px * var(--uiscale)) calc(6px * var(--uiscale));
-      max-width: calc(6 * var(--cell));
+      max-width: calc(11 * var(--cell));
       scrollbar-width:none;
     }
     .scrollBand::-webkit-scrollbar{
@@ -1993,7 +1993,8 @@
           return;
         }
 
-        // Fehlversuch: sofort neues Ziel (kein Punkt)
+        // Fehlversuch: kurzer Moment zeigen, dann neues Ziel (kein Punkt)
+        await sleep(900);
         resetToNewTargetChoice();
         setScrollBandLocked(false);
       });

@@ -1713,11 +1713,14 @@
         showKip();
         renderKip();
         
-        // Sound 0,3 Sekunden früher - direkt nach renderKip!
+        // Sound abspielen (mit optionaler Verzögerung)
         if(playSound && !audioMuted){
-          kippSound.currentTime = 0;
-          kippSound.volume = 0.4;
-          kippSound.play().catch(err => console.log("Kipp sound failed:", err));
+          const delay = (opts && opts.soundDelay) ? opts.soundDelay : 0;
+          setTimeout(() => {
+            kippSound.currentTime = 0;
+            kippSound.volume = 0.4;
+            kippSound.play().catch(err => console.log("Kipp sound failed:", err));
+          }, delay);
         }
         
         if(!await waitOrPause("kip", myToken, kipFactor * stepMul)){ runningKipp=false; return; }
@@ -2032,7 +2035,7 @@
       resetTargetPadUI();
       clearHitPulse();
 
-      await runSchauKippSequence(4, { kipFactor: 2, playSound: true });
+      await runSchauKippSequence(4, { kipFactor: 2, playSound: true, soundDelay: 1000 });
 
       showTargetSelectView();
     });

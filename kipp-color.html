@@ -1132,15 +1132,15 @@
     const audioContext = new (window.AudioContext || window.webkitAudioContext)();
     let kippSoundBuffer = null;
     
-    // KlackExakt.wav laden und dekodieren
-    fetch('KlackExakt.wav')
+    // KlackCrop.wav laden und dekodieren
+    fetch('KlackCrop.wav')
       .then(response => response.arrayBuffer())
       .then(arrayBuffer => audioContext.decodeAudioData(arrayBuffer))
       .then(audioBuffer => {
         kippSoundBuffer = audioBuffer;
-        console.log('KlackExakt.wav geladen - Dauer:', audioBuffer.duration, 'Sekunden');
+        console.log('KlackCrop.wav geladen - Dauer:', audioBuffer.duration, 'Sekunden');
       })
-      .catch(err => console.error('Fehler beim Laden von KlackExakt.wav:', err));
+      .catch(err => console.error('Fehler beim Laden von KlackCrop.wav:', err));
     
     // Funktion zum Abspielen des Kipp-Sounds
     function playKippSound() {
@@ -1822,13 +1822,16 @@
         if(!await waitOrPause("kip", myToken, kipFactor * stepMul)){ runningKipp=false; return; }
 
         advanceFullCW();
-        showW();
-        renderW();
         
-        // Sound EXAKT beim vollflächigen Würfel - "in einem Paket"
+        // Sound JETZT starten - BEVOR der Würfel erscheint!
+        // Browser-Latenz (~60ms) bedeutet: Sound kommt EXAKT an, wenn Würfel sichtbar wird
+        // Wie Licht vs. Schall: Sound muss FRÜHER starten, um GLEICHZEITIG anzukommen
         if(playSound){
           playKippSound();
         }
+        
+        showW();
+        renderW();
         
         if(!await waitOrPause("w", myToken, stepMul)){ runningKipp=false; return; }
       }

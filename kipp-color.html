@@ -872,13 +872,27 @@
       pointer-events:auto;
       display:flex;
       gap:calc(7px * var(--uiscale));
-      overflow-x:auto;
+      overflow-x:scroll; /* scroll statt auto - erzwingt Scrollbarkeit */
+      overflow-y:hidden;
       padding:calc(4px * var(--uiscale)) calc(6px * var(--uiscale));
-      max-width:calc(4.5 * var(--cell)); /* schmaler für erzwungenes Scrollen bei 12 Items */
-      scrollbar-width:none;
+      max-width:calc(4.5 * var(--cell));
+      scrollbar-width:thin; /* SICHTBARE Scrollbar */
+      scrollbar-color: rgba(122, 74, 52, 0.7) rgba(234,215,190,0.3);
+      -webkit-overflow-scrolling: touch; /* iOS smooth scrolling */
     }
     .scrollBand::-webkit-scrollbar{
-      display:none;
+      height: 8px;
+    }
+    .scrollBand::-webkit-scrollbar-track{
+      background: rgba(234,215,190,0.3);
+      border-radius: 4px;
+    }
+    .scrollBand::-webkit-scrollbar-thumb{
+      background: rgba(122, 74, 52, 0.7);
+      border-radius: 4px;
+    }
+    .scrollBand::-webkit-scrollbar-thumb:hover{
+      background: rgba(122, 74, 52, 0.9);
     }
 
     /* Pendel-Animation West–Ost */

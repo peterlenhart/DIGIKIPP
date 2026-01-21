@@ -1834,7 +1834,7 @@
       if(stepsToQ0 === 0) stepsToQ0 = 4;   // Wenn schon Q0, mindestens eine volle Runde
       if(stepsToQ0 < 3) stepsToQ0 += 4;    // Mindestens 3 Kips
 
-      await runSchauKippSequence(stepsToQ0, { kipFactor: 2 });
+      await runSchauKippSequence(stepsToQ0, { kipFactor: 2, playSound: true });
 
       // Score-Endanzeige in Zeile 6 D–E einblenden, pulsierend
       const scoreEl = document.getElementById("scoreDisplay");
@@ -2032,7 +2032,7 @@
       resetTargetPadUI();
       clearHitPulse();
 
-      await runSchauKippSequence(4, { kipFactor: 2 });
+      await runSchauKippSequence(4, { kipFactor: 2, playSound: true });
 
       showTargetSelectView();
     });

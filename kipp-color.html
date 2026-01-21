@@ -18,10 +18,6 @@
   <meta name="theme-color" content="#4a2418">
   
   <!-- Audio Elemente -->
-  <audio id="kippSound" preload="auto">
-    <source src="KlackExakt.wav" type="audio/wav">
-  </audio>
-  
   <audio id="bgLoop" loop preload="auto">
     <source src="colorloop.mp3" type="audio/mpeg">
   </audio>
@@ -1132,7 +1128,36 @@
     const testTargetBtn = document.getElementById("testTargetBtn");
 
     // === AUDIO ELEMENTE ===
-    const kippSound = document.getElementById("kippSound");
+    // WEB AUDIO API für präzise Synchronisation
+    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    let kippSoundBuffer = null;
+    
+    // KlackExakt.wav laden und dekodieren
+    fetch('KlackExakt.wav')
+      .then(response => response.arrayBuffer())
+      .then(arrayBuffer => audioContext.decodeAudioData(arrayBuffer))
+      .then(audioBuffer => {
+        kippSoundBuffer = audioBuffer;
+        console.log('KlackExakt.wav geladen - Dauer:', audioBuffer.duration, 'Sekunden');
+      })
+      .catch(err => console.error('Fehler beim Laden von KlackExakt.wav:', err));
+    
+    // Funktion zum Abspielen des Kipp-Sounds
+    function playKippSound() {
+      if (!kippSoundBuffer) return;
+      
+      const source = audioContext.createBufferSource();
+      source.buffer = kippSoundBuffer;
+      
+      const gainNode = audioContext.createGain();
+      gainNode.gain.value = 0.4; // Lautstärke
+      
+      source.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+      
+      source.start(0);
+    }
+    
     const bgLoop = document.getElementById("bgLoop");
     const muteBtn = document.getElementById("muteBtn");
     const soundOnIcon = document.getElementById("soundOnIcon");
@@ -1802,9 +1827,7 @@
         
         // Sound EXAKT beim vollflächigen Würfel - "in einem Paket"
         if(playSound){
-          kippSound.currentTime = 0;
-          kippSound.volume = 0.4;
-          kippSound.play().catch(err => console.log("Kipp sound failed:", err));
+          playKippSound();
         }
         
         if(!await waitOrPause("w", myToken, stepMul)){ runningKipp=false; return; }
@@ -2489,13 +2512,12 @@
         bgLoop.play().catch(err => console.log("Background-Loop start failed:", err));
       }
       
-      // Audio-Priming: Spiele kippSound einmal stumm ab, damit es danach sofort bereit ist
-      kippSound.volume = 0;
-      kippSound.play().then(() => {
-        kippSound.pause();
-        kippSound.currentTime = 0;
-        kippSound.volume = 0.4; // Zurück auf normale Lautstärke
-      }).catch(err => console.log("Audio priming failed:", err));
+      // Web Audio API Context aktivieren (wichtig für iOS/Mobile)
+      if (audioContext.state === 'suspended') {
+        audioContext.resume().then(() => {
+          console.log('AudioContext aktiviert');
+        });
+      }
       
       introOverlay.classList.add("hidden");
       setTimeout(() => {

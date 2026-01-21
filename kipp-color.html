@@ -1821,13 +1821,12 @@
         
         if(!await waitOrPause("kip", myToken, kipFactor * stepMul)){ runningKipp=false; return; }
 
-        advanceFullCW();
-        
-        // Sound HIER: 20-30ms vor Rendering - kompensiert Mobile-Latenz
+        // Sound HIER starten - arithmetisches Mittel PC/Handy
         if(playSound){
           playKippSound();
         }
         
+        advanceFullCW();
         showW();
         renderW();
         

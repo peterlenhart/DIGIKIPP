@@ -1819,16 +1819,15 @@
         showKip();
         renderKip();
         
-        // Sound FRÜH starten - optimiert für HANDY (Zielplattform)
-        // Mobile Audio-Latenz: 80-120ms → Sound startet WÄHREND Kipp-Animation
-        // Sound kommt dann EXAKT an, wenn Würfel vollflächig erscheint
+        if(!await waitOrPause("kip", myToken, kipFactor * stepMul)){ runningKipp=false; return; }
+
+        advanceFullCW();
+        
+        // Sound HIER: 20-30ms vor Rendering - kompensiert Mobile-Latenz
         if(playSound){
           playKippSound();
         }
         
-        if(!await waitOrPause("kip", myToken, kipFactor * stepMul)){ runningKipp=false; return; }
-
-        advanceFullCW();
         showW();
         renderW();
         

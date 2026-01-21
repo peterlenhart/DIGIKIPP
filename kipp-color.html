@@ -851,16 +851,15 @@
     .scrollBandWrap{
       position:absolute;
       left:50%;
-      transform:translateX(-50%) scale(var(--uiscale));
-      transform-origin: center;
+      transform:translateX(-50%);
       display:flex;
       align-items:center;
       justify-content:center;
       pointer-events:none;
       z-index:50;
-      padding: 4px 8px;
+      padding: calc(4px * var(--uiscale)) calc(8px * var(--uiscale));
       background: rgba(234,215,190,0.55);
-      border-radius: 18px;
+      border-radius: calc(18px * var(--uiscale));
       box-shadow: 0 6px 12px rgba(0,0,0,0.25);
     }
     .scrollBandWrap.hidden{
@@ -873,9 +872,9 @@
     .scrollBand{
       pointer-events:auto;
       display:flex;
-      gap:7px;
+      gap:calc(7px * var(--uiscale));
       overflow-x:auto;
-      padding:4px 6px;
+      padding:calc(4px * var(--uiscale)) calc(6px * var(--uiscale));
       max-width: calc(6 * var(--cell));
       scrollbar-width:none;
     }
@@ -2116,7 +2115,7 @@
       testTargetBtn.disabled = true;
 
       clearHitPulse();
-      checkHitAndAnimate();
+      // KEIN checkHitAndAnimate hier - erst nach Spieler-Kipps!
 
       positionUI();
     }

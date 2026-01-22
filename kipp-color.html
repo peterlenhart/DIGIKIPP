@@ -722,7 +722,8 @@
       opacity:0.4; /* inaktiv, aber sichtbar */
     }
 
-    .scrollBand{
+    .scrollBand{touch-action: pan-x;
+    -webkit-overflow-scrolling: touch;
       pointer-events:auto;
       display:flex;
       gap:calc(7px * var(--uiscale));
@@ -2513,7 +2514,7 @@
 
     document.addEventListener("touchmove", (e) => {
   // Erlauben: Scrollen im Scrollband (horizontal)
-  const inScrollBand = e.target && e.target.closest && e.target.closest("#scrollBand");
+  const inScrollBand = e.target && e.target.closest && e.target.closest("#scrollBand, #scrollBandWrap");
   if (inScrollBand) return;
 
   // Erlauben: Range (falls du irgendwo einen hast)

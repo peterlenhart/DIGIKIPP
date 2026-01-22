@@ -711,7 +711,7 @@
       display:flex;
       align-items:center;
       justify-content:center;
-      pointer-events:none;
+      pointer-events:auto;
       z-index:50;
       padding: calc(4px * var(--uiscale)) calc(8px * var(--uiscale));
       background: rgba(234,215,190,0.55); /* beige Streifen */
@@ -2512,27 +2512,17 @@
     window.addEventListener("resize", rebuild);
 
     document.addEventListener("touchmove", (e) => {
-      const inRange = e.target && e.target.closest && e.target.closest('input[type="range"]');
-      if(inRange) return;
-      e.preventDefault();
-    }, { passive:false });
+  // Erlauben: Scrollen im Scrollband (horizontal)
+  const inScrollBand = e.target && e.target.closest && e.target.closest("#scrollBand");
+  if (inScrollBand) return;
 
-    // Mute Button Handler
-    muteBtn.addEventListener("click", () => {
-      audioMuted = !audioMuted;
-      
-      if(audioMuted){
-        bgLoop.pause();
-        soundOnIcon.style.display = "none";
-        soundOffIcon.style.display = "block";
-      } else {
-        if(bgLoop.paused && bgLoop.currentTime > 0) {
-          bgLoop.play();
-        }
-        soundOnIcon.style.display = "block";
-        soundOffIcon.style.display = "none";
-      }
-    });
+  // Erlauben: Range (falls du irgendwo einen hast)
+  const inRange = e.target && e.target.closest && e.target.closest('input[type="range"]');
+  if (inRange) return;
+
+  // Sonst: Scroll im Rest verhindern (wie bisher)
+  e.preventDefault();
+  }, { passive:false });
 
     // Intro Overlay Handler
     const introOverlay = document.getElementById("introOverlay");

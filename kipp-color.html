@@ -1860,7 +1860,7 @@ function getPlayerRunFactor(steps){
       
       // KEIN Sound beim allerersten Vollbild - erst nach der Einblendung
       
-      if(!await waitOrPause("w", myToken, kipFactor * stepMul)){ runningKipp=false; return; }
+      if(!await waitOrPause("w", myToken, kipFactor)){ runningKipp=false; return; }
 
       const totalSteps = Math.max(1, steps);
 

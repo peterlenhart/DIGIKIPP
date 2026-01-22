@@ -2331,7 +2331,7 @@ muteBtn.addEventListener("click", (e) => {
       uiMode = "COUNT";
       
       // Nur beim ersten Kipp: ausführlicher Text (normale Schreibweise)
-      if (drawsCount === 0) {
+      if (drawsCount === 1) {
         const targetNum = currentTarget ? currentTarget.num : "?";
         const targetColor = currentTarget ? getColorName(currentTarget.color) : "?";
         const hintText = `Die ${targetNum} muss zu ${targetColor}<br>Wähle deine Kippanzahl`;

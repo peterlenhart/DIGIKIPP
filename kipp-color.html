@@ -1417,13 +1417,24 @@ muteBtn.addEventListener("click", (e) => {
     }
 
     function showHint(text, small=false){
-      hintTitle.textContent = text;
+      hintTitle.innerHTML = text;
       hintTitle.classList.remove("hidden");
       hintTitle.classList.toggle("hintSmall", !!small);
     }
     function hideHint(){
       hintTitle.classList.add("hidden");
     }
+    
+    function getColorName(colorClass){
+      const colorMap = {
+        "c-gruen": "Grün",
+        "c-orange": "Orange",
+        "c-blau": "Blau",
+        "c-violett": "Violett"
+      };
+      return colorMap[colorClass] || colorClass;
+    }
+    
     function hideStartUI(){
       startBtnWrap.classList.add("hidden");
       hideHint();
@@ -2310,7 +2321,13 @@ muteBtn.addEventListener("click", (e) => {
 
     function showKippCountView(){
       uiMode = "COUNT";
-      showHint("KIPP-ANZAHL", false);
+      
+      // Dynamischer 2-zeiliger Text mit Zielzahl und Zielfarbe
+      const targetNum = currentTarget ? currentTarget.num : "?";
+      const targetColor = currentTarget ? getColorName(currentTarget.color) : "?";
+      const hintText = `Die ${targetNum} muss zu ${targetColor}<br>Wähle deine Kippanzahl`;
+      
+      showHint(hintText, false);
 
       startBtnWrap.classList.add("hidden");
       targetPadBtn.classList.remove("pulse");

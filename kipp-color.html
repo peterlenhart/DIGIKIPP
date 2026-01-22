@@ -1990,6 +1990,12 @@ muteBtn.addEventListener("click", (e) => {
 
       scrollBand.innerHTML = "";
 
+      // Linker Spacer (damit 0 in die Mitte kann)
+      const leftSpacer = document.createElement("div");
+      leftSpacer.style.minWidth = "calc(var(--cell) * 2.5)";
+      leftSpacer.style.flexShrink = "0";
+      scrollBand.appendChild(leftSpacer);
+
       for (let num = 0; num <= 11; num++){
         const item = document.createElement("div");
         item.className = "scrollItem";
@@ -2006,6 +2012,12 @@ muteBtn.addEventListener("click", (e) => {
 
         scrollBand.appendChild(item);
       }
+
+      // Rechter Spacer (damit 11 in die Mitte kann)
+      const rightSpacer = document.createElement("div");
+      rightSpacer.style.minWidth = "calc(var(--cell) * 2.5)";
+      rightSpacer.style.flexShrink = "0";
+      scrollBand.appendChild(rightSpacer);
 
       // Scroll zu 6 (Mitte)
       setTimeout(() => {

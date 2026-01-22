@@ -2182,7 +2182,8 @@ muteBtn.addEventListener("click", (e) => {
     function showSchauenView(){
       // Nach Ziel-Auswahl: SCHAUEN & MERKEN Button zeigen
       uiMode = "SCHAUEN";
-      showHint("BEREIT ZUM SCHAUEN", false);
+      const targetNum = currentTarget ? currentTarget.num : "?";
+      showHint(`BEOBACHTE DIE ${targetNum}`, false);
 
       startBtnWrap.classList.remove("hidden");
       btnSchauen.classList.remove("hidden");

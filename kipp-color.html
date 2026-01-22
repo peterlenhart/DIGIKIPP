@@ -2205,25 +2205,8 @@ muteBtn.addEventListener("click", (e) => {
         return;
       }
 
-      // Ab Ziel 5: Erste 4 Kipps wie Vorschaukipps, dann beschleunigt
-      if (drawsCount >= 5) {
-        if (anzahl <= 4) {
-          // Alle Kipps wie Vorschaukipps
-          runSchauKippSequence(anzahl, { kipFactor: 1, playSound: true })
-            .finally(doAfter);
-        } else {
-          // Hybrid: Erst 4 Vorschau-Kipps, dann beschleunigte Kipps
-          runSchauKippSequence(4, { kipFactor: 1, playSound: true })
-            .then(() => {
-              return runSpielerKippSequence(anzahl - 4, { kipFactor: 1, playSound: true });
-            })
-            .finally(doAfter);
-        }
-      } else {
-        // Ziele 1-4: Normale beschleunigte Spielerkipps
-        runSpielerKippSequence(anzahl, { kipFactor: 1, playSound: true })
-          .finally(doAfter);
-      }
+      runSpielerKippSequence(anzahl, { kipFactor: 1, playSound: true })
+        .finally(doAfter);
     }
 
     function resetTargetPadUI(){

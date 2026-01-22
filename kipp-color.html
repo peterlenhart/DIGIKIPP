@@ -1846,18 +1846,37 @@
     }
 
     // ---------- UI: Scrollband 0-11 ----------
+    let scrollBandBuilt = false;
+
     function buildScrollBand(){
       if (!scrollBand) return;
+
+      // Nur einmal bauen (sonst doppelte Listener / UI-Bugs)
+      if (scrollBandBuilt) return;
+      scrollBandBuilt = true;
+
       scrollBand.innerHTML = "";
+
       for (let num = 0; num <= 11; num++){
         const item = document.createElement("div");
         item.className = "scrollItem";
-        item.dataset.anzahl = num;
+        item.dataset.anzahl = String(num);
         item.textContent = String(num);
-        item.addEventListener("click", () => handleAnzahlClick(num, null));
+
+        item.addEventListener("click", () => {
+          // Guard: wenn grad Animation läuft oder UI gelockt ist, ignoriere
+          if (runningKipp) return;
+          if (item.classList.contains("disabled")) return;
+
+          handleAnzahlClick(num, null);
+        });
+
         scrollBand.appendChild(item);
       }
+
+      // Wiggle nur am Anfang (optional)
       scrollBand.classList.add("wiggle");
+      setTimeout(() => scrollBand.classList.remove("wiggle"), 2200);
     }
 
     function setScrollBandLocked(locked){
@@ -1992,39 +2011,42 @@
     // GEÄNDERT: Nach dem Kipp immer Ziel beendet (nur 1 Versuch)
     // =========================
     function handleAnzahlClick(anzahl, clickedBtn){
-      if(!currentTarget) return;
-      if(runningKipp) return;
+      // Du wolltest "nur Scrollband 0..11": also robust, minimal, ohne Nebenwirkungen.
+      // - Wenn kein Target da ist: nichts machen (aber auch NICHT crashen)
+      // - 0 ist erlaubt: dann kein Kipp, aber wir prüfen Treffer (falls du das willst)
+      if (runningKipp) return;
+      if (!currentTarget) return;
 
       attemptsForTarget++;
       setScrollBandLocked(true);
 
-      runSchauKippSequence(anzahl, { kipFactor: 1, playSound: true }).finally(async () => {
+      // 0 Kipp: kein runSchauKippSequence, aber trotzdem Hit-Check + next target
+      const doAfter = async () => {
         clearHitPulse();
         const hit = checkHitAndAnimate();
 
         const isLastTarget = (drawsCount >= MAX_TARGETS);
-        const isTargetFinished = true;
 
-        if(isLastTarget && isTargetFinished){
+        if (isLastTarget){
           await sleep(900);
           showEndResultView();
           return;
         }
 
-        // Treffer: kurzer Moment, dann neues Ziel
-        if(hit){
-          await sleep(900);
-          resetToNewTargetChoice();
-          setScrollBandLocked(false);
-          renderW();
-          return;
-        }
-
-        // Fehlversuch: kurzer Moment zeigen, dann neues Ziel (kein Punkt)
         await sleep(900);
         resetToNewTargetChoice();
         setScrollBandLocked(false);
-      });
+        renderW();
+      };
+
+      if (anzahl === 0){
+        // Wichtig: sofort wieder entsperren/weiter – kein "Hängenbleiben"
+        doAfter();
+        return;
+      }
+
+      runSchauKippSequence(anzahl, { kipFactor: 1, playSound: true })
+        .finally(doAfter);
     }
 
     function resetTargetPadUI(){
@@ -2132,19 +2154,21 @@
       startBtnWrap.classList.add("hidden");
       targetPadBtn.classList.remove("pulse");
 
-      // Scrollband statt Buttons zeigen
+      // Scrollband zeigen
       scrollBandWrap.classList.remove("hidden");
-      buildScrollBand();
-      setScrollBandLocked(false);
-      
-      kippAnzahlView.classList.add("hidden");
 
+      // WICHTIG: nur einmal bauen
+      buildScrollBand();
+
+      // Freischalten (Klickbar 0..11)
+      setScrollBandLocked(false);
+
+      // Die alten 1..6 Buttons bleiben komplett aus
+      kippAnzahlView.classList.add("hidden");
       testTargetBtn.classList.add("hidden");
       testTargetBtn.disabled = true;
 
       clearHitPulse();
-      // KEIN checkHitAndAnimate hier - erst nach Spieler-Kipps!
-
       positionUI();
     }
 

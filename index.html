@@ -322,9 +322,14 @@
           <span class="startBtnText">KIPP CARD</span>
         </button>
 
-        <!-- KIPP TIPP (ehem. FAIRY) -->
-        <button id="btnFairy" class="squareBtn menu-btn">
-          <span class="startBtnText">KIPP TIPP</span>
+        <!-- KIPP QUEEN (inaktiv) -->
+        <button id="btnQueen" class="squareBtn menu-btn fairyBtn" disabled>
+          <span class="startBtnText">KIPP QUEEN</span>
+        </button>
+
+        <!-- KIPP KING (inaktiv) -->
+        <button id="btnKing" class="squareBtn menu-btn fairyBtn" disabled>
+          <span class="startBtnText">KIPP KING</span>
         </button>
 
         <!-- X -->
@@ -400,15 +405,18 @@
 
       const btnColor = document.getElementById("btnColor");
       const btnCard  = document.getElementById("btnCard");
-      const btnFairy = document.getElementById("btnFairy");
+      const btnQueen = document.getElementById("btnQueen");
+      const btnKing  = document.getElementById("btnKing");
 
-      const row10  = (((10   + HEADER_ROW_OFFSET) - 1) * cellPx) + cellPx/2;
-      const row115 = (((11.5 + HEADER_ROW_OFFSET) - 1) * cellPx) + cellPx/2;
-      const row13  = (((13   + HEADER_ROW_OFFSET) - 1) * cellPx) + cellPx/2;
+      const row95  = (((9.5  + HEADER_ROW_OFFSET) - 1) * cellPx) + cellPx/2;
+      const row11  = (((11   + HEADER_ROW_OFFSET) - 1) * cellPx) + cellPx/2;
+      const row125 = (((12.5 + HEADER_ROW_OFFSET) - 1) * cellPx) + cellPx/2;
+      const row14  = (((14   + HEADER_ROW_OFFSET) - 1) * cellPx) + cellPx/2;
 
-      btnColor.style.top = row10  + "px";
-      btnCard.style.top  = row115 + "px";
-      btnFairy.style.top = row13  + "px";
+      btnColor.style.top = row95  + "px";
+      btnCard.style.top  = row11  + "px";
+      btnQueen.style.top = row125 + "px";
+      btnKing.style.top  = row14  + "px";
 
       // Close Button links (0.1A)
       const closeBtn = document.getElementById("closeBtn");
@@ -442,7 +450,7 @@
     // Game navigation
     document.getElementById("btnColor").onclick = () => location.href="kipp-color.html";
     document.getElementById("btnCard").onclick  = () => location.href="kipp-card.html";
-    document.getElementById("btnFairy").onclick = () => location.href="kipp-tipp.html";
+    // btnQueen und btnKing sind inaktiv (disabled)
 
     // Modal
     const closeBtn = document.getElementById("closeBtn");

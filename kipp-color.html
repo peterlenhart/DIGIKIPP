@@ -1854,10 +1854,49 @@ muteBtn.addEventListener("click", (e) => {
       const totalSteps = Math.max(1, steps);
 
       for(let i=0;i<steps;i++){
-        // NEUE BESCHLEUNIGUNGSLOGIK:
-        // Kipp #1: Faktor = 1.0 (normale Geschwindigkeit, volle Zeiten)
-        // Kipp #N: Faktor = 1/3 (dreifache Geschwindigkeit, 1/3 der Zeiten)
-        // Linear beschleunigend von 1.0 bis 1/3
+        const tStep = (totalSteps <= 1) ? 0 : (i / (totalSteps - 1));
+        const stepMul = lerp(1.0, STEP_MAX, tStep);
+
+        showKip();
+        renderKip();
+        
+        if(!await waitOrPause("kip", myToken, kipFactor * stepMul)){ runningKipp=false; return; }
+
+        // Sound HIER starten - arithmetisches Mittel PC/Handy
+        if(playSound){
+          playKippSound();
+        }
+        
+        advanceFullCW();
+        showW();
+        renderW();
+        
+        if(!await waitOrPause("w", myToken, stepMul)){ runningKipp=false; return; }
+      }
+
+      runningKipp = false;
+    }
+
+    // Spielerkipp mit kontinuierlicher Beschleunigung (nur für Scrollband)
+    async function runSpielerKippSequence(steps, opts = {}){
+      if(runningKipp) return;
+      runningKipp = true;
+
+      const kipFactor = (opts && opts.kipFactor) ? opts.kipFactor : 1;
+      const playSound = (opts && opts.playSound) ? opts.playSound : false;
+      const myToken = ++previewToken;
+
+      showW();
+      renderW();
+      
+      if(!await waitOrPause("w", myToken, 1)){ runningKipp=false; return; }
+
+      const totalSteps = Math.max(1, steps);
+
+      for(let i=0;i<steps;i++){
+        // SPIELER-BESCHLEUNIGUNG:
+        // Kipp 1: Faktor = 1.0 (normale Geschwindigkeit, volle Zeiten)
+        // Kipp N: Faktor = 1/3 (dreifache Geschwindigkeit, 1/3 der Zeiten)
         const speedFactor = (totalSteps <= 1) 
           ? 1.0 
           : 1.0 - (i / (totalSteps - 1)) * (2.0 / 3.0);
@@ -1867,7 +1906,6 @@ muteBtn.addEventListener("click", (e) => {
         
         if(!await waitOrPause("kip", myToken, kipFactor * speedFactor)){ runningKipp=false; return; }
 
-        // Sound HIER starten - arithmetisches Mittel PC/Handy
         if(playSound){
           playKippSound();
         }
@@ -2082,7 +2120,7 @@ muteBtn.addEventListener("click", (e) => {
         return;
       }
 
-      runSchauKippSequence(anzahl, { kipFactor: 1, playSound: true })
+      runSpielerKippSequence(anzahl, { kipFactor: 1, playSound: true })
         .finally(doAfter);
     }
 

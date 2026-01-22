@@ -439,16 +439,22 @@
       text-shadow:
         0 2px 0 rgba(0,0,0,0.75),
         0 10px 22px rgba(0,0,0,0.55);
-      white-space: nowrap;
+      white-space: normal;
+      text-align: center;
       z-index: 60;
       pointer-events: none;
       font-size: calc(18px * var(--uiscale));
       transform: translate(-50%, -50%);
+      max-width: 90%;
     }
     /* bleibt vorhanden, wird aber für KIPPZIEL nicht mehr benutzt */
     .hintSmall{
       font-size: calc(14px * var(--uiscale)) !important;
       opacity: 0.96;
+    }
+    
+    .hintNormal{
+      text-transform: none !important;
     }
 
     /* 2x2 Ziel-Button */
@@ -1416,13 +1422,15 @@ muteBtn.addEventListener("click", (e) => {
       return `${ordinals[nextIndex] || (nextIndex + ".")} KIPPZIEL VON 12`;
     }
 
-    function showHint(text, small=false){
+    function showHint(text, small=false, normalCase=false){
       hintTitle.innerHTML = text;
       hintTitle.classList.remove("hidden");
       hintTitle.classList.toggle("hintSmall", !!small);
+      hintTitle.classList.toggle("hintNormal", !!normalCase);
     }
     function hideHint(){
       hintTitle.classList.add("hidden");
+      hintTitle.classList.remove("hintNormal");
     }
     
     function getColorName(colorClass){
@@ -2322,12 +2330,16 @@ muteBtn.addEventListener("click", (e) => {
     function showKippCountView(){
       uiMode = "COUNT";
       
-      // Dynamischer 2-zeiliger Text mit Zielzahl und Zielfarbe
-      const targetNum = currentTarget ? currentTarget.num : "?";
-      const targetColor = currentTarget ? getColorName(currentTarget.color) : "?";
-      const hintText = `Die ${targetNum} muss zu ${targetColor}<br>Wähle deine Kippanzahl`;
-      
-      showHint(hintText, false);
+      // Nur beim ersten Kipp: ausführlicher Text (normale Schreibweise)
+      if (drawsCount === 0) {
+        const targetNum = currentTarget ? currentTarget.num : "?";
+        const targetColor = currentTarget ? getColorName(currentTarget.color) : "?";
+        const hintText = `Die ${targetNum} muss zu ${targetColor}<br>Wähle deine Kippanzahl`;
+        showHint(hintText, false, true);
+      } else {
+        // Ab zweitem Kipp: kurz (GROSSBUCHSTABEN)
+        showHint("KIPP ANZAHL", false, false);
+      }
 
       startBtnWrap.classList.add("hidden");
       targetPadBtn.classList.remove("pulse");

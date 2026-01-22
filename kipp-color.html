@@ -439,16 +439,22 @@
       text-shadow:
         0 2px 0 rgba(0,0,0,0.75),
         0 10px 22px rgba(0,0,0,0.55);
-      white-space: nowrap;
+      white-space: normal;
+      text-align: center;
       z-index: 60;
       pointer-events: none;
       font-size: calc(18px * var(--uiscale));
       transform: translate(-50%, -50%);
+      max-width: 90%;
     }
     /* bleibt vorhanden, wird aber für KIPPZIEL nicht mehr benutzt */
     .hintSmall{
       font-size: calc(14px * var(--uiscale)) !important;
       opacity: 0.96;
+    }
+    
+    .hintNormal{
+      text-transform: none !important;
     }
 
     /* 2x2 Ziel-Button */
@@ -1416,14 +1422,27 @@ muteBtn.addEventListener("click", (e) => {
       return `${ordinals[nextIndex] || (nextIndex + ".")} KIPPZIEL VON 12`;
     }
 
-    function showHint(text, small=false){
-      hintTitle.textContent = text;
+    function showHint(text, small=false, normalCase=false){
+      hintTitle.innerHTML = text;
       hintTitle.classList.remove("hidden");
       hintTitle.classList.toggle("hintSmall", !!small);
+      hintTitle.classList.toggle("hintNormal", !!normalCase);
     }
     function hideHint(){
       hintTitle.classList.add("hidden");
+      hintTitle.classList.remove("hintNormal");
     }
+    
+    function getColorName(colorClass){
+      const colorMap = {
+        "c-gruen": "Grün",
+        "c-orange": "Orange",
+        "c-blau": "Blau",
+        "c-violett": "Violett"
+      };
+      return colorMap[colorClass] || colorClass;
+    }
+    
     function hideStartUI(){
       startBtnWrap.classList.add("hidden");
       hideHint();
@@ -2265,7 +2284,29 @@ muteBtn.addEventListener("click", (e) => {
     }
 
     function showSchauenView(){
-      // Nach Ziel-Auswahl: SCHAUEN & MERKEN Button zeigen
+      // Ab 5. Ziel: Skip Vorschau, direkt zum Spielen
+      if (drawsCount >= 5) {
+        uiMode = "SCHAUEN";
+        showHint("GENUG GESCHAUT", false);
+        
+        targetPadBtn.classList.remove("pulse");
+        targetPadBtn.disabled = true;
+        
+        startBtnWrap.classList.add("hidden");
+        scrollBandWrap.classList.add("hidden");
+        kippAnzahlView.classList.add("hidden");
+        
+        positionUI();
+        
+        // Kurz warten, dann direkt zur Kippanzahl
+        setTimeout(() => {
+          showKippCountView();
+        }, 1000);
+        
+        return;
+      }
+      
+      // Ziele 1-4: Normaler Flow mit SCHAUEN & MERKEN
       uiMode = "SCHAUEN";
       const targetNum = currentTarget ? currentTarget.num : "?";
       showHint(`BEOBACHTE DIE ${targetNum}`, false);
@@ -2310,7 +2351,17 @@ muteBtn.addEventListener("click", (e) => {
 
     function showKippCountView(){
       uiMode = "COUNT";
-      showHint("KIPP-ANZAHL", false);
+      
+      // Nur beim ersten Kipp: ausführlicher Text (normale Schreibweise)
+      if (drawsCount === 1) {
+        const targetNum = currentTarget ? currentTarget.num : "?";
+        const targetColor = currentTarget ? getColorName(currentTarget.color) : "?";
+        const hintText = `Die ${targetNum} muss zu ${targetColor}<br>Wähle deine Kippanzahl`;
+        showHint(hintText, false, true);
+      } else {
+        // Ab zweitem Kipp: kurz (GROSSBUCHSTABEN)
+        showHint("KIPP ANZAHL", false, false);
+      }
 
       startBtnWrap.classList.add("hidden");
       targetPadBtn.classList.remove("pulse");

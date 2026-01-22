@@ -16,6 +16,11 @@
   
   <!-- Theme Color -->
   <meta name="theme-color" content="#4a2418">
+  
+  <!-- Audio Elemente -->
+  <audio id="bgLoop" loop preload="auto">
+    <source src="colorloop.mp3" type="audio/mpeg">
+  </audio>
 
   <style>
     :root{
@@ -344,6 +349,37 @@
     .squareBtn:active{ transform: scale(0.98); filter: brightness(0.98); }
     .squareBtn[disabled]{ opacity: 1; pointer-events: none; filter: saturate(0.8); }
 
+    /* Icon Button (Mute etc.) - nur Icon, kein Button-Hintergrund */
+    .iconBtn{
+      position: absolute;
+      width: auto;
+      height: auto;
+      border: none;
+      background: transparent;
+      box-shadow: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+      cursor: pointer;
+      pointer-events: auto;
+      color: var(--ui-text);
+      text-shadow: 
+        0 2px 4px rgba(0,0,0,0.4),
+        0 1px 2px rgba(0,0,0,0.6);
+      transform: translate(-50%, -50%);
+      z-index: 20;
+      padding: calc(8px * var(--uiscale));
+    }
+    .iconBtn:active{ transform: translate(-50%, -50%) scale(0.92); }
+    .iconBtn svg{ 
+      display: block;
+      width: calc(40px * var(--uiscale));
+      height: calc(40px * var(--uiscale));
+      filter: drop-shadow(0 2px 3px rgba(0,0,0,0.35));
+    }
+
     /* NEU: Kippzahl-Button während Lauf (braun + beige Zahl) */
     .squareBtn.runSelected{
       background: var(--ui-panel-bg) !important;
@@ -667,6 +703,87 @@
     }
     .kippAnzahlBtns.compact{ gap: calc(10px * var(--uiscale)); }
 
+    /* Scrollband für Kipp-Anzahl */
+    .scrollBandWrap{
+      position:absolute;
+      left:50%;
+      transform:translateX(-50%);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      pointer-events:none;
+      z-index:50;
+      padding: calc(4px * var(--uiscale)) calc(8px * var(--uiscale));
+      background: rgba(234,215,190,0.55); /* beige Streifen */
+      border-radius: calc(18px * var(--uiscale));
+      box-shadow: 0 6px 12px rgba(0,0,0,0.25);
+    }
+    .scrollBandWrap.locked{
+      opacity:0.4; /* inaktiv, aber sichtbar */
+    }
+
+    .scrollBand{
+      pointer-events:auto;
+      display:flex;
+      gap:calc(7px * var(--uiscale));
+      overflow-x:auto;
+      padding:calc(4px * var(--uiscale)) calc(6px * var(--uiscale));
+      max-width:calc(6 * var(--cell));
+      scrollbar-width:thin;
+      scrollbar-color: rgba(0,0,0,0.35) rgba(234,215,190,0.3);
+    }
+    .scrollBand::-webkit-scrollbar{
+      height: 6px;
+    }
+    .scrollBand::-webkit-scrollbar-track{
+      background: rgba(234,215,190,0.3);
+      border-radius: 3px;
+    }
+    .scrollBand::-webkit-scrollbar-thumb{
+      background: rgba(0,0,0,0.35);
+      border-radius: 3px;
+    }
+
+    /* Pendel-Animation West–Ost */
+    @keyframes scrollWiggle{
+      0%   { transform: translateX(-10px); }
+      100% { transform: translateX(10px); }
+    }
+    .scrollBand.wiggle{
+      animation: scrollWiggle 1.1s ease-in-out 0.3s infinite alternate;
+      will-change: transform;
+    }
+
+    .scrollItem{
+      min-width: calc(var(--cell) * 0.85);
+      height:    calc(var(--cell) * 0.85);
+      border-radius: calc(0.20 * var(--cell));
+      border:2px solid rgba(0,0,0,0.65);
+      background:rgba(234,215,190,0.96);
+      box-shadow:
+        0 10px 18px rgba(0,0,0,0.22),
+        0 0 0 1px rgba(255,255,255,0.18) inset;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-weight:1000;
+      letter-spacing:0.06em;
+      color:#7a3f2b;
+      text-shadow:0 1px 0 rgba(255,255,255,0.35);
+      user-select:none;
+      -webkit-tap-highlight-color:transparent;
+      cursor:pointer;
+      font-size: calc(var(--cell) * 0.55); /* große Zahlen, fast flächendeckend */
+    }
+    .scrollItem:active{
+      transform:scale(0.98);
+      filter:brightness(0.98);
+    }
+    .scrollItem.disabled{
+      opacity:0.5;
+      pointer-events:none;
+    }
+
     .navBtn{
       position: absolute;
       width: calc(56px * var(--uiscale));
@@ -832,45 +949,6 @@
       transform: scale(0.97);
       filter: brightness(0.96);
     }
-
-    /* Sound Toggle Button */
-    .soundToggleBtn{
-      position: absolute;
-      width: calc(var(--cell) * 0.7);
-      height: calc(var(--cell) * 0.7);
-      border-radius: 50%;
-      border: 3px solid rgba(0,0,0,0.4);
-      background: rgba(234,215,190,0.95);
-      box-shadow: 
-        0 4px 12px rgba(0,0,0,0.25),
-        inset 0 1px 2px rgba(255,255,255,0.3);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      user-select: none;
-      pointer-events: auto;
-      z-index: 25;
-      transition: all 0.2s ease;
-    }
-    .soundToggleBtn:active{
-      transform: translate(-50%, -50%) scale(0.9);
-    }
-    .soundToggleBtn:hover{
-      background: rgba(234,215,190,1);
-      box-shadow: 
-        0 6px 16px rgba(0,0,0,0.3),
-        inset 0 1px 2px rgba(255,255,255,0.4);
-    }
-    .soundToggleBtn.muted{
-      background: rgba(180,150,120,0.9);
-      opacity: 0.7;
-    }
-    .soundIcon{
-      font-size: calc(var(--cell) * 0.35);
-      color: #7a3f2b;
-      line-height: 1;
-    }
   </style>
 </head>
 
@@ -889,11 +967,6 @@
         <button class="introBackBtn" id="introBackBtn">← Zurück zur Auswahl</button>
         <button class="introBtn" id="introStartBtn">LOS GEHT'S</button>
       </div>
-
-      <!-- Audio: Würfel-Klackgeräusch -->
-      <audio id="klackSound" preload="auto">
-        <source src="klack_single_trimmed.wav" type="audio/wav">
-      </audio>
 
       <div class="bgPNG" aria-hidden="true"></div>
       <div class="ball" aria-label="Kugel"></div>
@@ -987,6 +1060,20 @@
         <!-- End-Score in 6D–E -->
         <div class="scoreDisplay" id="scoreDisplay">00</div>
 
+        <!-- Mute Button -->
+        <button id="muteBtn" class="iconBtn" type="button" aria-label="Audio">
+          <svg id="soundOnIcon" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+            <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+            <path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path>
+          </svg>
+          <svg id="soundOffIcon" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none;">
+            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+            <line x1="23" y1="9" x2="17" y2="15"></line>
+            <line x1="17" y1="9" x2="23" y2="15"></line>
+          </svg>
+        </button>
+
         <div class="titleLeft" id="titleLeft">DIGIKIPP</div>
 
         <div class="hintTitle" id="hintTitle">SCHAUKIPP-RUNDE</div>
@@ -1007,6 +1094,11 @@
           <div class="targetPadNum" id="targetPadNum"></div>
         </button>
 
+        <!-- Scrollband für Kipp-Anzahl (0-11) -->
+        <div class="scrollBandWrap hidden" id="scrollBandWrap">
+          <div class="scrollBand" id="scrollBand"></div>
+        </div>
+
         <div id="kippAnzahlView" class="hidden">
           <div class="kippAnzahlBtns" id="kippAnzahlBtns"></div>
 
@@ -1017,10 +1109,6 @@
 
         <button class="navBtn" id="backBtn" aria-label="Zurück">
           <div class="backIcon"></div>
-        </button>
-
-        <button class="soundToggleBtn" id="soundToggleBtn" aria-label="Sound an/aus">
-          <span class="soundIcon" id="soundIcon">🔊</span>
         </button>
       </div>
 
@@ -1041,13 +1129,52 @@
     const kippAnzahlView = document.getElementById("kippAnzahlView");
     const kippAnzahlBtns = document.getElementById("kippAnzahlBtns");
 
+    const scrollBandWrap = document.getElementById("scrollBandWrap");
+    const scrollBand = document.getElementById("scrollBand");
+
     const backBtn  = document.getElementById("backBtn");
-    const soundToggleBtn = document.getElementById("soundToggleBtn");
-    const soundIcon = document.getElementById("soundIcon");
-    
-    let soundEnabled = true; // Sound ist standardmäßig an
 
     const testTargetBtn = document.getElementById("testTargetBtn");
+
+    // === AUDIO ELEMENTE ===
+    // WEB AUDIO API für präzise Synchronisation
+    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    let kippSoundBuffer = null;
+    
+    // KlackCrop.wav laden und dekodieren
+    fetch('KlackCrop.wav')
+      .then(response => response.arrayBuffer())
+      .then(arrayBuffer => audioContext.decodeAudioData(arrayBuffer))
+      .then(audioBuffer => {
+        kippSoundBuffer = audioBuffer;
+        console.log('KlackCrop.wav geladen - Dauer:', audioBuffer.duration, 'Sekunden');
+      })
+      .catch(err => console.error('Fehler beim Laden von KlackCrop.wav:', err));
+    
+    // Funktion zum Abspielen des Kipp-Sounds
+    function playKippSound() {
+      if (!kippSoundBuffer) return;
+      
+      const source = audioContext.createBufferSource();
+      source.buffer = kippSoundBuffer;
+      
+      const gainNode = audioContext.createGain();
+      gainNode.gain.value = 0.4; // Lautstärke
+      
+      source.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+      
+      source.start(0);
+    }
+    
+    const bgLoop = document.getElementById("bgLoop");
+    const muteBtn = document.getElementById("muteBtn");
+    const soundOnIcon = document.getElementById("soundOnIcon");
+    const soundOffIcon = document.getElementById("soundOffIcon");
+    let audioMuted = false;
+    
+    // Background-Loop Lautstärke
+    bgLoop.volume = 0.3;
 
     const targetPadBtn    = document.getElementById("targetPadBtn");
     const targetPadCircle = document.getElementById("targetPadCircle");
@@ -1185,26 +1312,13 @@
       return { row, col: colMap[colLetter], colLetter };
     }
 
-    // Würfel-Klackgeräusch abspielen
-    function playKlack(){
-      if(!soundEnabled) return; // Nur abspielen wenn Sound aktiviert
-      
-      const audio = document.getElementById("klackSound");
-      if(audio){
-        audio.currentTime = 0; // Zurücksetzen für schnelle Wiederholung
-        audio.play().catch(err => {
-          // Fehler ignorieren (z.B. wenn Browser Autoplay blockiert)
-          console.log("Klack-Sound konnte nicht abgespielt werden:", err);
-        });
-      }
-    }
-
     let currentTarget = null;
 
     let targetRevealed = false;
     let started = false;
 
     let uiMode = "START"; // START | TARGET | COUNT | END
+    let gameHasStarted = false; // Flag: Wurde überhaupt schon gespielt?
 
     // =========================
     // Versuche pro Ziel  (GEÄNDERT: nur 1 Versuch)
@@ -1695,12 +1809,15 @@
       runningKipp = true;
 
       const kipFactor = (opts && opts.kipFactor) ? opts.kipFactor : 1;
+      const playSound = (opts && opts.playSound) ? opts.playSound : false;
       const myToken = ++previewToken;
 
       showW();
       renderW();
-      playKlack(); // Klack beim Start-Landing
-      if(!await waitOrPause("w", myToken, kipFactor * 1)){ runningKipp=false; return; }
+      
+      // KEIN Sound beim allerersten Vollbild - erst nach der Einblendung
+      
+      if(!await waitOrPause("w", myToken, 1)){ runningKipp=false; return; }
 
       const totalSteps = Math.max(1, steps);
 
@@ -1710,51 +1827,66 @@
 
         showKip();
         renderKip();
+        
         if(!await waitOrPause("kip", myToken, kipFactor * stepMul)){ runningKipp=false; return; }
 
+        // Sound HIER starten - arithmetisches Mittel PC/Handy
+        if(playSound){
+          playKippSound();
+        }
+        
         advanceFullCW();
         showW();
         renderW();
-        playKlack(); // Klack beim Landing in Ecke
-        if(!await waitOrPause("w", myToken, kipFactor * stepMul)){ runningKipp=false; return; }
+        
+        if(!await waitOrPause("w", myToken, stepMul)){ runningKipp=false; return; }
       }
 
       runningKipp = false;
     }
 
-    // Neue Funktion: Kontinuierliche Beschleunigung von startFactor bis endFactor
-    async function runSchauKippSequenceAccelerated(steps, startFactor, endFactor){
-      if(runningKipp) return;
-      runningKipp = true;
+    // ---------- UI: Scrollband 0-11 ----------
+    let scrollBandBuilt = false;
 
-      const myToken = ++previewToken;
-      const totalSteps = Math.max(1, steps);
+    function buildScrollBand(){
+      if (!scrollBand) return;
 
-      showW();
-      renderW();
-      playKlack(); // Klack beim Start-Landing
-      if(!await waitOrPause("w", myToken, startFactor * 1)){ runningKipp=false; return; }
+      // Nur einmal bauen (sonst doppelte Listener / UI-Bugs)
+      if (scrollBandBuilt) return;
+      scrollBandBuilt = true;
 
-      for(let i=0;i<steps;i++){
-        // Kontinuierliche Beschleunigung: von startFactor zu endFactor
-        const progress = (totalSteps <= 1) ? 1 : (i / (totalSteps - 1));
-        const kipFactor = lerp(startFactor, endFactor, progress);
-        
-        const tStep = (totalSteps <= 1) ? 0 : (i / (totalSteps - 1));
-        const stepMul = lerp(1.0, STEP_MAX, tStep);
+      scrollBand.innerHTML = "";
 
-        showKip();
-        renderKip();
-        if(!await waitOrPause("kip", myToken, kipFactor * stepMul)){ runningKipp=false; return; }
+      for (let num = 0; num <= 11; num++){
+        const item = document.createElement("div");
+        item.className = "scrollItem";
+        item.dataset.anzahl = String(num);
+        item.textContent = String(num);
 
-        advanceFullCW();
-        showW();
-        renderW();
-        playKlack(); // Klack beim Landing in Ecke
-        if(!await waitOrPause("w", myToken, kipFactor * stepMul)){ runningKipp=false; return; }
+        item.addEventListener("click", () => {
+          // Guard: wenn grad Animation läuft oder UI gelockt ist, ignoriere
+          if (runningKipp) return;
+          if (item.classList.contains("disabled")) return;
+
+          handleAnzahlClick(num, null);
+        });
+
+        scrollBand.appendChild(item);
       }
 
-      runningKipp = false;
+      // Wiggle nur am Anfang (optional)
+      scrollBand.classList.add("wiggle");
+      setTimeout(() => scrollBand.classList.remove("wiggle"), 2200);
+    }
+
+    function setScrollBandLocked(locked){
+      if (!scrollBand) return;
+      scrollBand.querySelectorAll(".scrollItem").forEach(item => {
+        item.classList.toggle("disabled", !!locked);
+      });
+      if (scrollBandWrap){
+        scrollBandWrap.classList.toggle("locked", !!locked);
+      }
     }
 
     // ---------- UI: Kippzahl Buttons ----------
@@ -1794,12 +1926,7 @@
       targetRevealed = false;
       resetTargetPadUI();
       clearHitPulse();
-      
-      // KEINE Änderung an rotIndex oder Zahlen!
-      // Der Würfel bleibt in seiner aktuellen Lage
-      
-      // Zur START-Ansicht zurück (mit SCHAUEN & MERKEN Button)
-      showStartView();
+      showTargetSelectView();
     }
 
     // ---------- Reset Game to Start ----------
@@ -1810,7 +1937,6 @@
       resetTargetDeck();
       resetLockedColors();
       rotIndex = 0;
-      started = false;  // Beim kompletten Neustart zurücksetzen
       
       // WICHTIG: Zahlen neu mischen!
       reroll12_keepAssigned();
@@ -1831,6 +1957,7 @@
       btnSchauen.classList.add("hidden");
       btnErgebnis.classList.remove("hidden");
 
+      scrollBandWrap.classList.add("hidden");
       kippAnzahlView.classList.add("hidden");
       targetPadBtn.classList.add("hidden");
 
@@ -1865,7 +1992,7 @@
       if(stepsToQ0 === 0) stepsToQ0 = 4;   // Wenn schon Q0, mindestens eine volle Runde
       if(stepsToQ0 < 3) stepsToQ0 += 4;    // Mindestens 3 Kips
 
-      await runSchauKippSequence(stepsToQ0, { kipFactor: 2 });
+      await runSchauKippSequence(stepsToQ0, { kipFactor: 2, playSound: true });
 
       // Score-Endanzeige in Zeile 6 D–E einblenden, pulsierend
       const scoreEl = document.getElementById("scoreDisplay");
@@ -1884,46 +2011,42 @@
     // GEÄNDERT: Nach dem Kipp immer Ziel beendet (nur 1 Versuch)
     // =========================
     function handleAnzahlClick(anzahl, clickedBtn){
-      if(!currentTarget) return;
-      if(runningKipp) return;
-
-      markRunSelected(clickedBtn);
-      setAnzahlButtonsLocked(true);
+      // Du wolltest "nur Scrollband 0..11": also robust, minimal, ohne Nebenwirkungen.
+      // - Wenn kein Target da ist: nichts machen (aber auch NICHT crashen)
+      // - 0 ist erlaubt: dann kein Kipp, aber wir prüfen Treffer (falls du das willst)
+      if (runningKipp) return;
+      if (!currentTarget) return;
 
       attemptsForTarget++;
+      setScrollBandLocked(true);
 
-      // KONTINUIERLICHE BESCHLEUNIGUNG:
-      // Start: kipFactor 1.0 (doppelt so schnell wie Vorschau)
-      // Ende: kipFactor 0.25 (sehr schnell)
-      // Jeder Kipp wird schneller!
-      runSchauKippSequenceAccelerated(anzahl, 1.0, 0.25).finally(async () => {
+      // 0 Kipp: kein runSchauKippSequence, aber trotzdem Hit-Check + next target
+      const doAfter = async () => {
         clearHitPulse();
         const hit = checkHitAndAnimate();
 
-        clearRunSelected();
-
         const isLastTarget = (drawsCount >= MAX_TARGETS);
-        const isTargetFinished = true; // immer (nur 1 Versuch)
 
-        if(isLastTarget && isTargetFinished){
-          await sleep(700);
+        if (isLastTarget){
+          await sleep(900);
           showEndResultView();
           return;
         }
 
-        // Treffer: kurzer Moment, dann neues Ziel
-        if(hit){
-          await sleep(900);
-          resetToNewTargetChoice();
-          setAnzahlButtonsLocked(false);
-          renderW();
-          return;
-        }
-
-        // Fehlversuch: sofort neues Ziel (kein Punkt)
+        await sleep(900);
         resetToNewTargetChoice();
-        setAnzahlButtonsLocked(false);
-      });
+        setScrollBandLocked(false);
+        renderW();
+      };
+
+      if (anzahl === 0){
+        // Wichtig: sofort wieder entsperren/weiter – kein "Hängenbleiben"
+        doAfter();
+        return;
+      }
+
+      runSchauKippSequence(anzahl, { kipFactor: 1, playSound: true })
+        .finally(doAfter);
     }
 
     function resetTargetPadUI(){
@@ -1953,28 +2076,49 @@
     }
 
     function showStartView(){
-      uiMode = "START";
+      // Neue Reihenfolge: Spiel beginnt mit ERSTES KIPPZIEL
+      if(drawsCount >= MAX_TARGETS){
+        showEndResultView();
+        return;
+      }
 
-      startBtnWrap.classList.remove("hidden");
-      btnSchauen.classList.remove("hidden");
-      btnErgebnis.classList.add("hidden");
+      uiMode = "TARGET";
+      showHint(getTargetHintText());
 
-      btnSchauenPulse.classList.add("pulse");
-
-      showHint("SCHAUKIPP-RUNDE", false);
-
+      startBtnWrap.classList.add("hidden");
+      scrollBandWrap.classList.add("hidden");
       kippAnzahlView.classList.add("hidden");
-      targetPadBtn.classList.add("hidden");
-      targetPadBtn.classList.remove("pulse");
-      targetPadBtn.disabled = true;
+
+      targetPadBtn.classList.remove("hidden");
+      targetPadBtn.classList.add("pulse");
+      targetPadBtn.disabled = false;
 
       targetRevealed = false;
-      // started = false;  ← ENTFERNT! Das war das Problem!
+      started = false;
       currentTarget = null;
       attemptsForTarget = 0;
 
       resetTargetPadUI();
       clearHitPulse();
+
+      positionUI();
+    }
+
+    function showSchauenView(){
+      // Nach Ziel-Auswahl: SCHAUEN & MERKEN Button zeigen
+      uiMode = "SCHAUEN";
+      showHint("BEREIT ZUM SCHAUEN", false);
+
+      startBtnWrap.classList.remove("hidden");
+      btnSchauen.classList.remove("hidden");
+      btnErgebnis.classList.add("hidden");
+      btnSchauenPulse.classList.add("pulse");
+
+      targetPadBtn.classList.remove("pulse");
+      targetPadBtn.disabled = true;
+      
+      scrollBandWrap.classList.add("hidden");
+      kippAnzahlView.classList.add("hidden");
 
       positionUI();
     }
@@ -1986,10 +2130,10 @@
       }
 
       uiMode = "TARGET";
-      // KIPPZIEL-Hinweise jetzt in normaler Größe wie SCHAUKIPP-RUNDE / KIPP-ANZAHL
       showHint(getTargetHintText());
 
       startBtnWrap.classList.add("hidden");
+      scrollBandWrap.classList.add("hidden");
       kippAnzahlView.classList.add("hidden");
 
       targetPadBtn.classList.remove("hidden");
@@ -2010,15 +2154,21 @@
       startBtnWrap.classList.add("hidden");
       targetPadBtn.classList.remove("pulse");
 
-      kippAnzahlView.classList.remove("hidden");
-      buildKippAnzahlButtons();
+      // Scrollband zeigen
+      scrollBandWrap.classList.remove("hidden");
 
+      // WICHTIG: nur einmal bauen
+      buildScrollBand();
+
+      // Freischalten (Klickbar 0..11)
+      setScrollBandLocked(false);
+
+      // Die alten 1..6 Buttons bleiben komplett aus
+      kippAnzahlView.classList.add("hidden");
       testTargetBtn.classList.add("hidden");
       testTargetBtn.disabled = true;
 
       clearHitPulse();
-      checkHitAndAnimate();
-
       positionUI();
     }
 
@@ -2027,9 +2177,11 @@
 
       clearHitPulse();
 
-      // GEÄNDERT: neue strikte Ziel-Generierung
+      // Ziel-Generierung
       currentTarget = generateTarget_Strict();
       if(!currentTarget) return;
+
+      gameHasStarted = true; // Spiel hat begonnen sobald erstes Target gezogen
 
       attemptsForTarget = 0;
 
@@ -2038,44 +2190,40 @@
       targetRevealed = true;
       targetPadBtn.disabled = true;
 
-      showKippCountView();
+      // Neuer Flow: Nach Ziel → SCHAUEN & MERKEN Button
+      showSchauenView();
       checkHitAndAnimate();
     });
 
     btnSchauen.addEventListener("click", async () => {
       if(runningKipp) return;
 
-      // Nur beim allerersten Start: Position auf 0 setzen
-      if(!started){
-        started = true;
-        cancelPreview();
+      started = true;
+
+      cancelPreview();
+      
+      // Wenn erster Klick: Zahlen auf Position 0 setzen
+      if(drawsCount === 0){
         rotIndex = 0;
         faceIndex = 0;
         setRotationSnap();
       }
       
-      // Würfel anzeigen (falls noch nicht sichtbar)
       showW();
       renderW();
 
       hideStartUI();
 
       kippAnzahlView.classList.add("hidden");
-      targetPadBtn.classList.add("hidden");
+      // Zielpad bleibt sichtbar während der 4 Kipps
       targetPadBtn.disabled = true;
 
-      targetRevealed = false;
-      currentTarget = null;
-      attemptsForTarget = 0;
-
-      resetTargetPadUI();
       clearHitPulse();
 
-      // 4 Vorschau-Kipps in LANGSAMER Geschwindigkeit (kipFactor: 2)
-      await runSchauKippSequence(4, { kipFactor: 2 });
+      await runSchauKippSequence(4, { kipFactor: 2, playSound: true, soundDelay: 570 });
 
-      // Direkt zur Zielauswahl - OHNE Treffer-Prüfung
-      showTargetSelectView();
+      // Nach Schauen → Kipp-Anzahl wählen
+      showKippCountView();
     });
 
     btnErgebnis.addEventListener("click", () => {
@@ -2083,28 +2231,16 @@
     });
 
     // Intelligente Navigation: 
-    // - In SCHAUKIPP-RUNDE (uiMode === "START") → zurück zur Startseite
-    // - In allen anderen Phasen → zurück zur SCHAUKIPP-RUNDE
+    // Zurück-Button Logik:
+    // - Vor dem ersten Target-Zug → zurück zur Spielauswahl
+    // - Nach dem ersten Target-Zug → zurück zum Spielbeginn
     backBtn.addEventListener("click", () => {
-      if (uiMode === "START") {
-        // In SCHAUKIPP-RUNDE → zurück zur Startseite
+      if (!gameHasStarted) {
+        // Noch kein Target gezogen → zurück zur Auswahl
         window.location.href = "index.html";
       } else {
-        // Im Spiel (TARGET, COUNT, END) → Reset zur SCHAUKIPP-RUNDE
+        // Im Spiel → Reset zum Spielbeginn
         initPlayState();
-      }
-    });
-
-    // Sound Toggle Button
-    soundToggleBtn.addEventListener("click", () => {
-      soundEnabled = !soundEnabled;
-      
-      if(soundEnabled){
-        soundIcon.textContent = "🔊";
-        soundToggleBtn.classList.remove("muted");
-      } else {
-        soundIcon.textContent = "🔇";
-        soundToggleBtn.classList.add("muted");
       }
     });
 
@@ -2205,6 +2341,23 @@
       score.style.fontSize = fontSize + "px";
     }
 
+    function positionMuteButton(cellPx){
+      // Zelle 8H: Zeile 8, Spalte H (8)
+      const row = 8;
+      const col = 8;  // Spalte H
+      const visualRow = row + HEADER_ROW_OFFSET;
+      
+      const leftCell = (col - 1) * cellPx;
+      const topCell = (visualRow - 1) * cellPx;
+      
+      const centerX = leftCell + cellPx / 2;
+      const centerY = topCell + cellPx / 2;
+      
+      // 40px nach links verschieben
+      muteBtn.style.left = (centerX - 40) + "px";
+      muteBtn.style.top = centerY + "px";
+    }
+
     function positionUI(){
       const cellPx = numVar("--cell") || 142;
 
@@ -2215,6 +2368,9 @@
 
       // End-Score in 6D–E positionieren
       positionScoreDisplay(cellPx);
+      
+      // Mute-Button positionieren
+      positionMuteButton(cellPx);
 
       const title = document.getElementById("titleLeft");
       title.style.left = "50%";
@@ -2230,14 +2386,21 @@
       kippAnzahlBtns.style.top = kippBtnsCenterY + "px";
       kippAnzahlBtns.style.left = "50%";
       kippAnzahlBtns.style.transform = "translate(-50%, -50%)";
-
+      
       const uiscale = numVar("--uiscale") || 1;
       const btnH = 44 * uiscale;
-      startBtnWrap.style.top = (between10and11 - (btnH / 2)) + "px";
+      const buttonY = between10and11 - (btnH / 2);
+      startBtnWrap.style.top = buttonY + "px";
+      
+      // Scrollband an gleicher Y-Position wie SCHAUEN & MERKEN Button
+      if(scrollBandWrap){
+        scrollBandWrap.style.top = buttonY + "px";
+      }
 
       if(uiMode === "TARGET"){
         hintTitle.style.top = row11CenterY + "px";
-      } else if(uiMode === "START" || uiMode === "COUNT" || uiMode === "END"){
+      } else if(uiMode === "START" || uiMode === "SCHAUEN" || uiMode === "COUNT" || uiMode === "END"){
+        // KIPP ANZAHL und BEREIT ZUM SCHAUEN an gleicher Position
         const row9VisualTop  = (((9 + HEADER_ROW_OFFSET) - 1) * cellPx);
         const row10VisualTop = (((10 + HEADER_ROW_OFFSET) - 1) * cellPx);
         const midBetween9and10 = (row9VisualTop + row10VisualTop) / 2;
@@ -2249,7 +2412,6 @@
       placeTargetPad_12D_13E(cellPx);
       positionBackButton(cellPx);
       positionTestButton(cellPx);
-      positionSoundButton(cellPx);
     }
 
     function positionBackButton(cellPx){
@@ -2276,23 +2438,6 @@
       testTargetBtn.style.transform = "translate(-50%, -50%)";
       testTargetBtn.style.zIndex = "30";
       testTargetBtn.style.pointerEvents = "auto";
-    }
-
-    function positionSoundButton(cellPx){
-      // Position: zwischen Zeile 14-15, zwischen Spalte G-H
-      const row = 14.5; // Mitte zwischen Zeile 14 und 15
-      const col = 7.5;  // Mitte zwischen G (7) und H (8)
-      const visualRow = row + HEADER_ROW_OFFSET;
-
-      const left = (col - 1) * cellPx + cellPx/2;
-      const top  = (visualRow - 1) * cellPx + cellPx/2;
-
-      soundToggleBtn.style.position = "absolute";
-      soundToggleBtn.style.left = left + "px";
-      soundToggleBtn.style.top = top + "px";
-      soundToggleBtn.style.transform = "translate(-50%, -50%)";
-      soundToggleBtn.style.zIndex = "25";
-      soundToggleBtn.style.pointerEvents = "auto";
     }
 
     function placeTargetPad_12D_13E(cellPx){
@@ -2333,6 +2478,7 @@
       targetRevealed = false;
       started = false;
       attemptsForTarget = 0;
+      gameHasStarted = false; // Reset: Zurück-Button führt wieder zur Auswahl
 
       resetLockedColors();
       hitsCount = 0;
@@ -2371,12 +2517,41 @@
       e.preventDefault();
     }, { passive:false });
 
+    // Mute Button Handler
+    muteBtn.addEventListener("click", () => {
+      audioMuted = !audioMuted;
+      
+      if(audioMuted){
+        bgLoop.pause();
+        soundOnIcon.style.display = "none";
+        soundOffIcon.style.display = "block";
+      } else {
+        if(bgLoop.paused && bgLoop.currentTime > 0) {
+          bgLoop.play();
+        }
+        soundOnIcon.style.display = "block";
+        soundOffIcon.style.display = "none";
+      }
+    });
+
     // Intro Overlay Handler
     const introOverlay = document.getElementById("introOverlay");
     const introStartBtn = document.getElementById("introStartBtn");
     const introBackBtn = document.getElementById("introBackBtn");
 
     introStartBtn.addEventListener("click", () => {
+      // Starte Background-Loop
+      if(!audioMuted) {
+        bgLoop.play().catch(err => console.log("Background-Loop start failed:", err));
+      }
+      
+      // Web Audio API Context aktivieren (wichtig für iOS/Mobile)
+      if (audioContext.state === 'suspended') {
+        audioContext.resume().then(() => {
+          console.log('AudioContext aktiviert');
+        });
+      }
+      
       introOverlay.classList.add("hidden");
       setTimeout(() => {
         introOverlay.remove();

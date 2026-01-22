@@ -2265,8 +2265,8 @@ muteBtn.addEventListener("click", (e) => {
     }
 
     function showSchauenView(){
-      // Ab 5. Ziel: Skip Vorschau, direkt zum Spielen
-      if (drawsCount >= 5) {
+      // Ziel 5: "GENUG GESCHAUT" für 2 Sek, dann Skip Vorschau
+      if (drawsCount === 5) {
         uiMode = "SCHAUEN";
         showHint("GENUG GESCHAUT", false);
         
@@ -2279,10 +2279,27 @@ muteBtn.addEventListener("click", (e) => {
         
         positionUI();
         
-        // Kurz warten, dann direkt zur Kippanzahl
+        // 2 Sekunden warten, dann direkt zur Kippanzahl
         setTimeout(() => {
           showKippCountView();
-        }, 1000);
+        }, 2000);
+        
+        return;
+      }
+      
+      // Ab Ziel 6: Direkt zum Scrollband, kein Text
+      if (drawsCount >= 6) {
+        targetPadBtn.classList.remove("pulse");
+        targetPadBtn.disabled = true;
+        
+        startBtnWrap.classList.add("hidden");
+        scrollBandWrap.classList.add("hidden");
+        kippAnzahlView.classList.add("hidden");
+        
+        positionUI();
+        
+        // Sofort zur Kippanzahl
+        showKippCountView();
         
         return;
       }

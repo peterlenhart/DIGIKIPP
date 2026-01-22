@@ -208,6 +208,31 @@
       stroke-linecap: round;
     }
 
+    /* Paragraph (§) Icon */
+    .legalIcon{
+      width: calc(32px * var(--uiscale));
+      height: calc(32px * var(--uiscale));
+      border-radius: 50%;
+      background: rgba(234,215,190,0.96);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: calc(20px * var(--uiscale));
+      font-weight: 700;
+      color: #7a3f2b;
+      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.45));
+      line-height: 0.9;
+      position: relative;
+    }
+
+    .legalIcon::before{
+      content: "§";
+      position: absolute;
+      top: 48%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+    }
+
     /* Modal */
     .modalOverlay{
       position:fixed;
@@ -281,27 +306,6 @@
       color:#fff;
     }
 
-    /* Link zu Impressum / Datenschutz / Nutzungsbedingungen */
-    .legal-link{
-      position: fixed;
-      right: 10px;
-      bottom: 10px;
-      font-size: 11px;
-      padding: 6px 10px;
-      border-radius: 999px;
-      background: rgba(0,0,0,0.72);
-      color: #ead7be;
-      border: 1px solid rgba(234,215,190,0.45);
-      text-decoration: none;
-      z-index: 5000;
-      user-select: none;
-      -webkit-tap-highlight-color: transparent;
-    }
-
-    .legal-link:hover{
-      background: rgba(234,215,190,0.12);
-    }
-
   </style>
 </head>
 
@@ -350,6 +354,11 @@
           </svg>
         </button>
 
+        <!-- LEGAL (§) -->
+        <button class="navBtn" id="legalBtn" aria-label="Impressum & Datenschutz">
+          <div class="legalIcon"></div>
+        </button>
+
       </div>
     </div>
   </div>
@@ -365,11 +374,6 @@
       </div>
     </div>
   </div>
-
-  <!-- Rechts-Link: öffnet legal.html in neuem Tab -->
-  <a href="legal.html" target="_blank" class="legal-link">
-    Impressum / Datenschutz / Nutzungsbedingungen
-  </a>
 
   <script>
 
@@ -432,6 +436,13 @@
       shareBtn.style.left = shareLeft + "px";
       shareBtn.style.top  = closeTop + "px";
       shareBtn.style.transform = "translate(-50%, -50%)";
+
+      // Legal (§) Button unter Share-Button
+      const legalBtn = document.getElementById("legalBtn");
+      const legalTop = cellPx * 1.2 + 70;
+      legalBtn.style.left = shareLeft + "px";
+      legalBtn.style.top  = legalTop + "px";
+      legalBtn.style.transform = "translate(-50%, -50%)";
     }
 
     function rebuild(){
@@ -475,6 +486,11 @@
     }
 
     document.getElementById("shareBtn").onclick = shareApp;
+
+    // Legal (§) Button
+    document.getElementById("legalBtn").onclick = () => {
+      window.open("legal.html", "_blank");
+    };
 
   </script>
 </body>

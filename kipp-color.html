@@ -1176,6 +1176,37 @@
     
     // Background-Loop Lautstärke
     bgLoop.volume = 0.3;
+    // === MUTE TOGGLE (HIER DIREKT NACH bgLoop.volume = 0.3;) ===
+  function setMutedState(muted){
+  audioMuted = !!muted;
+
+  // Background-Loop
+  try{
+    if(audioMuted){
+      bgLoop.pause();
+      bgLoop.currentTime = 0; // optional: beim Unmute startet er wieder von vorn
+    }else{
+      bgLoop.play().catch(()=>{});
+    }
+  }catch(e){}
+
+  // Icons umschalten
+  if(soundOnIcon)  soundOnIcon.style.display  = audioMuted ? "none"  : "block";
+  if(soundOffIcon) soundOffIcon.style.display = audioMuted ? "block" : "none";
+}
+
+// Klick auf Lautsprecher
+muteBtn.addEventListener("click", (e) => {
+  e.preventDefault();
+  e.stopPropagation();
+
+  // AudioContext ggf. aktivieren (Mobile)
+  if (audioContext && audioContext.state === "suspended") {
+    audioContext.resume().catch(()=>{});
+  }
+
+  setMutedState(!audioMuted);
+});
 
     const targetPadBtn    = document.getElementById("targetPadBtn");
     const targetPadCircle = document.getElementById("targetPadCircle");

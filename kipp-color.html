@@ -1887,19 +1887,22 @@ muteBtn.addEventListener("click", (e) => {
       const totalSteps = Math.max(1, steps);
 
       for(let i=0;i<steps;i++){
-        // ERSTE 4 KIPPS IMMER LANGSAM (Faktor 1.0)
-        let stepMul;
+        // ERSTE 4 KIPPS IMMER LANGSAM (fester Faktor 2.0 wie Vorschau)
+        let kipMultiplier, wMultiplier;
         if(i < 4){
-          stepMul = 1.0;
+          kipMultiplier = 2.0;  // Fest 2.0 für langsame Vorschau-Geschwindigkeit
+          wMultiplier = 2.0;
         } else {
           const tStep = (totalSteps <= 1) ? 0 : (i / (totalSteps - 1));
-          stepMul = lerp(1.0, STEP_MAX, tStep);
+          const stepMul = lerp(1.0, STEP_MAX, tStep);
+          kipMultiplier = kipFactor * stepMul;
+          wMultiplier = stepMul;
         }
 
         showKip();
         renderKip();
         
-        if(!await waitOrPause("kip", myToken, kipFactor * stepMul)){ runningKipp=false; return; }
+        if(!await waitOrPause("kip", myToken, kipMultiplier)){ runningKipp=false; return; }
 
         // Sound HIER starten - arithmetisches Mittel PC/Handy
         if(playSound){
@@ -1910,7 +1913,7 @@ muteBtn.addEventListener("click", (e) => {
         showW();
         renderW();
         
-        if(!await waitOrPause("w", myToken, stepMul)){ runningKipp=false; return; }
+        if(!await waitOrPause("w", myToken, wMultiplier)){ runningKipp=false; return; }
       }
 
       runningKipp = false;
@@ -1933,21 +1936,24 @@ muteBtn.addEventListener("click", (e) => {
       const totalSteps = Math.max(1, steps);
 
       for(let i=0;i<steps;i++){
-        // ERSTE 4 KIPPS IMMER LANGSAM (Faktor 1.0)
+        // ERSTE 4 KIPPS IMMER LANGSAM (fester Faktor 2.0 wie Vorschau)
         // Ab Kipp 5: SPIELER-BESCHLEUNIGUNG von 1.0 bis 1/3
-        let speedFactor;
+        let kipMultiplier, wMultiplier;
         if(i < 4){
-          speedFactor = 1.0;
+          kipMultiplier = 2.0;  // Fest 2.0 für langsame Vorschau-Geschwindigkeit
+          wMultiplier = 2.0;
         } else {
-          speedFactor = (totalSteps <= 1) 
+          const speedFactor = (totalSteps <= 1) 
             ? 1.0 
             : 1.0 - (i / (totalSteps - 1)) * (2.0 / 3.0);
+          kipMultiplier = kipFactor * speedFactor;
+          wMultiplier = speedFactor;
         }
 
         showKip();
         renderKip();
         
-        if(!await waitOrPause("kip", myToken, kipFactor * speedFactor)){ runningKipp=false; return; }
+        if(!await waitOrPause("kip", myToken, kipMultiplier)){ runningKipp=false; return; }
 
         if(playSound){
           playKippSound();
@@ -1957,7 +1963,7 @@ muteBtn.addEventListener("click", (e) => {
         showW();
         renderW();
         
-        if(!await waitOrPause("w", myToken, speedFactor)){ runningKipp=false; return; }
+        if(!await waitOrPause("w", myToken, wMultiplier)){ runningKipp=false; return; }
       }
 
       runningKipp = false;

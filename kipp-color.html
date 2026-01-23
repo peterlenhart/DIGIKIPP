@@ -2102,7 +2102,7 @@ muteBtn.addEventListener("click", (e) => {
       targetRevealed = false;
       resetTargetPadUI();
       clearHitPulse();
-      showTargetSelectView();
+      showSchauenPhase();  // Zurück zu Phase 1 (SCHAUEN & MERKEN)
     }
 
     // ---------- Reset Game to Start ----------
@@ -2252,22 +2252,42 @@ muteBtn.addEventListener("click", (e) => {
     }
 
     function showStartView(){
-      // Neue Reihenfolge: Spiel beginnt mit ERSTES KIPPZIEL
+      // NEUE REIHENFOLGE: Spiel beginnt mit SCHAUEN & MERKEN (Phase 1)
       if(drawsCount >= MAX_TARGETS){
         showEndResultView();
         return;
       }
 
-      uiMode = "TARGET";
-      showHint(getTargetHintText());
+      showSchauenPhase();
+    }
 
-      startBtnWrap.classList.add("hidden");
+    function showSchauenPhase(){
+      // Phase 1: SCHAUEN & MERKEN
+      if(drawsCount >= MAX_TARGETS){
+        showEndResultView();
+        return;
+      }
+
+      uiMode = "SCHAUEN";
+      
+      // Ziele 1-2: "BEOBACHTE DIE ZAHLEN"
+      // Ab Ziel 3: kein Hinweistext
+      if(drawsCount < 2){
+        showHint("BEOBACHTE DIE ZAHLEN", false);
+      } else {
+        showHint("", false);
+      }
+
+      startBtnWrap.classList.remove("hidden");
+      btnSchauen.classList.remove("hidden");
+      btnErgebnis.classList.add("hidden");
+      btnSchauenPulse.classList.add("pulse");
+
+      targetPadBtn.classList.add("hidden");
+      targetPadBtn.disabled = true;
+      
       scrollBandWrap.classList.add("hidden");
       kippAnzahlView.classList.add("hidden");
-
-      targetPadBtn.classList.remove("hidden");
-      targetPadBtn.classList.add("pulse");
-      targetPadBtn.disabled = false;
 
       targetRevealed = false;
       started = false;
@@ -2280,61 +2300,23 @@ muteBtn.addEventListener("click", (e) => {
       positionUI();
     }
 
-    function showSchauenView(){
-      // Ziel 5: "GENUG GESCHAUT" für 2 Sek, dann Skip Vorschau
-      if (drawsCount === 5) {
-        uiMode = "SCHAUEN";
-        showHint("GENUG GESCHAUT", false);
-        
-        targetPadBtn.classList.remove("pulse");
-        targetPadBtn.disabled = true;
-        
-        startBtnWrap.classList.add("hidden");
-        scrollBandWrap.classList.add("hidden");
-        kippAnzahlView.classList.add("hidden");
-        
-        positionUI();
-        
-        // 2 Sekunden warten, dann direkt zur Kippanzahl
-        setTimeout(() => {
-          showKippCountView();
-        }, 2000);
-        
+    function showTargetPadPhase(){
+      // Phase 2: ZIEL ZIEHEN
+      if(drawsCount >= MAX_TARGETS){
+        showEndResultView();
         return;
       }
-      
-      // Ab Ziel 6: Direkt zum Scrollband, kein Text
-      if (drawsCount >= 6) {
-        targetPadBtn.classList.remove("pulse");
-        targetPadBtn.disabled = true;
-        
-        startBtnWrap.classList.add("hidden");
-        scrollBandWrap.classList.add("hidden");
-        kippAnzahlView.classList.add("hidden");
-        
-        positionUI();
-        
-        // Sofort zur Kippanzahl
-        showKippCountView();
-        
-        return;
-      }
-      
-      // Ziele 1-4: Normaler Flow mit SCHAUEN & MERKEN
-      uiMode = "SCHAUEN";
-      const targetNum = currentTarget ? currentTarget.num : "?";
-      showHint(`BEOBACHTE DIE ${targetNum}`, false);
 
-      startBtnWrap.classList.remove("hidden");
-      btnSchauen.classList.remove("hidden");
-      btnErgebnis.classList.add("hidden");
-      btnSchauenPulse.classList.add("pulse");
+      uiMode = "TARGET";
+      showHint("KIPP ZIEL", false);
 
-      targetPadBtn.classList.remove("pulse");
-      targetPadBtn.disabled = true;
-      
+      startBtnWrap.classList.add("hidden");
       scrollBandWrap.classList.add("hidden");
       kippAnzahlView.classList.add("hidden");
+
+      targetPadBtn.classList.remove("hidden");
+      targetPadBtn.classList.add("pulse");
+      targetPadBtn.disabled = false;
 
       positionUI();
     }
@@ -2388,7 +2370,18 @@ muteBtn.addEventListener("click", (e) => {
       positionUI();
     }
 
-    targetPadBtn.addEventListener("click", () => {
+    // Hilfsfunktion: Farbname zu Text
+    function getColorName(color){
+      const names = {
+        "gruen": "GRÜN",
+        "orange": "ORANGE",
+        "blau": "BLAU",
+        "violett": "VIOLETT"
+      };
+      return names[color] || color.toUpperCase();
+    }
+
+    targetPadBtn.addEventListener("click", async () => {
       if(targetRevealed) return;
 
       clearHitPulse();
@@ -2405,10 +2398,22 @@ muteBtn.addEventListener("click", (e) => {
 
       targetRevealed = true;
       targetPadBtn.disabled = true;
+      targetPadBtn.classList.remove("pulse");
 
-      // Neuer Flow: Nach Ziel → SCHAUEN & MERKEN Button
-      showSchauenView();
+      // Ziele 1-2: "*xx* muss zu *color*" Text für 2 Sek
+      // Ab Ziel 3: kein Text
+      if(drawsCount < 2){
+        const targetNum = currentTarget.num;
+        const colorName = getColorName(currentTarget.color);
+        showHint(`${targetNum} muss zu ${colorName}`, false);
+        
+        await sleep(2000);
+      }
+
       checkHitAndAnimate();
+
+      // Nach Ziel → KIPP ANZAHL (Phase 3)
+      showKippCountView();
     });
 
     btnSchauen.addEventListener("click", async () => {
@@ -2431,15 +2436,14 @@ muteBtn.addEventListener("click", (e) => {
       hideStartUI();
 
       kippAnzahlView.classList.add("hidden");
-      // Zielpad bleibt sichtbar während der 4 Kipps
       targetPadBtn.disabled = true;
 
       clearHitPulse();
 
       await runSchauKippSequence(4, { kipFactor: 2, playSound: true, soundDelay: 570 });
 
-      // Nach Schauen → Kipp-Anzahl wählen
-      showKippCountView();
+      // Nach Schauen → ZIEL ZIEHEN (Phase 2)
+      showTargetPadPhase();
     });
 
     btnErgebnis.addEventListener("click", () => {

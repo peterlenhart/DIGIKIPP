@@ -255,20 +255,18 @@
       pointer-events:none;
     }
 
-    #modalContainer{
+    .modalContainer{
       position:relative;
-      pointer-events:auto;
     }
 
-    #modalImage{
+    .modalImage{
       display:block;
-      pointer-events:none;
+      width: calc(8 * var(--cell));
     }
 
     .modalClickArea{
       position:absolute;
       cursor:pointer;
-      pointer-events:auto;
     }
 
   </style>
@@ -330,8 +328,8 @@
 
   <!-- Modal -->
   <div id="closeModal" class="modalOverlay hidden">
-    <div id="modalContainer">
-      <img src="sicherheitsabfrage.webp" id="modalImage" alt="Sicherheitsabfrage">
+    <div class="modalContainer">
+      <img src="sicherheitsabfrage.webp" class="modalImage" alt="Sicherheitsabfrage">
       <div id="modalAbbrechen" class="modalClickArea"></div>
       <div id="modalBeenden" class="modalClickArea"></div>
     </div>
@@ -407,42 +405,6 @@
       legalBtn.style.transform = "translate(-50%, -50%)";
     }
 
-    function positionModal(){
-      const cellPx = numVar("--cell") || 142;
-      const scale = numVar("--scale") || 1;
-      
-      const modalContainer = document.getElementById("modalContainer");
-      const modalAbbrechen = document.getElementById("modalAbbrechen");
-      const modalBeenden = document.getElementById("modalBeenden");
-      
-      if(!modalContainer || !modalAbbrechen || !modalBeenden) return;
-      
-      // Container skalieren
-      modalContainer.style.transform = `scale(${scale})`;
-      
-      // Klickbereiche relativ zum Bild
-      // Zeile 8 (mit Header offset: Zeile 10 absolut)
-      const row8Top = ((8 + HEADER_ROW_OFFSET - 1) * cellPx);
-      
-      // Abbrechen: halbe Spalte B (1.5) bis Ende Spalte D (4)
-      const abbrechenLeft = cellPx * 1.5;
-      const abbrechenWidth = cellPx * 2.5;
-      
-      modalAbbrechen.style.left = abbrechenLeft + "px";
-      modalAbbrechen.style.top = row8Top + "px";
-      modalAbbrechen.style.width = abbrechenWidth + "px";
-      modalAbbrechen.style.height = cellPx + "px";
-      
-      // Beenden: Spalte E (4) bis halbe Spalte G (6.5)
-      const beendenLeft = cellPx * 4;
-      const beendenWidth = cellPx * 2.5;
-      
-      modalBeenden.style.left = beendenLeft + "px";
-      modalBeenden.style.top = row8Top + "px";
-      modalBeenden.style.width = beendenWidth + "px";
-      modalBeenden.style.height = cellPx + "px";
-    }
-
     function rebuild(){
       const { cell, scale } = setScaleToFitWidth();
       const vh = window.innerHeight;
@@ -451,7 +413,6 @@
       const gridH = rows * cell;
       document.documentElement.style.setProperty("--gridH", gridH + "px");
       positionUI();
-      positionModal();
     }
 
     window.addEventListener("load", rebuild);
@@ -465,10 +426,26 @@
     // Modal
     const closeBtn = document.getElementById("closeBtn");
     const closeModal = document.getElementById("closeModal");
+    const modalAbbrechen = document.getElementById("modalAbbrechen");
+    const modalBeenden = document.getElementById("modalBeenden");
+
+    // Klickbereiche positionieren
+    const cellPx = numVar("--cell") || 142;
+    const row8Top = ((8 + HEADER_ROW_OFFSET - 1) * cellPx);
+    
+    modalAbbrechen.style.left = (cellPx * 1.5) + "px";
+    modalAbbrechen.style.top = row8Top + "px";
+    modalAbbrechen.style.width = (cellPx * 2.5) + "px";
+    modalAbbrechen.style.height = cellPx + "px";
+    
+    modalBeenden.style.left = (cellPx * 4) + "px";
+    modalBeenden.style.top = row8Top + "px";
+    modalBeenden.style.width = (cellPx * 2.5) + "px";
+    modalBeenden.style.height = cellPx + "px";
 
     closeBtn.onclick = () => closeModal.classList.remove("hidden");
-    document.getElementById("modalAbbrechen").onclick = () => closeModal.classList.add("hidden");
-    document.getElementById("modalBeenden").onclick = () => location.href="tschuess.html";
+    modalAbbrechen.onclick = () => closeModal.classList.add("hidden");
+    modalBeenden.onclick = () => location.href="tschuess.html";
 
     closeModal.onclick = (e) => { if(e.target === closeModal) closeModal.classList.add("hidden"); };
 

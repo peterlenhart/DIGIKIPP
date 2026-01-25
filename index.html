@@ -145,7 +145,6 @@
       cursor:pointer;
       -webkit-tap-highlight-color: transparent;
       pointer-events:auto;
-      background:rgba(255,0,0,0.3); /* DEBUG: rot halbtransparent */
     }
 
     /* Unsichtbare Klickbereiche für Icons */
@@ -156,7 +155,6 @@
       width: 142px;
       height: 142px;
       pointer-events:auto;
-      background:rgba(0,255,0,0.3); /* DEBUG: grün halbtransparent */
     }
 
     /* Flashscreen Overlay */
@@ -319,8 +317,8 @@
       clickKing.style.width = btnWidth + "px";
       clickKing.style.height = btnHeight + "px";
 
-      // Icon-Klickbereiche in Zeile 0_2 (ohne HEADER_ROW_OFFSET)
-      const iconRow = 0; // Zeile 0_2 = Position 0
+      // Icon-Klickbereiche in Zeile 0_2
+      const iconRow = cellPx; // Zeile 0_2 = 1 Zelle tiefer
       const iconSize = cellPx; // 142x142px
 
       // Close Button: zwischen Spalten A und B = Spalte 0.5

@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DigiKipp Color – Spielanleitung</title>
+  
+  <!-- Web App Manifest -->
+  <link rel="manifest" href="manifest.json">
+  
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+  <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
+  
+  <!-- iOS Meta Tags -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="DigiKipp">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  
+  <!-- Theme Color -->
+  <meta name="theme-color" content="#4a2418">
+
+  <style>
+    :root{
+      --cols: 8;
+      --cell: 142px;
+
+      --scale: 1;
+      --gridW: calc(var(--cols) * var(--cell));
+      --gridH: 100vh;
+    }
+
+    html, body{
+      height: 100%;
+      margin: 0;
+      overflow: hidden;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      touch-action: manipulation;
+      background: #000;
+    }
+
+    body{
+      display:flex;
+      justify-content:center;
+      align-items:flex-start;
+    }
+
+    .stage{
+      width: 100vw;
+      height: 100vh;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .layout{
+      position: absolute;
+      left: 50%;
+      top: 0;
+      width: var(--gridW);
+      height: var(--gridH);
+      transform-origin: top center;
+      transform: translateX(-50%) scale(var(--scale));
+    }
+
+    .anleitungImage{
+      position:absolute;
+      width: 1136px;
+      pointer-events:none;
+    }
+
+    .backButton{
+      position:absolute;
+      cursor:pointer;
+      -webkit-tap-highlight-color: transparent;
+      tap-highlight-color: transparent;
+      outline: none;
+    }
+
+  </style>
+</head>
+
+<body>
+  <div class="stage">
+    <div class="layout" id="layout">
+      <img src="color_spielanleitung.webp" class="anleitungImage" id="anleitungImage" alt="Spielanleitung">
+      <div class="backButton" id="backButton"></div>
+    </div>
+  </div>
+
+  <script>
+
+    function numVar(name){
+      return parseFloat(
+        getComputedStyle(document.documentElement).getPropertyValue(name)
+      ) || 0;
+    }
+
+    function setScaleToFitWidth(){
+      const cols = numVar("--cols") || 8;
+      const cell = numVar("--cell") || 142;
+
+      const gridW = cols * cell;
+      const vw = window.innerWidth;
+
+      const targetW = vw * 0.94;
+      const scale = Math.min(1, targetW / gridW);
+
+      document.documentElement.style.setProperty("--scale", scale.toFixed(4));
+      document.documentElement.style.setProperty("--gridW", gridW + "px");
+
+      return { cell, scale, gridW };
+    }
+
+    function positionElements(){
+      const cellPx = numVar("--cell") || 142;
+
+      const anleitungImage = document.getElementById("anleitungImage");
+      const backButton = document.getElementById("backButton");
+
+      // Bild verankert auf 0_1/A
+      anleitungImage.style.left = "0px";
+      anleitungImage.style.top = "0px";
+
+      // Zurück-Button: zwischen 0_1 und 0_2 in Spalte A
+      const backTop = cellPx * 0.5;
+      backButton.style.left = "0px";
+      backButton.style.top = backTop + "px";
+      backButton.style.width = cellPx + "px";
+      backButton.style.height = cellPx + "px";
+    }
+
+    function rebuild(){
+      const { cell, scale } = setScaleToFitWidth();
+      const vh = window.innerHeight;
+      const effective = vh / (scale || 1);
+      const rows = Math.ceil(effective / cell) + 1;
+      const gridH = rows * cell;
+      document.documentElement.style.setProperty("--gridH", gridH + "px");
+      positionElements();
+    }
+
+    window.addEventListener("load", rebuild);
+    window.addEventListener("resize", rebuild);
+
+    // Zurück-Button führt zurück zu kipp-color.html (coloreingang)
+    document.getElementById("backButton").addEventListener("click", () => {
+      window.location.href = "kipp-color.html";
+    });
+
+  </script>
+</body>
+</html>

@@ -1691,12 +1691,7 @@
       targetRevealed = false;
       resetTargetPadUI();
       clearHitPulse();
-      
-      // KEINE Änderung an rotIndex oder Zahlen!
-      // Der Würfel bleibt in seiner aktuellen Lage
-      
-      // Zur START-Ansicht zurück (mit SCHAUEN & MERKEN Button)
-      showStartView();
+      showTargetSelectView();
     }
 
     // ---------- Reset Game to Start ----------
@@ -1937,16 +1932,12 @@
     btnSchauen.addEventListener("click", async () => {
       if(runningKipp) return;
 
-      // Nur beim allerersten Start: Position auf 0 setzen
-      if(!started){
-        started = true;
-        cancelPreview();
-        rotIndex = 0;
-        faceIndex = 0;
-        setRotationSnap();
-      }
-      
-      // Würfel anzeigen (falls noch nicht sichtbar)
+      started = true;
+
+      cancelPreview();
+      rotIndex = 0;
+      faceIndex = 0;
+      setRotationSnap();
       showW();
       renderW();
 
@@ -1963,7 +1954,6 @@
       resetTargetPadUI();
       clearHitPulse();
 
-      // 4 Vorschau-Kipps von aktueller Position
       await runSchauKippSequence(4, { kipFactor: 2 });
 
       showTargetSelectView();

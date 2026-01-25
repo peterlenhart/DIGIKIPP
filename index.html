@@ -243,7 +243,7 @@
       background:rgba(0,0,0,0.75);
       z-index:9999;
       display:flex;
-      align-items:center;
+      align-items:flex-start;
       justify-content:center;
       backdrop-filter:blur(4px);
       opacity:1;
@@ -255,55 +255,15 @@
       pointer-events:none;
     }
 
-    .modalBox{
-      background: var(--btn-bg);
-      border-radius: 18px;
-      padding: 32px 28px;
-      max-width: 90vw;
-      width: 420px;
-      box-shadow: 0 20px 60px rgba(0,0,0,0.5);
-      text-align:center;
+    #modalImage{
+      position:absolute;
+      pointer-events:none;
     }
 
-    .modalTitle{
-      font-size: clamp(18px, 5vw, 24px);
-      font-weight:1000;
-      color: var(--btn-text);
-      margin-bottom: 16px;
-      letter-spacing:0.02em;
-    }
-
-    .modalText{
-      font-size: clamp(14px, 4vw, 16px);
-      color: #5a3a28;
-      margin-bottom: 26px;
-      line-height:1.5;
-    }
-
-    .modalBtns{
-      display:flex;
-      gap: 12px;
-      justify-content:center;
-    }
-
-    .modalBtn{
-      padding: 12px 24px;
-      border-radius: 10px;
-      border:2px solid rgba(0,0,0,0.25);
-      font-weight:700;
-      font-size: clamp(14px, 4vw, 16px);
+    .modalClickArea{
+      position:absolute;
       cursor:pointer;
-      transition:all 0.12s ease;
-    }
-
-    .modalBtn.cancel{
-      background:#fff;
-      color:#5a3a28;
-    }
-
-    .modalBtn.confirm{
-      background:#8a4f35;
-      color:#fff;
+      pointer-events:auto;
     }
 
   </style>
@@ -365,14 +325,9 @@
 
   <!-- Modal -->
   <div id="closeModal" class="modalOverlay hidden">
-    <div class="modalBox">
-      <div class="modalTitle">Spiel beenden?</div>
-      <div class="modalText">Möchtest du DigiKipp wirklich beenden?</div>
-      <div class="modalBtns">
-        <button class="modalBtn cancel" id="modalCancel">Abbrechen</button>
-        <button class="modalBtn confirm" id="modalConfirm">Beenden</button>
-      </div>
-    </div>
+    <img src="sicherheitsabfrage.webp" id="modalImage" alt="Sicherheitsabfrage">
+    <div id="modalAbbrechen" class="modalClickArea"></div>
+    <div id="modalBeenden" class="modalClickArea"></div>
   </div>
 
   <script>
@@ -443,6 +398,52 @@
       legalBtn.style.left = shareLeft + "px";
       legalBtn.style.top  = legalTop + "px";
       legalBtn.style.transform = "translate(-50%, -50%)";
+
+      // Modal positioning
+      positionModal();
+    }
+
+    function positionModal(){
+      const cellPx = numVar("--cell") || 142;
+      const scale = numVar("--scale") || 1;
+      
+      const modalImage = document.getElementById("modalImage");
+      const modalAbbrechen = document.getElementById("modalAbbrechen");
+      const modalBeenden = document.getElementById("modalBeenden");
+      
+      // Image position: top-left corner at 0_1/A
+      const imageLeft = 0;
+      const imageTop = cellPx * 0; // Headerzeile 0_1
+      
+      modalImage.style.left = imageLeft + "px";
+      modalImage.style.top = imageTop + "px";
+      modalImage.style.transform = `scale(${scale})`;
+      modalImage.style.transformOrigin = "top left";
+      
+      // Klickbereiche in Zeile 8 (ohne Header)
+      const row8Center = ((8 + HEADER_ROW_OFFSET - 1) * cellPx) + cellPx/2;
+      
+      // Abbrechen: halbe Spalte B (1.5) bis Ende Spalte D (4)
+      const abbrechenLeft = cellPx * 1.5;
+      const abbrechenWidth = cellPx * 2.5; // von 1.5 bis 4 = 2.5 Spalten
+      
+      modalAbbrechen.style.left = abbrechenLeft + "px";
+      modalAbbrechen.style.top = row8Center + "px";
+      modalAbbrechen.style.width = abbrechenWidth + "px";
+      modalAbbrechen.style.height = cellPx + "px";
+      modalAbbrechen.style.transform = `translate(0, -50%) scale(${scale})`;
+      modalAbbrechen.style.transformOrigin = "top left";
+      
+      // Beenden: Beginn Spalte E (4) bis halbe Spalte G (6.5)
+      const beendenLeft = cellPx * 4;
+      const beendenWidth = cellPx * 2.5; // von 4 bis 6.5 = 2.5 Spalten
+      
+      modalBeenden.style.left = beendenLeft + "px";
+      modalBeenden.style.top = row8Center + "px";
+      modalBeenden.style.width = beendenWidth + "px";
+      modalBeenden.style.height = cellPx + "px";
+      modalBeenden.style.transform = `translate(0, -50%) scale(${scale})`;
+      modalBeenden.style.transformOrigin = "top left";
     }
 
     function rebuild(){
@@ -468,8 +469,8 @@
     const closeModal = document.getElementById("closeModal");
 
     closeBtn.onclick = () => closeModal.classList.remove("hidden");
-    document.getElementById("modalCancel").onclick = () => closeModal.classList.add("hidden");
-    document.getElementById("modalConfirm").onclick = () => location.href="tschuess.html";
+    document.getElementById("modalAbbrechen").onclick = () => closeModal.classList.add("hidden");
+    document.getElementById("modalBeenden").onclick = () => location.href="tschuess.html";
 
     closeModal.onclick = (e) => { if(e.target === closeModal) closeModal.classList.add("hidden"); };
 

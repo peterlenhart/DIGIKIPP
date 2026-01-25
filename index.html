@@ -405,9 +405,6 @@
       legalBtn.style.left = shareLeft + "px";
       legalBtn.style.top  = legalTop + "px";
       legalBtn.style.transform = "translate(-50%, -50%)";
-
-      // Modal positioning
-      positionModal();
     }
 
     function positionModal(){
@@ -415,9 +412,10 @@
       const scale = numVar("--scale") || 1;
       
       const modalContainer = document.getElementById("modalContainer");
-      const modalImage = document.getElementById("modalImage");
       const modalAbbrechen = document.getElementById("modalAbbrechen");
       const modalBeenden = document.getElementById("modalBeenden");
+      
+      if(!modalContainer || !modalAbbrechen || !modalBeenden) return;
       
       // Container skalieren
       modalContainer.style.transform = `scale(${scale})`;
@@ -453,6 +451,7 @@
       const gridH = rows * cell;
       document.documentElement.style.setProperty("--gridH", gridH + "px");
       positionUI();
+      positionModal();
     }
 
     window.addEventListener("load", rebuild);

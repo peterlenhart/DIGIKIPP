@@ -136,6 +136,7 @@
       position:absolute;
       cursor:pointer;
       -webkit-tap-highlight-color: transparent;
+      pointer-events:auto;
     }
 
     /* Unsichtbare Klickbereiche für Game Buttons */
@@ -143,6 +144,8 @@
       position:absolute;
       cursor:pointer;
       -webkit-tap-highlight-color: transparent;
+      pointer-events:auto;
+      background:rgba(255,0,0,0.3); /* DEBUG: rot halbtransparent */
     }
 
     /* Unsichtbare Klickbereiche für Icons */
@@ -152,6 +155,8 @@
       -webkit-tap-highlight-color: transparent;
       width: 142px;
       height: 142px;
+      pointer-events:auto;
+      background:rgba(0,255,0,0.3); /* DEBUG: grün halbtransparent */
     }
 
     /* Flashscreen Overlay */

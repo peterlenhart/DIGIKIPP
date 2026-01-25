@@ -257,12 +257,13 @@
 
     .modalContainer{
       position:relative;
+      transform: scale(var(--scale));
+      transform-origin: center;
     }
 
     .modalImage{
       display:block;
-      width: calc(8 * var(--cell));
-      max-width: 1136px;
+      width: 1136px;
     }
 
     .modalClickArea{
@@ -430,19 +431,22 @@
     const modalAbbrechen = document.getElementById("modalAbbrechen");
     const modalBeenden = document.getElementById("modalBeenden");
 
-    // Klickbereiche positionieren
-    const cellPx = numVar("--cell") || 142;
-    const row8Top = ((8 + HEADER_ROW_OFFSET - 1) * cellPx);
+    // Klickbereiche für 1136px breites Bild (8 × 142px)
+    const imgWidth = 1136;
+    const cellSize = 142;
+    const row8Top = (8 + HEADER_ROW_OFFSET - 1) * cellSize;
     
-    modalAbbrechen.style.left = (cellPx * 1.5) + "px";
+    // Abbrechen: halbe Spalte B (1.5) bis Ende Spalte D (4)
+    modalAbbrechen.style.left = (cellSize * 1.5) + "px";
     modalAbbrechen.style.top = row8Top + "px";
-    modalAbbrechen.style.width = (cellPx * 2.5) + "px";
-    modalAbbrechen.style.height = cellPx + "px";
+    modalAbbrechen.style.width = (cellSize * 2.5) + "px";
+    modalAbbrechen.style.height = cellSize + "px";
     
-    modalBeenden.style.left = (cellPx * 4) + "px";
+    // Beenden: Spalte E (4) bis halbe Spalte G (6.5)
+    modalBeenden.style.left = (cellSize * 4) + "px";
     modalBeenden.style.top = row8Top + "px";
-    modalBeenden.style.width = (cellPx * 2.5) + "px";
-    modalBeenden.style.height = cellPx + "px";
+    modalBeenden.style.width = (cellSize * 2.5) + "px";
+    modalBeenden.style.height = cellSize + "px";
 
     closeBtn.onclick = () => closeModal.classList.remove("hidden");
     modalAbbrechen.onclick = () => closeModal.classList.add("hidden");

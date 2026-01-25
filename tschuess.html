@@ -23,10 +23,12 @@
 
   <style>
     :root{
-      --ui-panel-bg: #4a2418;
-      --ui-text: #ead7be;
-      --btn-bg: #ead7be;
-      --btn-text: #2a160c;
+      --cols: 8;
+      --cell: 142px;
+
+      --scale: 1;
+      --gridW: calc(var(--cols) * var(--cell));
+      --gridH: 100vh;
     }
 
     html, body{
@@ -39,99 +41,123 @@
     }
 
     body{
-      display: flex;
-      justify-content: center;
-      align-items: center;
+      display:flex;
+      justify-content:center;
+      align-items:flex-start;
     }
 
-    .container{
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 40px;
-      padding: 40px 20px;
-      animation: fadeIn 0.6s ease;
+    .stage{
+      width: 100vw;
+      height: 100vh;
+      position: relative;
+      overflow: hidden;
     }
 
-    @keyframes fadeIn{
-      from { opacity: 0; transform: translateY(20px); }
-      to { opacity: 1; transform: translateY(0); }
+    .layout{
+      position: absolute;
+      left: 50%;
+      top: 0;
+      width: var(--gridW);
+      height: var(--gridH);
+      transform-origin: top center;
+      transform: translateX(-50%) scale(var(--scale));
     }
 
-    .logoImage{
-      width: clamp(180px, 45vw, 280px);
-      height: clamp(180px, 45vw, 280px);
-      background-image: url("icon-512.png");
-      background-size: contain;
-      background-position: center;
-      background-repeat: no-repeat;
-      filter: drop-shadow(0 8px 16px rgba(0,0,0,0.6));
+    .tschuessImage{
+      position:absolute;
+      width: 1136px;
+      pointer-events:none;
     }
 
-    .message{
-      text-align: center;
-      color: var(--ui-text);
+    .buttonArea{
+      position:absolute;
+      cursor:pointer;
     }
 
-    .mainText{
-      font-size: clamp(32px, 7vw, 48px);
-      font-weight: 1000;
-      letter-spacing: 0.06em;
-      text-shadow: 
-        0 3px 0 rgba(0,0,0,0.75),
-        0 8px 20px rgba(0,0,0,0.55);
-      text-transform: uppercase;
-      margin-bottom: 16px;
+    .buttonArea a{
+      display:block;
+      width:100%;
+      height:100%;
+      text-decoration:none;
     }
 
-    .subText{
-      font-size: clamp(18px, 4.5vw, 24px);
-      font-weight: 600;
-      letter-spacing: 0.03em;
-      opacity: 0.9;
-      line-height: 1.4;
-    }
-
-    .playAgainBtn{
-      margin-top: 20px;
-      padding: 16px 48px;
-      border-radius: 14px;
-      border: 2px solid rgba(0,0,0,0.65);
-      background: rgba(234,215,190,0.96);
-      box-shadow:
-        0 10px 18px rgba(0,0,0,0.22),
-        0 0 0 1px rgba(255,255,255,0.18) inset;
-      font-size: clamp(16px, 4vw, 20px);
-      font-weight: 1000;
-      letter-spacing: 0.06em;
-      color: #7a3f2b;
-      text-shadow: 0 1px 0 rgba(255,255,255,0.35);
-      text-transform: uppercase;
-      cursor: pointer;
-      user-select: none;
-      -webkit-tap-highlight-color: transparent;
-      text-decoration: none;
-      display: inline-block;
-      transition: transform 0.1s ease, filter 0.1s ease;
-    }
-
-    .playAgainBtn:active{
-      transform: scale(0.98);
-      filter: brightness(0.98);
-    }
   </style>
 </head>
 
 <body>
-  <div class="container">
-    <div class="logoImage"></div>
-    
-    <div class="message">
-      <div class="mainText">Bis bald!</div>
-      <div class="subText">Danke fürs Spielen</div>
+  <div class="stage">
+    <div class="layout" id="layout">
+      <img src="tschuess.webp" class="tschuessImage" id="tschuessImage" alt="Bis bald">
+      <div class="buttonArea" id="buttonArea">
+        <a href="index.html"></a>
+      </div>
     </div>
-
-    <a href="index.html" class="playAgainBtn">Nochmal spielen</a>
   </div>
+
+  <script>
+
+    const HEADER_ROW_OFFSET = 2;
+
+    function numVar(name){
+      return parseFloat(
+        getComputedStyle(document.documentElement).getPropertyValue(name)
+      ) || 0;
+    }
+
+    function setScaleToFitWidth(){
+      const cols = numVar("--cols") || 8;
+      const cell = numVar("--cell") || 142;
+
+      const gridW = cols * cell;
+      const vw = window.innerWidth;
+
+      const targetW = vw * 0.94;
+      const scale = Math.min(1, targetW / gridW);
+
+      document.documentElement.style.setProperty("--scale", scale.toFixed(4));
+      document.documentElement.style.setProperty("--gridW", gridW + "px");
+
+      return { cell, scale, gridW };
+    }
+
+    function positionElements(){
+      const cellPx = numVar("--cell") || 142;
+
+      const tschuessImage = document.getElementById("tschuessImage");
+      const buttonArea = document.getElementById("buttonArea");
+
+      // Bild verankert auf 4A (Zeile 4, Spalte A=0)
+      const imageLeft = 0;
+      const imageTop = ((4 + HEADER_ROW_OFFSET - 1) * cellPx);
+      
+      tschuessImage.style.left = imageLeft + "px";
+      tschuessImage.style.top = imageTop + "px";
+
+      // Button in Zeile 9, horizontal zentriert
+      // Button ist ca. 4 Spalten breit (568px), zentriert = Spalten 2-6
+      const buttonWidth = cellPx * 4;
+      const buttonLeft = cellPx * 2; // Spalte C (2)
+      const buttonTop = ((9 + HEADER_ROW_OFFSET - 1) * cellPx);
+      
+      buttonArea.style.left = buttonLeft + "px";
+      buttonArea.style.top = buttonTop + "px";
+      buttonArea.style.width = buttonWidth + "px";
+      buttonArea.style.height = cellPx + "px";
+    }
+
+    function rebuild(){
+      const { cell, scale } = setScaleToFitWidth();
+      const vh = window.innerHeight;
+      const effective = vh / (scale || 1);
+      const rows = Math.ceil(effective / cell) + 1;
+      const gridH = rows * cell;
+      document.documentElement.style.setProperty("--gridH", gridH + "px");
+      positionElements();
+    }
+
+    window.addEventListener("load", rebuild);
+    window.addEventListener("resize", rebuild);
+
+  </script>
 </body>
 </html>

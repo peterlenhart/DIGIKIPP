@@ -4,21 +4,15 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>DigiKipp Color – Spielanleitung</title>
-  
-  <!-- Web App Manifest -->
+
   <link rel="manifest" href="manifest.json">
-  
-  <!-- Favicon -->
   <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
   <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
-  
-  <!-- iOS Meta Tags -->
+
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="DigiKipp">
   <link rel="apple-touch-icon" href="icon-192.png">
-  
-  <!-- Theme Color -->
   <meta name="theme-color" content="#4a2418">
 
   <style>
@@ -27,8 +21,8 @@
       --cell: 142px;
 
       --scale: 1;
-      --gridW: calc(var(--cols) * var(--cell));
-      --gridH: 100vh;
+      --scaledW: 1136px;      /* wird per JS gesetzt */
+      --scaledCell: 142px;    /* wird per JS gesetzt */
     }
 
     html, body{
@@ -36,51 +30,57 @@
       margin: 0;
       overflow: hidden;
       font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-      touch-action: pan-y;
       background: #000;
-    }
-
-    body{
-      display:flex;
-      justify-content:center;
-      align-items:flex-start;
+      touch-action: pan-y;
     }
 
     .stage{
       width: 100vw;
       height: 100vh;
-      position: relative;
       overflow-y: auto;
       overflow-x: hidden;
       -webkit-overflow-scrolling: touch;
+      position: relative;
+      background: #000;
     }
 
+    /* Wichtig: kein transform scale -> verhindert "schwarzer Screen" Bugs */
     .layout{
-      position: relative;
-      left: 0;
-      top: 0;
-      width: var(--gridW);
-      min-height: 100vh;
+      width: var(--scaledW);
       margin: 0 auto;
-      transform-origin: top center;
-      transform: scale(var(--scale));
+      position: relative;
     }
 
     .anleitungImage{
-      position:absolute;
-      width: 1136px;
-      pointer-events:none;
+      width: 100%;
+      height: auto;
+      display: block;           /* sorgt für echte Scroll-Höhe */
+      pointer-events: none;
     }
 
     .backButton{
-      position:fixed;
-      cursor:pointer;
+      position: fixed;          /* bleibt IMMER sichtbar */
+      z-index: 1000;
+      cursor: pointer;
       -webkit-tap-highlight-color: transparent;
       tap-highlight-color: transparent;
       outline: none;
-      z-index: 1000;
+      background: transparent;
+      border: 0;
+      padding: 0;
     }
 
+    /* optional: falls Bild nicht lädt, siehst du wenigstens was */
+    .debugHint{
+      position: fixed;
+      left: 12px;
+      bottom: 12px;
+      color: rgba(255,255,255,0.55);
+      font-size: 12px;
+      z-index: 999;
+      pointer-events:none;
+      display:none;
+    }
   </style>
 </head>
 
@@ -88,74 +88,82 @@
   <div class="stage">
     <div class="layout" id="layout">
       <img src="color_spielanleitung.webp" class="anleitungImage" id="anleitungImage" alt="Spielanleitung">
-      <div class="backButton" id="backButton"></div>
     </div>
+
+    <!-- Klickfläche für Zurück -->
+    <button class="backButton" id="backButton" aria-label="Zurück"></button>
+
+    <div class="debugHint" id="debugHint">Bild nicht geladen (Pfad/Name prüfen)</div>
   </div>
 
   <script>
-
     function numVar(name){
-      return parseFloat(
-        getComputedStyle(document.documentElement).getPropertyValue(name)
-      ) || 0;
+      return parseFloat(getComputedStyle(document.documentElement).getPropertyValue(name)) || 0;
     }
 
     function setScaleToFitWidth(){
       const cols = numVar("--cols") || 8;
       const cell = numVar("--cell") || 142;
 
-      const gridW = cols * cell;
+      const gridW = cols * cell;         // 1136
       const vw = window.innerWidth;
-
       const targetW = vw * 0.94;
+
       const scale = Math.min(1, targetW / gridW);
 
       document.documentElement.style.setProperty("--scale", scale.toFixed(4));
-      document.documentElement.style.setProperty("--gridW", gridW + "px");
+      document.documentElement.style.setProperty("--scaledW", (gridW * scale) + "px");
+      document.documentElement.style.setProperty("--scaledCell", (cell * scale) + "px");
 
       return { cell, scale, gridW };
     }
 
-    function positionElements(){
-      const cellPx = numVar("--cell") || 142;
+    function positionBackButton(){
       const scale = numVar("--scale") || 1;
+      const cellScaled = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--scaledCell")) || (142 * scale);
 
-      const anleitungImage = document.getElementById("anleitungImage");
       const backButton = document.getElementById("backButton");
 
-      // Bild verankert auf 0_1/A
-      anleitungImage.style.left = "0px";
-      anleitungImage.style.top = "0px";
-
-      // Zurück-Button: fixed position, scaled and positioned
+      // Layout ist zentriert: wir berechnen den linken Rand des Layouts im Viewport
       const vw = window.innerWidth;
       const gridW = 1136;
       const scaledGridW = gridW * scale;
       const leftOffset = (vw - scaledGridW) / 2;
-      
-      const backTop = cellPx * 0.5 * scale;
-      const backLeft = leftOffset;
-      const backSize = cellPx * scale;
-      
+
+      const backSize = cellScaled;             // 1 Zelle
+      const backTop  = cellScaled * 0.5;       // fixed: 0.5 Zelle vom VIEWPORT-Top (nicht vom Layout)
+      const backLeft = leftOffset;             // am linken Layout-Rand
+
       backButton.style.left = backLeft + "px";
-      backButton.style.top = backTop + "px";
-      backButton.style.width = backSize + "px";
+      backButton.style.top  = backTop + "px";
+      backButton.style.width  = backSize + "px";
       backButton.style.height = backSize + "px";
+      backButton.style.position = "fixed";     // sicherstellen dass es fixed bleibt
     }
 
     function rebuild(){
       setScaleToFitWidth();
-      positionElements();
+      positionBackButton();
     }
 
     window.addEventListener("load", rebuild);
     window.addEventListener("resize", rebuild);
 
-    // Zurück-Button führt zurück zu kipp-color.html (coloreingang)
+    // Bild-Ladecheck (damit du sofort siehst, wenn der Pfad/Name nicht passt)
+    const img = document.getElementById("anleitungImage");
+    const hint = document.getElementById("debugHint");
+
+    img.addEventListener("error", () => {
+      hint.style.display = "block";
+    });
+    img.addEventListener("load", () => {
+      hint.style.display = "none";
+      rebuild();
+    });
+
     document.getElementById("backButton").addEventListener("click", () => {
       window.location.href = "kipp-color.html";
     });
-
   </script>
 </body>
 </html>

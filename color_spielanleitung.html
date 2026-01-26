@@ -4,21 +4,17 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>DigiKipp Color – Spielanleitung</title>
-  
-  <!-- Web App Manifest -->
+
   <link rel="manifest" href="manifest.json">
-  
-  <!-- Favicon -->
+
   <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
   <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
-  
-  <!-- iOS Meta Tags -->
+
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="DigiKipp">
   <link rel="apple-touch-icon" href="icon-192.png">
-  
-  <!-- Theme Color -->
+
   <meta name="theme-color" content="#4a2418">
 
   <style>
@@ -28,56 +24,51 @@
 
       --scale: 1;
       --gridW: calc(var(--cols) * var(--cell));
-      --gridH: 100vh;
     }
 
     html, body{
       height: 100%;
       margin: 0;
-      overflow: hidden;
       font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-      touch-action: pan-y;
       background: #000;
-    }
-
-    body{
-      display:block;
+      overflow: hidden; /* body bleibt fix, gescrollt wird in .stage */
     }
 
     .stage{
       width: 100vw;
-      min-height: 100vh;
-      position: relative;
+      height: 100vh;              /* wichtig: klarer Scroll-Viewport */
       overflow-y: auto;
       overflow-x: hidden;
       -webkit-overflow-scrolling: touch;
+      position: relative;
     }
 
+    /* WICHTIG: nicht absolut! sonst "verliert" der Scrollcontainer die echte Höhe */
     .layout{
-      position: absolute;
-      left: 50%;
-      top: 0;
       width: var(--gridW);
-      min-height: 100vh;
+      margin: 0 auto;             /* zentriert */
       transform-origin: top center;
-      transform: translateX(-50%) scale(var(--scale));
+      transform: scale(var(--scale));
     }
 
+    /* WICHTIG: nicht absolut! sonst zählt das Bild nicht zur Höhe */
     .anleitungImage{
-      position:absolute;
       width: 1136px;
-      pointer-events:none;
+      display: block;             /* damit es Layout-Höhe erzeugt */
+      pointer-events: none;
     }
 
     .backButton{
-      position:fixed;
-      cursor:pointer;
+      position: fixed;            /* bleibt immer sichtbar */
+      cursor: pointer;
       -webkit-tap-highlight-color: transparent;
       tap-highlight-color: transparent;
       outline: none;
       z-index: 1000;
+      /* optional, falls du einen sichtbaren Test-Rahmen willst:
+      background: rgba(255,255,255,0.08);
+      */
     }
-
   </style>
 </head>
 
@@ -85,16 +76,13 @@
   <div class="stage">
     <div class="layout" id="layout">
       <img src="color_spielanleitung.webp" class="anleitungImage" id="anleitungImage" alt="Spielanleitung">
-      <div class="backButton" id="backButton"></div>
     </div>
+    <div class="backButton" id="backButton"></div>
   </div>
 
   <script>
-
     function numVar(name){
-      return parseFloat(
-        getComputedStyle(document.documentElement).getPropertyValue(name)
-      ) || 0;
+      return parseFloat(getComputedStyle(document.documentElement).getPropertyValue(name)) || 0;
     }
 
     function setScaleToFitWidth(){
@@ -113,47 +101,38 @@
       return { cell, scale, gridW };
     }
 
-    function positionElements(){
+    function positionBackButton(){
       const cellPx = numVar("--cell") || 142;
       const scale = numVar("--scale") || 1;
 
-      const anleitungImage = document.getElementById("anleitungImage");
       const backButton = document.getElementById("backButton");
 
-      // Bild verankert auf 0_1/A
-      anleitungImage.style.left = "0px";
-      anleitungImage.style.top = "0px";
-
-      // Zurück-Button: fixed position, bleibt beim Scrollen sichtbar
       const vw = window.innerWidth;
-      const gridW = 1136;
+      const gridW = 1136;                 // reale Bildbreite
       const scaledGridW = gridW * scale;
-      const leftOffset = (vw - scaledGridW) / 2; // Zentrierung des Layouts
-      
+      const leftOffset = (vw - scaledGridW) / 2;
+
       const backSize = cellPx * scale;
-      const backTop = (cellPx * 0.5) * scale;
-      const backLeft = leftOffset; // Links am Layout-Rand
-      
+      const backTop  = (cellPx * 0.5) * scale;
+      const backLeft = leftOffset;
+
       backButton.style.left = backLeft + "px";
-      backButton.style.top = backTop + "px";
-      backButton.style.width = backSize + "px";
+      backButton.style.top  = backTop + "px";
+      backButton.style.width  = backSize + "px";
       backButton.style.height = backSize + "px";
-      backButton.style.position = "fixed";
     }
 
     function rebuild(){
       setScaleToFitWidth();
-      positionElements();
+      positionBackButton();
     }
 
     window.addEventListener("load", rebuild);
     window.addEventListener("resize", rebuild);
 
-    // Zurück-Button führt zurück zu kipp-color.html (coloreingang)
     document.getElementById("backButton").addEventListener("click", () => {
       window.location.href = "kipp-color.html";
     });
-
   </script>
 </body>
 </html>

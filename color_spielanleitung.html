@@ -41,27 +41,24 @@
     }
 
     body{
-      display:flex;
-      justify-content:center;
-      align-items:flex-start;
+      display:block;
     }
 
     .stage{
       width: 100vw;
-      height: 100vh;
+      min-height: 100vh;
       position: relative;
       overflow-y: auto;
       overflow-x: hidden;
       -webkit-overflow-scrolling: touch;
+      display: flex;
+      justify-content: center;
     }
 
     .layout{
       position: relative;
-      left: 0;
-      top: 0;
       width: var(--gridW);
       min-height: 100vh;
-      margin: 0 auto;
       transform-origin: top center;
       transform: scale(var(--scale));
     }

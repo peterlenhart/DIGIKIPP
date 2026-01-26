@@ -51,16 +51,16 @@
       overflow-y: auto;
       overflow-x: hidden;
       -webkit-overflow-scrolling: touch;
-      display: flex;
-      justify-content: center;
     }
 
     .layout{
-      position: relative;
+      position: absolute;
+      left: 50%;
+      top: 0;
       width: var(--gridW);
       min-height: 100vh;
       transform-origin: top center;
-      transform: scale(var(--scale));
+      transform: translateX(-50%) scale(var(--scale));
     }
 
     .anleitungImage{
@@ -124,20 +124,21 @@
       anleitungImage.style.left = "0px";
       anleitungImage.style.top = "0px";
 
-      // Zurück-Button: fixed position, scaled and positioned
+      // Zurück-Button: fixed position, bleibt beim Scrollen sichtbar
       const vw = window.innerWidth;
       const gridW = 1136;
       const scaledGridW = gridW * scale;
-      const leftOffset = (vw - scaledGridW) / 2;
+      const leftOffset = (vw - scaledGridW) / 2; // Zentrierung des Layouts
       
-      const backTop = cellPx * 0.5 * scale;
-      const backLeft = leftOffset;
       const backSize = cellPx * scale;
+      const backTop = (cellPx * 0.5) * scale;
+      const backLeft = leftOffset; // Links am Layout-Rand
       
       backButton.style.left = backLeft + "px";
       backButton.style.top = backTop + "px";
       backButton.style.width = backSize + "px";
       backButton.style.height = backSize + "px";
+      backButton.style.position = "fixed";
     }
 
     function rebuild(){

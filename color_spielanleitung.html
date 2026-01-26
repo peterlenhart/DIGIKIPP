@@ -131,13 +131,14 @@
       const leftOffset = (vw - scaledGridW) / 2;
 
       const backSize = cellScaled;             // 1 Zelle
-      const backTop  = cellScaled * 0.5;       // wie vorher 0.5 Zelle von oben
+      const backTop  = cellScaled * 0.5;       // fixed: 0.5 Zelle vom VIEWPORT-Top (nicht vom Layout)
       const backLeft = leftOffset;             // am linken Layout-Rand
 
       backButton.style.left = backLeft + "px";
       backButton.style.top  = backTop + "px";
       backButton.style.width  = backSize + "px";
       backButton.style.height = backSize + "px";
+      backButton.style.position = "fixed";     // sicherstellen dass es fixed bleibt
     }
 
     function rebuild(){

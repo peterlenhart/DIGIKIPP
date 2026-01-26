@@ -6,7 +6,6 @@
   <title>DigiKipp Color – Spielanleitung</title>
 
   <link rel="manifest" href="manifest.json">
-
   <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
   <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
 
@@ -14,7 +13,6 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="DigiKipp">
   <link rel="apple-touch-icon" href="icon-192.png">
-
   <meta name="theme-color" content="#4a2418">
 
   <style>
@@ -23,51 +21,65 @@
       --cell: 142px;
 
       --scale: 1;
-      --gridW: calc(var(--cols) * var(--cell));
+      --scaledW: 1136px;      /* wird per JS gesetzt */
+      --scaledCell: 142px;    /* wird per JS gesetzt */
     }
 
     html, body{
       height: 100%;
       margin: 0;
+      overflow: hidden;
       font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
       background: #000;
-      overflow: hidden; /* body bleibt fix, gescrollt wird in .stage */
+      touch-action: pan-y;
     }
 
     .stage{
       width: 100vw;
-      height: 100vh;              /* wichtig: klarer Scroll-Viewport */
+      height: 100vh;
       overflow-y: auto;
       overflow-x: hidden;
       -webkit-overflow-scrolling: touch;
       position: relative;
+      background: #000;
     }
 
-    /* WICHTIG: nicht absolut! sonst "verliert" der Scrollcontainer die echte Höhe */
+    /* Wichtig: kein transform scale -> verhindert "schwarzer Screen" Bugs */
     .layout{
-      width: var(--gridW);
-      margin: 0 auto;             /* zentriert */
-      transform-origin: top center;
-      transform: scale(var(--scale));
+      width: var(--scaledW);
+      margin: 0 auto;
+      position: relative;
     }
 
-    /* WICHTIG: nicht absolut! sonst zählt das Bild nicht zur Höhe */
     .anleitungImage{
-      width: 1136px;
-      display: block;             /* damit es Layout-Höhe erzeugt */
+      width: 100%;
+      height: auto;
+      display: block;           /* sorgt für echte Scroll-Höhe */
       pointer-events: none;
     }
 
     .backButton{
-      position: fixed;            /* bleibt immer sichtbar */
+      position: fixed;          /* bleibt IMMER sichtbar */
+      z-index: 1000;
       cursor: pointer;
       -webkit-tap-highlight-color: transparent;
       tap-highlight-color: transparent;
       outline: none;
-      z-index: 1000;
-      /* optional, falls du einen sichtbaren Test-Rahmen willst:
-      background: rgba(255,255,255,0.08);
-      */
+      background: transparent;
+      border: 0;
+      padding: 0;
+    }
+
+    /* optional: falls Bild nicht lädt, siehst du wenigstens was */
+    .debugHint{
+      position: fixed;
+      left: 12px;
+      bottom: 12px;
+      color: rgba(255,255,255,0.55);
+      font-size: 12px;
+      z-index: 999;
+      pointer-events:none;
+      display:none;
     }
   </style>
 </head>
@@ -77,7 +89,11 @@
     <div class="layout" id="layout">
       <img src="color_spielanleitung.webp" class="anleitungImage" id="anleitungImage" alt="Spielanleitung">
     </div>
-    <div class="backButton" id="backButton"></div>
+
+    <!-- Klickfläche für Zurück -->
+    <button class="backButton" id="backButton" aria-label="Zurück"></button>
+
+    <div class="debugHint" id="debugHint">Bild nicht geladen (Pfad/Name prüfen)</div>
   </div>
 
   <script>
@@ -89,32 +105,34 @@
       const cols = numVar("--cols") || 8;
       const cell = numVar("--cell") || 142;
 
-      const gridW = cols * cell;
+      const gridW = cols * cell;         // 1136
       const vw = window.innerWidth;
-
       const targetW = vw * 0.94;
+
       const scale = Math.min(1, targetW / gridW);
 
       document.documentElement.style.setProperty("--scale", scale.toFixed(4));
-      document.documentElement.style.setProperty("--gridW", gridW + "px");
+      document.documentElement.style.setProperty("--scaledW", (gridW * scale) + "px");
+      document.documentElement.style.setProperty("--scaledCell", (cell * scale) + "px");
 
       return { cell, scale, gridW };
     }
 
     function positionBackButton(){
-      const cellPx = numVar("--cell") || 142;
       const scale = numVar("--scale") || 1;
+      const cellScaled = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--scaledCell")) || (142 * scale);
 
       const backButton = document.getElementById("backButton");
 
+      // Layout ist zentriert: wir berechnen den linken Rand des Layouts im Viewport
       const vw = window.innerWidth;
-      const gridW = 1136;                 // reale Bildbreite
+      const gridW = 1136;
       const scaledGridW = gridW * scale;
       const leftOffset = (vw - scaledGridW) / 2;
 
-      const backSize = cellPx * scale;
-      const backTop  = (cellPx * 0.5) * scale;
-      const backLeft = leftOffset;
+      const backSize = cellScaled;             // 1 Zelle
+      const backTop  = cellScaled * 0.5;       // wie vorher 0.5 Zelle von oben
+      const backLeft = leftOffset;             // am linken Layout-Rand
 
       backButton.style.left = backLeft + "px";
       backButton.style.top  = backTop + "px";
@@ -129,6 +147,18 @@
 
     window.addEventListener("load", rebuild);
     window.addEventListener("resize", rebuild);
+
+    // Bild-Ladecheck (damit du sofort siehst, wenn der Pfad/Name nicht passt)
+    const img = document.getElementById("anleitungImage");
+    const hint = document.getElementById("debugHint");
+
+    img.addEventListener("error", () => {
+      hint.style.display = "block";
+    });
+    img.addEventListener("load", () => {
+      hint.style.display = "none";
+      rebuild();
+    });
 
     document.getElementById("backButton").addEventListener("click", () => {
       window.location.href = "kipp-color.html";

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>DigiKipp – Schauen & Merken (Smooth)</title>
+  <title>DigiKipp – Schauen & Merken</title>
   
   <!-- Web App Manifest -->
   <link rel="manifest" href="manifest.json">
@@ -174,7 +174,7 @@
       z-index: 2;
       pointer-events: none;
       opacity: 0;
-      transition: opacity 0.18s ease-in-out;
+      transition: opacity 0.15s ease;
 
       --pivot-x: calc(4 * var(--cell));
       --pivot-y: calc((4 + 2) * var(--cell));
@@ -254,7 +254,7 @@
       background-repeat: no-repeat;
       background-position: 0 0;
       opacity: 0;
-      transition: opacity 0.15s ease-in-out;
+      transition: opacity 0.1s ease;
     }
     .zwischenKippSchatten.visible{ opacity: 1; }
 
@@ -282,15 +282,6 @@
         rotate(var(--rot))
         translate(calc(-1 * var(--pivot-x)), calc(-1 * var(--pivot-y)));
       transform-origin: 0 0;
-      
-      /* SMOOTH TRANSITIONS - nur opacity, rotation instant */
-      opacity: 1;
-      transition: opacity 0.12s ease-in-out;
-    }
-    
-    .wFaceGroup.hidden,
-    .kipGroup.hidden{
-      opacity: 0;
     }
 
     .cubeFace{
@@ -590,10 +581,7 @@
     .k-2f{ left: calc(5 * var(--cell)); top: calc((1 + 2) * var(--cell)); }
     .k-2g{ left: calc(6 * var(--cell)); top: calc((1 + 2) * var(--cell)); }
 
-    .hidden{ 
-      opacity: 0 !important;
-      pointer-events: none !important;
-    }
+    .hidden{ display:none !important; }
 
     /* Laufende Score-Anzeige im Spiel (oben im Kopfbereich) */
     .scoreRun{
@@ -1558,7 +1546,6 @@
       const kipFactor = (opts && opts.kipFactor) ? opts.kipFactor : 1;
       const myToken = ++previewToken;
 
-      // W-Ansicht zeigen (CSS Transitions sorgen für smooth fade)
       showW();
       renderW();
       if(!await waitOrPause("w", myToken, 1)){ runningKipp=false; return; }
@@ -1569,13 +1556,11 @@
         const tStep = (totalSteps <= 1) ? 0 : (i / (totalSteps - 1));
         const stepMul = lerp(1.0, STEP_MAX, tStep);
 
-        // Kipp-Ansicht zeigen (smooth fade via CSS)
         showKip();
         renderKip();
         if(!await waitOrPause("kip", myToken, kipFactor * stepMul)){ runningKipp=false; return; }
 
         advanceFullCW();
-        // Zurück zu W-Ansicht (smooth fade via CSS)
         showW();
         renderW();
         if(!await waitOrPause("w", myToken, stepMul)){ runningKipp=false; return; }

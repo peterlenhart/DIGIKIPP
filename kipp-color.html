@@ -735,10 +735,162 @@
       -webkit-tap-highlight-color: transparent;
       pointer-events: auto;
     }
+  
+    /* ========== 3D TOGGLE BUTTON (LINKS OBEN) ========== */
+    #toggle3DBtn {
+      position: fixed;
+      top: calc(1.0 * var(--cell));
+      left: calc(0.5 * var(--cell));
+      width: calc(var(--cell) * 0.7);
+      height: calc(var(--cell) * 0.7);
+      background: linear-gradient(180deg, #ffffff 0%, #f0f0f0 50%, #e0e0e0 100%);
+      border: 2px solid #c0c0c0;
+      border-radius: 50%;
+      font-size: calc(var(--cell) * 0.4);
+      font-weight: bold;
+      cursor: pointer;
+      z-index: 10000;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+      pointer-events: auto;
+      transform: translate(-50%, -50%);
+    }
+
+    #toggle3DBtn:hover {
+      transform: translate(-50%, -50%) scale(1.05);
+      box-shadow: 0 6px 12px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.9);
+    }
+
+    #toggle3DBtn:active {
+      transform: translate(-50%, -50%) scale(0.95);
+      background: linear-gradient(180deg, #f0f0f0 0%, #e0e0e0 50%, #d0d0d0 100%);
+    }
+
+    #toggle3DBtn.active {
+      background: linear-gradient(180deg, #ffdd00 0%, #ffcc00 50%, #ffbb00 100%);
+      border-color: #cc9900;
+    }
+
+    /* ========== 3D OVERLAY CONTAINER ========== */
+    #overlay3D {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0,0,0,0.95);
+      z-index: 9999;
+      display: none;
+      justify-content: center;
+      align-items: center;
+    }
+
+    #overlay3D.active {
+      display: flex;
+    }
+
+    #container3D {
+      position: relative;
+      width: 360px;
+      height: 720px;
+    }
+
+    #container3D canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+    }
+
+    #ui3DOverlay {
+      position: absolute;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 360px;
+      height: 100%;
+      pointer-events: none;
+      z-index: 100;
+    }
+
+    #hint3DText {
+      position: absolute;
+      top: 380px;
+      left: 180px;
+      transform: translateX(-50%);
+      text-align: center;
+      font-size: 24px;
+      font-weight: bold;
+      background: linear-gradient(180deg, #ffffff 0%, #f0f0f0 50%, #e0e0e0 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.8), 0 0 10px rgba(255,255,255,0.5);
+      filter: drop-shadow(0 1px 2px rgba(0,0,0,0.5));
+      pointer-events: none;
+      white-space: nowrap;
+    }
+
+    #countdown3D {
+      position: absolute;
+      top: 430px;
+      left: 180px;
+      transform: translateX(-50%);
+      font-size: 50px;
+      font-weight: bold;
+      background: linear-gradient(180deg, #ffffff 0%, #f0f0f0 50%, #e0e0e0 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.8), 0 0 10px rgba(255,255,255,0.5);
+      filter: drop-shadow(0 1px 2px rgba(0,0,0,0.5));
+      pointer-events: none;
+      display: none;
+    }
+
+    #action3DButton {
+      position: absolute;
+      top: 515px;
+      left: 180px;
+      transform: translateX(-50%);
+      padding: 8px 20px;
+      background: linear-gradient(180deg, #ffffff 0%, #f0f0f0 50%, #e0e0e0 100%);
+      border: 1px solid #c0c0c0;
+      border-radius: 6px;
+      font-size: 16px;
+      font-weight: bold;
+      color: #2a1810;
+      cursor: pointer;
+      pointer-events: auto;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.8);
+      white-space: nowrap;
+    }
+
+    #action3DButton:active {
+      transform: translateX(-50%) scale(0.95);
+      background: linear-gradient(180deg, #f0f0f0 0%, #e0e0e0 50%, #d0d0d0 100%);
+    }
+
   </style>
 </head>
 
 <body>
+  <!-- 3D TOGGLE BUTTON -->
+  <button id="toggle3DBtn" title="3D Modus umschalten">🎲</button>
+
+  <!-- 3D OVERLAY -->
+  <div id="overlay3D">
+    <div id="container3D"></div>
+    <div id="ui3DOverlay">
+      <div id="hint3DText">KIPPE UND MERKE!</div>
+      <div id="countdown3D">60</div>
+      <button id="action3DButton">weiter</button>
+    </div>
+  </div>
+
+
   <div class="stage" id="stage">
     <div class="layout" id="layout">
       <!-- Intro Overlay INNERHALB layout -->
@@ -878,8 +1030,280 @@
     </div>
   </div>
 
-  <script>
-    const colorsEl = document.getElementById("colors");
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  
+    // ========== 3D INTEGRATION ========== 
+    let is3DModeEnabled = false;
+    let scene3D, camera3D, renderer3D, kipGroup3D, cube3D;
+    let game3DPhase = 'ready';
+    let countdown3DTimer = null;
+    let isAnimating3D = false;
+    let currentQuadrant3D = 3;
+
+    const toggle3DBtn = document.getElementById('toggle3DBtn');
+    const overlay3D = document.getElementById('overlay3D');
+
+    toggle3DBtn.addEventListener('click', () => {
+      is3DModeEnabled = !is3DModeEnabled;
+      if (is3DModeEnabled) {
+        toggle3DBtn.classList.add('active');
+        console.log('3D Modus AKTIVIERT');
+      } else {
+        toggle3DBtn.classList.remove('active');
+        console.log('3D Modus DEAKTIVIERT');
+      }
+    });
+
+    function init3DScene() {
+      const container = document.getElementById('container3D');
+      scene3D = new THREE.Scene();
+      scene3D.background = new THREE.Color(0x1c1c1e);
+      camera3D = new THREE.PerspectiveCamera(50, 360 / 720, 0.01, 100);
+      const baseY = 2.143, verticalAngle = -1.0, horizontal = 0, radius = 1.6;
+      camera3D.position.set(0 + Math.sin(horizontal) * 0.5, baseY + radius * Math.sin(-verticalAngle), radius * Math.cos(verticalAngle) + Math.cos(horizontal) * 0.3);
+      const lookAtBlend = Math.max(0, Math.min(1, (verticalAngle + 0.7) / 0.4));
+      const lookAtY = 0.234375 + (0.46875 - 0.234375) * (1 - lookAtBlend);
+      const lookAtZ = 0.7 + (0.421875 - 0.7) * lookAtBlend;
+      camera3D.lookAt(0, lookAtY, lookAtZ);
+      renderer3D = new THREE.WebGLRenderer({ antialias: true });
+      renderer3D.setSize(360, 720);
+      renderer3D.setPixelRatio(window.devicePixelRatio);
+      renderer3D.shadowMap.enabled = true;
+      renderer3D.shadowMap.type = THREE.PCFSoftShadowMap;
+      container.appendChild(renderer3D.domElement);
+      const ambientLight = new THREE.AmbientLight(0xffffff, 0.3);
+      scene3D.add(ambientLight);
+      const mainLight = new THREE.DirectionalLight(0xffffff, 1.0);
+      mainLight.position.set(-0.15625, 8.708, -0.46875);
+      mainLight.castShadow = true;
+      mainLight.shadow.mapSize.width = 2048;
+      mainLight.shadow.mapSize.height = 2048;
+      mainLight.shadow.camera.near = 0.1;
+      mainLight.shadow.camera.far = 20;
+      mainLight.shadow.camera.left = -3;
+      mainLight.shadow.camera.right = 3;
+      mainLight.shadow.camera.top = 3;
+      mainLight.shadow.camera.bottom = -3;
+      scene3D.add(mainLight);
+      const fillLight = new THREE.DirectionalLight(0xffffff, 0.2);
+      fillLight.position.set(1, 3, 1);
+      scene3D.add(fillLight);
+      const tableGeometry = new THREE.PlaneGeometry(5, 5);
+      const tableMaterial = new THREE.MeshStandardMaterial({ color: 0x2a1810, roughness: 0.8, metalness: 0.1 });
+      const table = new THREE.Mesh(tableGeometry, tableMaterial);
+      table.rotation.x = -Math.PI / 2;
+      table.position.y = 0;
+      table.receiveShadow = true;
+      scene3D.add(table);
+      const gridSize = 16 * 0.15625, gridDivisions = 16;
+      const gridHelper = new THREE.GridHelper(gridSize, gridDivisions, 0xff8800, 0xff8800);
+      gridHelper.position.y = 0.001;
+      gridHelper.position.z = 0.421875;
+      gridHelper.material.opacity = 0.3;
+      gridHelper.material.transparent = true;
+      scene3D.add(gridHelper);
+      const gridHelper2 = new THREE.GridHelper(gridSize, gridDivisions, 0xffffff, 0x888888);
+      gridHelper2.position.y = 0.46875;
+      gridHelper2.position.z = 0.421875;
+      gridHelper2.material.opacity = 0.3;
+      gridHelper2.material.transparent = true;
+      scene3D.add(gridHelper2);
+      const axesMaterialPi1 = new THREE.LineBasicMaterial({ color: 0xff8800, linewidth: 2, opacity: 0.9, transparent: true });
+      const axesMaterial = new THREE.LineBasicMaterial({ color: 0xffffff, linewidth: 2, opacity: 0.9, transparent: true });
+      const xAxisGeometry1 = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(-2.5, 0.002, 0.109375), new THREE.Vector3(2.5, 0.002, 0.109375)]);
+      const xAxis1 = new THREE.Line(xAxisGeometry1, axesMaterialPi1);
+      scene3D.add(xAxis1);
+      const zAxisGeometry1 = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0, 0.002, -2.5), new THREE.Vector3(0, 0.002, 2.5)]);
+      const zAxis1 = new THREE.Line(zAxisGeometry1, axesMaterialPi1);
+      scene3D.add(zAxis1);
+      const xAxisGeometry2 = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(-2.5, 0.46875, 0.109375), new THREE.Vector3(2.5, 0.46875, 0.109375)]);
+      const xAxis2 = new THREE.Line(xAxisGeometry2, axesMaterial);
+      scene3D.add(xAxis2);
+      const zAxisGeometry2 = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0, 0.46875, -2.5), new THREE.Vector3(0, 0.46875, 2.5)]);
+      const zAxis2 = new THREE.Line(zAxisGeometry2, axesMaterial);
+      scene3D.add(zAxis2);
+      const wallGeometry = new THREE.BoxGeometry(0.9375, 0.46875, 0.0335);
+      const wallMaterial = new THREE.MeshStandardMaterial({ color: 0xc0c0c0, metalness: 0.7, roughness: 0.3 });
+      const wall = new THREE.Mesh(wallGeometry, wallMaterial);
+      wall.position.set(0, 0.234375, 0.597125);
+      wall.castShadow = true;
+      wall.receiveShadow = true;
+      scene3D.add(wall);
+      const wall2 = new THREE.Mesh(wallGeometry, wallMaterial);
+      wall2.position.set(0, 0.234375, -0.376125);
+      wall2.castShadow = true;
+      wall2.receiveShadow = true;
+      scene3D.add(wall2);
+      const sideWallGeometry = new THREE.BoxGeometry(0.0335, 0.46875, 1.00675);
+      const wallLeft = new THREE.Mesh(sideWallGeometry, wallMaterial);
+      wallLeft.position.set(-0.48550, 0.234375, 0.1105);
+      wallLeft.castShadow = true;
+      wallLeft.receiveShadow = true;
+      scene3D.add(wallLeft);
+      const wallRight = new THREE.Mesh(sideWallGeometry, wallMaterial);
+      wallRight.position.set(0.48550, 0.234375, 0.1105);
+      wallRight.castShadow = true;
+      wallRight.receiveShadow = true;
+      scene3D.add(wallRight);
+      const cubeSize = 0.46875, offset = cubeSize / 2;
+      const cubeGeometry = new THREE.BoxGeometry(cubeSize, cubeSize, cubeSize);
+      const cubeMaterial = new THREE.MeshStandardMaterial({ color: 0xff0000, metalness: 0.3, roughness: 0.7 });
+      kipGroup3D = new THREE.Group();
+      kipGroup3D.visible = true;
+      scene3D.add(kipGroup3D);
+      cube3D = new THREE.Mesh(cubeGeometry, cubeMaterial);
+      cube3D.position.set(-offset, offset, 0.109375 + offset);
+      cube3D.castShadow = true;
+      cube3D.receiveShadow = true;
+      kipGroup3D.add(cube3D);
+      const edgeGeometry = new THREE.CylinderGeometry(0.008, 0.008, cubeSize, 8);
+      const edgeMaterial = new THREE.MeshStandardMaterial({ color: 0x00ff00, metalness: 0.5, roughness: 0.3, emissive: 0x00ff00, emissiveIntensity: 0.3 });
+      const upperEastEdge = new THREE.Mesh(edgeGeometry, edgeMaterial);
+      upperEastEdge.rotation.x = Math.PI / 2;
+      upperEastEdge.position.set(0, 0.46875, 0.109375 + cubeSize / 2);
+      kipGroup3D.add(upperEastEdge);
+      console.log('3D Szene initialisiert');
+    }
+
+    function animate3D() {
+      if (overlay3D.classList.contains('active')) {
+        requestAnimationFrame(animate3D);
+        renderer3D.render(scene3D, camera3D);
+      }
+    }
+
+    function start3DKippPhase() {
+      game3DPhase = 'kippen';
+      overlay3D.classList.add('active');
+      if (!renderer3D) init3DScene();
+      startCountdown3D(() => finish3DKippPhase());
+      enable3DSwipeControls();
+      animate3D();
+      console.log('3D Kipp-Phase gestartet');
+    }
+
+    function finish3DKippPhase() {
+      game3DPhase = 'done';
+      stopCountdown3D();
+      overlay3D.classList.remove('active');
+      console.log('3D Kipp-Phase beendet');
+      showTargetSelectView();
+    }
+
+    function startCountdown3D(onFinish) {
+      const countdown3D = document.getElementById('countdown3D');
+      let timeLeft = 60;
+      countdown3D.textContent = timeLeft;
+      countdown3D.style.display = 'block';
+      countdown3DTimer = setInterval(() => {
+        timeLeft--;
+        countdown3D.textContent = timeLeft;
+        if (timeLeft <= 0) {
+          stopCountdown3D();
+          if (onFinish) onFinish();
+        }
+      }, 1000);
+    }
+
+    function stopCountdown3D() {
+      if (countdown3DTimer) {
+        clearInterval(countdown3DTimer);
+        countdown3DTimer = null;
+      }
+      document.getElementById('countdown3D').style.display = 'none';
+    }
+
+    document.getElementById('action3DButton').addEventListener('click', () => {
+      if (game3DPhase === 'kippen') finish3DKippPhase();
+    });
+
+    function enable3DSwipeControls() {
+      let isSwiping = false, swipeStartX = 0, swipeStartY = 0;
+      const canvas = renderer3D.domElement;
+      canvas.addEventListener('touchstart', (e) => {
+        if (game3DPhase === 'kippen' && !isAnimating3D) {
+          e.preventDefault();
+          const touch = e.touches[0];
+          swipeStartX = touch.clientX;
+          swipeStartY = touch.clientY;
+          isSwiping = true;
+        }
+      });
+      canvas.addEventListener('touchmove', (e) => {
+        if (game3DPhase === 'kippen' && isSwiping && !isAnimating3D) {
+          e.preventDefault();
+          const touch = e.touches[0];
+          const deltaX = touch.clientX - swipeStartX;
+          const deltaY = touch.clientY - swipeStartY;
+          if (Math.abs(deltaY) > Math.abs(deltaX) && Math.abs(deltaY) > 30) {
+            if (deltaY < 0 && currentQuadrant3D === 3) { isSwiping = false; performKipp3D('north'); }
+            else if (deltaY > 0 && currentQuadrant3D === 0) { isSwiping = false; performKipp3D('south'); }
+            else if (deltaY > 0 && currentQuadrant3D === 1) { isSwiping = false; performKipp3D('south_from_q1'); }
+            else if (deltaY < 0 && currentQuadrant3D === 2) { isSwiping = false; performKipp3D('north_from_q2'); }
+          } else if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 30) {
+            if (deltaX > 0 && currentQuadrant3D === 0) { isSwiping = false; performKipp3D('east'); }
+            else if (deltaX < 0 && currentQuadrant3D === 1) { isSwiping = false; performKipp3D('west'); }
+            else if (deltaX < 0 && currentQuadrant3D === 2) { isSwiping = false; performKipp3D('west_from_q2'); }
+            else if (deltaX > 0 && currentQuadrant3D === 3) { isSwiping = false; performKipp3D('east_from_q3'); }
+          }
+        }
+      });
+      canvas.addEventListener('touchend', () => { isSwiping = false; });
+    }
+
+    async function performKipp3D(direction) {
+      if (isAnimating3D) return;
+      isAnimating3D = true;
+      const cubeSize = 0.46875, offset = cubeSize / 2;
+      let pivotPoint, axis, targetRotation, toQ;
+      if (direction === 'north') { pivotPoint = new THREE.Vector3(-0.234375, 0, 0.109375); axis = 'x'; targetRotation = -Math.PI / 2; toQ = 0; }
+      else if (direction === 'south') { pivotPoint = new THREE.Vector3(-0.234375, 0, 0.109375); axis = 'x'; targetRotation = Math.PI / 2; toQ = 3; }
+      else if (direction === 'east') { pivotPoint = new THREE.Vector3(0, 0, 0.109375 + 0.234375); axis = 'z'; targetRotation = -Math.PI / 2; toQ = 1; }
+      else if (direction === 'west') { pivotPoint = new THREE.Vector3(0, 0, 0.109375 + 0.234375); axis = 'z'; targetRotation = Math.PI / 2; toQ = 0; }
+      else if (direction === 'south_from_q1') { pivotPoint = new THREE.Vector3(0.234375, 0, 0.109375); axis = 'x'; targetRotation = Math.PI / 2; toQ = 2; }
+      else if (direction === 'north_from_q2') { pivotPoint = new THREE.Vector3(0.234375, 0, 0.109375); axis = 'x'; targetRotation = -Math.PI / 2; toQ = 1; }
+      else if (direction === 'west_from_q2') { pivotPoint = new THREE.Vector3(0, 0, 0.109375 + 0.234375); axis = 'z'; targetRotation = Math.PI / 2; toQ = 3; }
+      else if (direction === 'east_from_q3') { pivotPoint = new THREE.Vector3(0, 0, 0.109375 + 0.234375); axis = 'z'; targetRotation = -Math.PI / 2; toQ = 2; }
+      const pivotGroup = new THREE.Group();
+      pivotGroup.position.copy(pivotPoint);
+      kipGroup3D.add(pivotGroup);
+      cube3D.updateMatrixWorld();
+      const cubeWorldPos = new THREE.Vector3();
+      cube3D.getWorldPosition(cubeWorldPos);
+      kipGroup3D.remove(cube3D);
+      const relativePos = cubeWorldPos.clone().sub(pivotPoint);
+      cube3D.position.copy(relativePos);
+      pivotGroup.add(cube3D);
+      const duration = 800, startTime = Date.now();
+      return new Promise((resolve) => {
+        function animateKipp() {
+          const elapsed = Date.now() - startTime;
+          const progress = Math.min(elapsed / duration, 1);
+          const eased = progress < 0.5 ? 2 * progress * progress : 1 - Math.pow(-2 * progress + 2, 2) / 2;
+          if (axis === 'x') pivotGroup.rotation.x = eased * targetRotation;
+          else pivotGroup.rotation.z = eased * targetRotation;
+          if (progress < 1) requestAnimationFrame(animateKipp);
+          else finalizeKipp3D(toQ, pivotGroup, resolve);
+        }
+        animateKipp();
+      });
+    }
+
+    function finalizeKipp3D(newQ, pivotGroup, callback) {
+      cube3D.updateMatrixWorld();
+      const newWorldPos = new THREE.Vector3();
+      cube3D.getWorldPosition(newWorldPos);
+      if (pivotGroup && pivotGroup.parent) pivotGroup.parent.remove(pivotGroup);
+      cube3D.position.copy(newWorldPos);
+      cube3D.rotation.set(0, 0, 0);
+      kipGroup3D.add(cube3D);
+      currentQuadrant3D = newQ;
+      isAnimating3D = false;
+      if (callback) callback();
+    }
+
+    // ========== 2D CODE BEGINNT HIER ========== 
+const colorsEl = document.getElementById("colors");
 
     const btnSchauen     = document.getElementById("btnSchauen");
     const btnSchauenPulse= document.getElementById("btnSchauenPulse");
@@ -1852,9 +2276,13 @@
       resetTargetPadUI();
       clearHitPulse();
 
-      await runSchauKippSequence(4, { kipFactor: 2 });
-
-      showTargetSelectView();
+      // GEÄNDERT: 3D oder 2D Modus
+      if (is3DModeEnabled) {
+        start3DKippPhase(); // Startet 3D Overlay - "KIPPE & MERKE!"
+      } else {
+        await runSchauKippSequence(4, { kipFactor: 2 }); // Original 2D Schaukipp-Runde
+        showTargetSelectView();
+      }
     });
 
     btnErgebnis.addEventListener("click", () => {
